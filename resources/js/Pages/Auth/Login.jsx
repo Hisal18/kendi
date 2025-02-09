@@ -26,9 +26,9 @@ export default function Login({ status, canResetPassword }) {
         <GuestLayout>
             <Head title="Log in" />
 
-            <div className="flex flex-col items-center dark:bg-gray-800">
-                <ApplicationLogo className="block h-40 w-auto fill-current text-gray-800" />
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+            <div className="flex flex-col items-center">
+                <ApplicationLogo className="block h-40 w-auto fill-current text-gray-900 dark:text-white" />
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                     Kendaraan Dinas
                 </h1>
 
@@ -40,13 +40,13 @@ export default function Login({ status, canResetPassword }) {
 
                 <form
                     onSubmit={submit}
-                    className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-xl"
+                    className="w-full max-w-md p-8"
                 >
                     <div>
                         <InputLabel
                             htmlFor="email"
                             value="Email"
-                            className="text-gray-700 dark:text-gray-300"
+                            className="text-gray-900 dark:text-white"
                         />
 
                         <TextInput
@@ -54,7 +54,7 @@ export default function Login({ status, canResetPassword }) {
                             type="email"
                             name="email"
                             value={data.email}
-                            className="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
+                            className="mt-1 block w-full rounded-lg bg-[#efefef] border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                             autoComplete="username"
                             isFocused={true}
                             onChange={(e) => setData("email", e.target.value)}
@@ -67,7 +67,7 @@ export default function Login({ status, canResetPassword }) {
                         <InputLabel
                             htmlFor="password"
                             value="Password"
-                            className="text-gray-700 dark:text-gray-300"
+                            className="text-gray-900 dark:text-white"
                         />
 
                         <TextInput
@@ -75,7 +75,7 @@ export default function Login({ status, canResetPassword }) {
                             type="password"
                             name="password"
                             value={data.password}
-                            className="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
+                            className="mt-1 block w-full rounded-lg bg-[#efefef] border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                             autoComplete="current-password"
                             onChange={(e) =>
                                 setData("password", e.target.value)
@@ -96,9 +96,9 @@ export default function Login({ status, canResetPassword }) {
                                 onChange={(e) =>
                                     setData("remember", e.target.checked)
                                 }
-                                className="h-5 w-5 rounded-md border-2 border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 transition-colors duration-200 ease-in-out hover:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                                className="h-5 w-5 rounded-md bg-[#efefef] border-2 border-gray-300 dark:border-gray-700 text-blue-600 dark:text-blue-400 transition-colors duration-200 ease-in-out hover:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                             />
-                            <span className="ms-2 text-sm text-gray-600 dark:text-gray-400">
+                            <span className="ms-2 text-sm text-gray-700 dark:text-gray-300">
                                 Remember me
                             </span>
                         </label>
@@ -106,7 +106,7 @@ export default function Login({ status, canResetPassword }) {
                         {canResetPassword && (
                             <Link
                                 href={route("password.request")}
-                                className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline"
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
                             >
                                 Lupa password?
                             </Link>
@@ -114,17 +114,17 @@ export default function Login({ status, canResetPassword }) {
                     </div>
 
                     <PrimaryButton
-                        className="mt-6 w-full justify-center py-3 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-400"
+                        className="mt-6 w-full justify-center py-3 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400"
                         disabled={processing}
                     >
                         Masuk
                     </PrimaryButton>
 
-                    <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
                         Belum punya akun?{" "}
                         <Link
                             href={route("register")}
-                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
                         >
                             Daftar disini
                         </Link>

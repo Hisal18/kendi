@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import DashboardLayout from "../../Layouts/DashboardLayout";
 import {
     Chart as ChartJS,
@@ -12,6 +12,7 @@ import {
     BarElement,
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
+import { Head, usePage } from "@inertiajs/react";
 
 // Registrasi ChartJS components
 ChartJS.register(
@@ -25,21 +26,11 @@ ChartJS.register(
     Legend
 );
 
-const Dashboard = () => {
-    const [darkMode, setDarkMode] = React.useState(
-        document.documentElement.classList.contains("dark")
+export default function Dashboard() {
+    const { auth } = usePage().props;
+    const [isDarkMode, setIsDarkMode] = useState(
+        localStorage.getItem("darkMode") === "true"
     );
-
-    const toggleDarkMode = () => {
-        if (darkMode) {
-            document.documentElement.classList.remove("dark");
-            localStorage.theme = "light";
-        } else {
-            document.documentElement.classList.add("dark");
-            localStorage.theme = "dark";
-        }
-        setDarkMode(!darkMode);
-    };
 
     // Konfigurasi untuk Line Chart
     const lineChartData = {
@@ -61,35 +52,35 @@ const Dashboard = () => {
             legend: {
                 position: "top",
                 labels: {
-                    color: darkMode ? "#fff" : "#000",
+                    color: isDarkMode ? "#fff" : "#000",
                 },
             },
             title: {
                 display: true,
                 text: "Statistik Penggunaan Kendaraan (KM)",
-                color: darkMode ? "#fff" : "#000",
+                color: isDarkMode ? "#fff" : "#000",
             },
         },
         scales: {
             y: {
                 beginAtZero: true,
                 grid: {
-                    color: darkMode
+                    color: isDarkMode
                         ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.1)",
                 },
                 ticks: {
-                    color: darkMode ? "#fff" : "#000",
+                    color: isDarkMode ? "#fff" : "#000",
                 },
             },
             x: {
                 grid: {
-                    color: darkMode
+                    color: isDarkMode
                         ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.1)",
                 },
                 ticks: {
-                    color: darkMode ? "#fff" : "#000",
+                    color: isDarkMode ? "#fff" : "#000",
                 },
             },
         },
@@ -120,71 +111,44 @@ const Dashboard = () => {
             legend: {
                 position: "top",
                 labels: {
-                    color: darkMode ? "#fff" : "#000",
+                    color: isDarkMode ? "#fff" : "#000",
                 },
             },
             title: {
                 display: true,
                 text: "Frekuensi Penggunaan Kendaraan",
-                color: darkMode ? "#fff" : "#000",
+                color: isDarkMode ? "#fff" : "#000",
             },
         },
         scales: {
             y: {
                 beginAtZero: true,
                 grid: {
-                    color: darkMode
+                    color: isDarkMode
                         ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.1)",
                 },
                 ticks: {
-                    color: darkMode ? "#fff" : "#000",
+                    color: isDarkMode ? "#fff" : "#000",
                 },
             },
             x: {
                 grid: {
-                    color: darkMode
+                    color: isDarkMode
                         ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.1)",
                 },
                 ticks: {
-                    color: darkMode ? "#fff" : "#000",
+                    color: isDarkMode ? "#fff" : "#000",
                 },
             },
         },
     };
 
     return (
-        <DashboardLayout>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold p-0 bg-gradient-to-r from-indigo-600 to-blue-500 text-transparent bg-clip-text animate-slide ml-14 lg:ml-0">
-                    Dashboard
-                </h1>
-                <div className="flex items-center space-x-4">
-                    <div className="flex ml-4 items-center">
-                        <button
-                            onClick={toggleDarkMode}
-                            className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-500 dark:bg-gray-700 transition-colors duration-300"
-                        >
-                            <span
-                                className={`${
-                                    darkMode ? "translate-x-6" : "translate-x-1"
-                                } inline-block h-4 w-4 transform rounded-full bg-[#FAF9F6] transition-transform duration-300`}
-                            />
-                        </button>
-                        <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
-                            {darkMode ? "🌙" : "☀️"}
-                        </span>
-                    </div>
-                    <div className="bg-[#FAF9F6] dark:bg-gray-800 px-4 py-2 rounded-lg shadow-md">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                            Selamat datang,
-                        </span>
-                        <span className="ml-2 font-medium">Admin</span>
-                    </div>
-                </div>
-            </div>
-
+        <>
+        <Head title="Dashboard"/>
+        <DashboardLayout auth={auth}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 mx-4 lg:mx-0">
                 <div className="bg-[#FAF9F6] dark:bg-gray-800 p-6 rounded-lg shadow-md">
                     <div className="flex items-center justify-between">
@@ -380,7 +344,6 @@ const Dashboard = () => {
                 </div>
             </div>
         </DashboardLayout>
+        </>
     );
 };
-
-export default Dashboard;

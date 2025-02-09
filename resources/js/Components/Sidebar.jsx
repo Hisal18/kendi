@@ -2,14 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import {
     HiOutlineMenu,
+    HiOutlineTruck,
     HiOutlineHome,
     HiOutlineUsers,
     HiOutlineCog,
+    HiOutlineLogout
 } from "react-icons/hi";
 import ApplicationLogo from "./ApplicationLogo";
 
-const Sidebar = () => {
+export default function Sidebar() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isKendaraanOpen, setIsKendaraanOpen] = useState(false);
     const { url } = usePage();
     const sidebarRef = useRef();
 
@@ -63,7 +66,7 @@ const Sidebar = () => {
 
                     <nav className="space-y-1">
                         <Link
-                            href="/dashboard"
+                            href={route('dashboard.index')}
                             className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
                                 url === "/dashboard"
                                     ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
@@ -79,10 +82,68 @@ const Sidebar = () => {
                             />
                             Dashboard
                         </Link>
+                        <div>
+                            <button
+                                onClick={() => setIsKendaraanOpen(!isKendaraanOpen)}
+                                className={`w-full flex items-center justify-between py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
+                                    url.startsWith("/kendaraan")
+                                        ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
+                                        : ""
+                                }`}
+                            >
+                                <div className="flex items-center">
+                                    <HiOutlineTruck
+                                        className={`w-5 h-5 mr-3 transition-colors ${
+                                            url.startsWith("/kendaraan")
+                                                ? "text-indigo-600 dark:text-indigo-400"
+                                                : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                                        }`}
+                                    />
+                                    Kendaraan
+                                </div>
+                                <svg
+                                    className={`w-4 h-4 transition-transform ${isKendaraanOpen ? 'rotate-180' : ''}`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div
+                                className={`pl-12 mt-1 space-y-1 overflow-hidden transition-all duration-300 ease-in-out ${
+                                    isKendaraanOpen
+                                        ? 'max-h-[500px] opacity-100'
+                                        : 'max-h-0 opacity-0'
+                                }`}
+                            >
+                                <Link
+                                    // href={route('kendaraan.index')}
+                                    className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
+                                        url === "/kendaraan"
+                                            ? "text-indigo-600 dark:text-indigo-400 font-medium"
+                                            : "text-gray-600 dark:text-gray-400"
+                                    }`}
+                                >
+                                    Daftar Kendaraan
+                                </Link>
+                                <Link
+                                    // href={route('kendaraan.create')}
+                                    className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
+                                        url === "/kendaraan/create"
+                                            ? "text-indigo-600 dark:text-indigo-400 font-medium"
+                                            : "text-gray-600 dark:text-gray-400"
+                                    }`}
+                                >
+                                    Tambah Kendaraan
+                                </Link>
+                            </div>
+                        </div>
                         <Link
-                            href="/users"
+                            href={route('user.index')}
                             className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                url === "/users"
+                                url === "/user"
                                     ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
                                     : ""
                             }`}
@@ -113,11 +174,20 @@ const Sidebar = () => {
                             />
                             Settings
                         </Link>
+                        <Link
+                            href={route('logout')}
+                            method="post"
+                            as="button"
+                            className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group w-full text-left`}
+                        >
+                            <HiOutlineLogout
+                                className={`w-5 h-5 mr-3 transition-colors text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400`}
+                            />
+                            Logout
+                        </Link>
                     </nav>
                 </div>
             </div>
         </>
     );
 };
-
-export default Sidebar;
