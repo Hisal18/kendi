@@ -150,7 +150,7 @@ export default function Dashboard() {
         <Head title="Dashboard"/>
         <DashboardLayout auth={auth}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 mx-4 lg:mx-0">
-                <div className="bg-[#FAF9F6] dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <div className="bg-[#FAF9F6] dark:bg-[#313131] p-6 rounded-lg shadow-md">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -179,7 +179,7 @@ export default function Dashboard() {
                     <p className="text-sm text-green-500 mt-2">+2 bulan ini</p>
                 </div>
 
-                <div className="bg-[#FAF9F6] dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <div className="bg-[#FAF9F6] dark:bg-[#313131] p-6 rounded-lg shadow-md">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -210,7 +210,7 @@ export default function Dashboard() {
                     </p>
                 </div>
 
-                <div className="bg-[#FAF9F6] dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <div className="bg-[#FAF9F6] dark:bg-[#313131] p-6 rounded-lg shadow-md">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -241,7 +241,7 @@ export default function Dashboard() {
                     </p>
                 </div>
 
-                <div className="bg-[#FAF9F6] dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <div className="bg-[#FAF9F6] dark:bg-[#313131] p-6 rounded-lg shadow-md">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -274,15 +274,15 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-4 lg:mx-0">
-                <div className="bg-[#FAF9F6] dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <div className="bg-[#FAF9F6] dark:bg-[#313131] p-6 rounded-lg shadow-md">
                     <Line data={lineChartData} options={lineChartOptions} />
                 </div>
-                <div className="bg-[#FAF9F6] dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <div className="bg-[#FAF9F6] dark:bg-[#313131] p-6 rounded-lg shadow-md">
                     <Bar data={barChartData} options={barChartOptions} />
                 </div>
             </div>
 
-            <div className="mt-6 bg-[#FAF9F6] dark:bg-gray-800 rounded-lg shadow-md mx-4 lg:mx-0">
+            <div className="mt-6 bg-[#FAF9F6] dark:bg-[#313131] rounded-lg shadow-md mx-4 lg:mx-0">
                 <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
                         Peminjaman Terbaru

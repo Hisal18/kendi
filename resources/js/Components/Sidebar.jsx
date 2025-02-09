@@ -34,7 +34,7 @@ export default function Sidebar() {
 
     return (
         <>
-            <div className="bg-[#e8e8e8] dark:bg-gray-900">
+            <div className="bg-[#e8e8e8] dark:bg-[#212121]">
                 {/* Overlay untuk mobile */}
                 {isSidebarOpen && (
                     <div
@@ -51,11 +51,12 @@ export default function Sidebar() {
                 </button>
                 <div
                     ref={sidebarRef}
-                    className={`fixed top-0 left-0 h-full bg-[#e0e0e0] dark:bg-gray-900 text-gray-700 dark:text-gray-100 w-[280px] py-8 px-4 transition-all duration-300 ease-in-out z-30 border-r border-gray-200 dark:border-gray-800
+                    className={`fixed top-0 left-0 h-full bg-[#e0e0e0] dark:bg-transparent text-gray-700 dark:text-gray-100 w-[280px] py-8 px-4 transition-all duration-300 ease-in-out z-30 border-r border-gray-200 dark:border-gray-800
                     ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
                     lg:translate-x-0 lg:static lg:m-6 lg:rounded-2xl
-                    shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] dark:shadow-[0_4px_12px_#141414]
-                    lg:min-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-3rem)]`}
+                    shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff,_3px_3px_10px_rgba(0,0,0,1)] dark:shadow-[-1px_-1px_10px_rgba(255,255,255,0.4),_3px_3px_10px_rgba(0,0,0,1)]
+                    lg:min-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-3rem)]
+                    flex flex-col`}
                 >
                     <div className="flex items-center space-x-3 px-4 mb-10">
                         <ApplicationLogo className="w-16 h-16" />
@@ -64,7 +65,7 @@ export default function Sidebar() {
                         </span>
                     </div>
 
-                    <nav className="space-y-1">
+                    <nav className="space-y-1 flex-1">
                         <Link
                             href={route('dashboard.index')}
                             className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
@@ -129,14 +130,14 @@ export default function Sidebar() {
                                     Daftar Kendaraan
                                 </Link>
                                 <Link
-                                    // href={route('kendaraan.create')}
+                                    href={route('kendaraan.create')}
                                     className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
                                         url === "/kendaraan/create"
                                             ? "text-indigo-600 dark:text-indigo-400 font-medium"
                                             : "text-gray-600 dark:text-gray-400"
                                     }`}
                                 >
-                                    Tambah Kendaraan
+                                    Data Kendaraan
                                 </Link>
                             </div>
                         </div>
@@ -158,7 +159,7 @@ export default function Sidebar() {
                             Users
                         </Link>
                         <Link
-                            href="/settings"
+                            href={route('profile.edit')}
                             className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
                                 url === "/settings"
                                     ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
@@ -174,6 +175,9 @@ export default function Sidebar() {
                             />
                             Settings
                         </Link>
+                    </nav>
+
+                    <div className="pt-4 mt-4 border-t border-gray-700 dark:border-gray-600">
                         <Link
                             href={route('logout')}
                             method="post"
@@ -185,7 +189,7 @@ export default function Sidebar() {
                             />
                             Logout
                         </Link>
-                    </nav>
+                    </div>
                 </div>
             </div>
         </>

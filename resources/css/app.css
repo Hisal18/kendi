@@ -2,69 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Scrollbar Style */
+/* width */
 ::-webkit-scrollbar {
     width: 8px;
-    height: 8px;
 }
 
+/* Track */
 ::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 100vh;
-    margin: 5px;
+    background: #f1f1f1;
 }
 
+.dark ::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+/* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #909090;
-    border: 2px solid transparent;
-    border-radius: 100vh;
-    background-clip: padding-box;
+    background: #999;
+    border-radius: 5px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #717171;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-}
-
-/* Dark mode scrollbar */
 .dark ::-webkit-scrollbar-thumb {
-    background: #717171;
-    border: 2px solid transparent;
-    background-clip: padding-box;
+    background: #666;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-    background: #909090;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-}
-
-/* Untuk Firefox */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: #909090 transparent;
-}
-
-.dark * {
-    scrollbar-color: #717171 transparent;
-}
-
-/* Hide scrollbar when not hovering */
-::-webkit-scrollbar-thumb {
-    visibility: hidden;
-}
-
-*:hover::-webkit-scrollbar-thumb {
-    visibility: visible;
-}
-
-/* Tambahan untuk membuat scrollbar lebih halus */
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-/* Memberikan padding pada container yang dapat di-scroll */
-.scrollable-container {
-    padding-right: 10px;
+    background: #444;
 }

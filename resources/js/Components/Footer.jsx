@@ -1,15 +1,13 @@
 import React from "react";
 
-const Footer = () => {
+export default function Footer() {
     return (
-        <footer className="bg-white shadow mt-auto">
-            <div className="container mx-auto px-6 py-4">
-                <div className="text-center text-gray-600">
-                    &copy; 2023 Dashboard Template. All rights reserved.
+        <footer className="bg-transparent flex items-center justify-center mt-4">
+            <div className="container px-6 py-2 flex items-center justify-center">
+                <div className="text-gray-600">
+                    mfff &copy; {new Date().getFullYear()} Dashboard Template. All rights reserved.
                 </div>
             </div>
         </footer>
     );
 };
-
-export default Footer;
