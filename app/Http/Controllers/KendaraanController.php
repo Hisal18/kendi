@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kendaraan;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,7 +14,12 @@ class KendaraanController extends Controller
      */
     public function index()
     {
-        //
+        // dd();
+
+        return Inertia::render('Kendaraan/Kendaraankeluar', [
+            'trips' => Trip::with(['Kendaraan'])->latest()->get(),
+            'kendaraans' => Kendaraan::all()
+        ]);
     }
 
     /**
@@ -29,7 +35,18 @@ class KendaraanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'code_trip' => 'required|unique:trips',
+            'kendaraan_id' => 'required|exists:kendaraans,id',
+            'waktu_keberangkatan' => 'required|date',
+            'tujuan' => 'required|string',
+            'catatan' => 'nullable|string',
+        ]);
+
+        $trip = Trip::create($validated);
+
+        return redirect()->back()
+            ->with('message', 'Trip berhasil ditambahkan');
     }
 
     /**

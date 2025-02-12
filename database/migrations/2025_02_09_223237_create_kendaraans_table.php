@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('kendaraans', function (Blueprint $table) {
             $table->id();
+            $table->string('plat_kendaraan')->unique();
+            $table->string('merek');
+            $table->integer('km_awal')->nullable();
+            $table->integer('km_akhir')->nullable();
+            $table->enum('status', ['Tersedia', 'Digunakan', 'Dalam Perawatan'])->default('Tersedia');
             $table->timestamps();
         });
     }

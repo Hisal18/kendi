@@ -19,8 +19,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
     Route::get('/kendaraan', [KendaraanController::class, 'create'])->name('kendaraan.create');
+    Route::get('/kendaraankeluar', [KendaraanController::class, 'index'])->name('kendaraan.index');
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
+
+    Route::post('/trips', [KendaraanController::class, 'store'])->name('trips.store');
 });
 
 require __DIR__.'/auth.php';

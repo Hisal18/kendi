@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Kendaraan;
+use App\Models\Trip;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,9 +17,16 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+           UserSeeder::class,
         ]);
+
+        Trip::factory(100)->create();
+        Kendaraan::factory(20)->create();
+
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
     }
 }
