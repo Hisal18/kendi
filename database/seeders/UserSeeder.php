@@ -23,6 +23,13 @@ class UserSeeder extends Seeder
                 'email' => 'fajarfikri31@gmail.com',
                 'password' => bcrypt('Tjbt4pp04')
             ),
+            1 =>
+            array(
+                'id' => 2,
+                'name' => 'Admin UPT KRWG',
+                'email' => 'admin@gmail.com',
+                'password' => bcrypt('Plnterbaik123')
+            ),
         ));
     }
 }

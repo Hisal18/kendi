@@ -17,12 +17,22 @@ class Trip extends Model
         'code_trip',
         'kendaraan_id',
         'waktu_keberangkatan',
+        'waktu_kembali',
         'tujuan',
         'catatan',
-        'status'
+        'catatan_kembali',
+        'status',
+        'photos'
     ];
 
-    function Kendaraan() : BelongsTo {
+    protected $casts = [
+        'photos' => 'array',
+        'waktu_keberangkatan' => 'datetime',
+        'waktu_kembali' => 'datetime',
+    ];
+
+    public function kendaraan()
+    {
         return $this->belongsTo(Kendaraan::class);
     }
 }

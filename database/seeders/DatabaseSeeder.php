@@ -21,8 +21,8 @@ class DatabaseSeeder extends Seeder
            UserSeeder::class,
         ]);
 
-        Trip::factory(100)->create();
-        Kendaraan::factory(20)->create();
+        // Trip::factory(100)->create();
+        Kendaraan::factory(5)->create();
 
         // User::factory()->create([
         //     'name' => 'Test User',

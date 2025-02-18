@@ -11,7 +11,16 @@ class Kendaraan extends Model
 {
     use HasFactory;
 
-    public function Trip() : HasMany {
+    protected $fillable = [
+        'plat_kendaraan',
+        'merek',
+        'km_awal',
+        'km_akhir',
+        'status'
+    ];
+
+    public function trips()
+    {
         return $this->hasMany(Trip::class);
     }
 }

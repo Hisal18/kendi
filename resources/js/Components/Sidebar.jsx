@@ -14,7 +14,7 @@ import ApplicationLogo from "./ApplicationLogo";
 export default function Sidebar() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isKendaraanOpen, setIsKendaraanOpen] = useState(false);
-    const { url } = usePage();
+    const { url = "", auth } = usePage().props;
     const sidebarRef = useRef();
 
     // Menambahkan event listener untuk menutup sidebar saat klik di luar
@@ -130,55 +130,60 @@ export default function Sidebar() {
                                 }`}
                             >
                                 <Link
-                                    href={route("kendaraan.index")}
+                                    href={route("trips.index")}
                                     className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                        url === "/kendaraan"
+                                        url === "/trip"
                                             ? "text-indigo-600 dark:text-indigo-400 font-medium"
                                             : "text-gray-600 dark:text-gray-400"
                                     }`}
                                 >
-                                    Kendaraan Keluar
+                                    Trip
                                 </Link>
-                                <Link
-                                    href={route("kendaraan.create")}
-                                    className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                        url === "/kendaraan/create"
-                                            ? "text-indigo-600 dark:text-indigo-400 font-medium"
-                                            : "text-gray-600 dark:text-gray-400"
-                                    }`}
-                                >
-                                    Data Kendaraan
-                                </Link>
+
+                                {auth.user.role === "admin" && (
+                                    <Link
+                                        href={route("kendaraan.index")}
+                                        className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
+                                            url === "/kendaraan"
+                                                ? "text-indigo-600 dark:text-indigo-400 font-medium"
+                                                : "text-gray-600 dark:text-gray-400"
+                                        }`}
+                                    >
+                                        Data Kendaraan
+                                    </Link>
+                                )}
                             </div>
                         </div>
-                        <Link
-                            href={route("user.index")}
-                            className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                url === "/user"
-                                    ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
-                                    : ""
-                            }`}
-                        >
-                            <FaUserFriends
-                                className={`w-5 h-5 mr-3 transition-colors ${
+                        {auth.user.role === "admin" && (
+                            <Link
+                                href={route("user.index")}
+                                className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
                                     url === "/users"
-                                        ? "text-indigo-600 dark:text-indigo-400"
-                                        : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                                        ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
+                                        : ""
                                 }`}
-                            />
-                            Users
-                        </Link>
+                            >
+                                <FaUserFriends
+                                    className={`w-5 h-5 mr-3 transition-colors ${
+                                        url === "/users"
+                                            ? "text-indigo-600 dark:text-indigo-400"
+                                            : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                                    }`}
+                                />
+                                Users
+                            </Link>
+                        )}
                         <Link
                             href={route("profile.edit")}
                             className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                url === "/settings"
+                                url === "/profile"
                                     ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
                                     : ""
                             }`}
                         >
                             <FaTools
                                 className={`w-5 h-5 mr-3 transition-colors ${
-                                    url === "/settings"
+                                    url === "/profile"
                                         ? "text-indigo-600 dark:text-indigo-400"
                                         : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                 }`}

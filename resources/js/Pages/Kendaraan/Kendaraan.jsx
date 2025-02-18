@@ -1,105 +1,441 @@
-import React from "react";
+import React, { useState, Fragment } from "react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import { Head } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
+import { Dialog, Transition } from "@headlessui/react";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 
-export default function Kendaraan() {
-    // Data dummy kendaraan
-    const kendaraanData = [
-        {
-            id: 1,
-            nama: "Toyota Avanza",
+export default function Kendaraan({ kendaraans }) {
+    console.log(kendaraans);
+    const [isOpen, setIsOpen] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
+    const [selectedKendaraan, setSelectedKendaraan] = useState(null);
+    const [formData, setFormData] = useState({
+        nama: "",
+        jenis: "Mobil",
+        plat_nomor: "",
+        tahun_pembuatan: "",
+        foto: null,
+    });
+    const [previewUrl, setPreviewUrl] = useState(null);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const data = new FormData();
+        Object.keys(formData).forEach((key) => {
+            if (formData[key] !== null) {
+                data.append(key, formData[key]);
+            }
+        });
+
+        if (isEdit) {
+            router.post(`/kendaraan/${selectedKendaraan.id}`, {
+                _method: "PUT",
+                ...data,
+            });
+        } else {
+            router.post("/kendaraan", data);
+        }
+
+        closeModal();
+    };
+
+    const handleDelete = (id) => {
+        if (confirm("Apakah Anda yakin ingin menghapus kendaraan ini?")) {
+            router.delete(`/kendaraan/${id}`);
+        }
+    };
+
+    const openModal = (kendaraan = null) => {
+        if (kendaraan) {
+            setIsEdit(true);
+            setSelectedKendaraan(kendaraan);
+            setFormData({
+                nama: kendaraan.nama,
+                jenis: kendaraan.jenis,
+                plat_nomor: kendaraan.plat,
+                tahun_pembuatan: kendaraan.tahun,
+                foto: null,
+            });
+            setPreviewUrl(kendaraan.image);
+        } else {
+            setIsEdit(false);
+            setSelectedKendaraan(null);
+            setFormData({
+                nama: "",
+                jenis: "Mobil",
+                plat_nomor: "",
+                tahun_pembuatan: "",
+                foto: null,
+            });
+            setPreviewUrl(null);
+        }
+        setIsOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsOpen(false);
+        setFormData({
+            nama: "",
             jenis: "Mobil",
-            plat: "B 1234 ABC",
-            tahun: "2020",
-            image: "https://example.com/avanza.jpg"
-        },
-        {
-            id: 2,
-            nama: "Honda PCX",
-            jenis: "Motor",
-            plat: "B 5678 DEF",
-            tahun: "2021",
-            image: "https://example.com/pcx.jpg"
-        },
-        // ... existing code ...
-    ];
+            plat_nomor: "",
+            tahun_pembuatan: "",
+            foto: null,
+        });
+        setPreviewUrl(null);
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData({ ...formData, foto: file });
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
 
     return (
         <>
-            <Head title="Kendaraan"/>
+            <Head title="Kendaraan" />
             <DashboardLayout>
                 <div className="container mx-auto p-6">
-                    <div className="flex justify-between items-center mb-8">
+                    <div className="flex justify-between items-center mb-6">
                         <h1 className="text-3xl font-bold text-gray-800 relative">
                             Daftar Kendaraan
                             <span className="absolute bottom-0 left-0 w-1/3 h-1 bg-blue-500 rounded-full"></span>
                         </h1>
-                        <button className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                        <button
+                            onClick={() => openModal()}
+                            className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clipRule="evenodd"
+                                />
                             </svg>
                             Tambah Kendaraan
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {kendaraanData.map((kendaraan) => (
-                            <div
-                                key={kendaraan.id}
-                                className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-all duration-300 border border-gray-100"
-                            >
-                                <div className="relative h-48 bg-gray-200 group">
-                                    <img
-                                        src={kendaraan.image}
-                                        alt={kendaraan.nama}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                        onError={(e) => {
-                                            e.target.src = "https://via.placeholder.com/400x200?text=No+Image"
-                                        }}
-                                    />
-                                    <div className="absolute top-2 right-2">
-                                        <span className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full shadow-md">
-                                            {kendaraan.jenis}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="p-6">
-                                    <h2 className="text-2xl font-bold text-gray-800 mb-3 hover:text-blue-600 transition-colors">
-                                        {kendaraan.nama}
-                                    </h2>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center text-gray-600">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" />
-                                            </svg>
-                                            Plat: {kendaraan.plat}
-                                        </div>
-                                        <div className="flex items-center text-gray-600">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                            </svg>
-                                            Tahun: {kendaraan.tahun}
-                                        </div>
-                                    </div>
-                                    <div className="mt-6 flex space-x-3">
-                                        <button className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                            </svg>
-                                            Edit
-                                        </button>
-                                        <button className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                            </svg>
-                                            Hapus
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Foto
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Nama
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Jenis
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Plat Nomor
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Tahun
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Trip Terakhir
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Aksi
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {kendaraans.map((kendaraan) => (
+                                        <tr
+                                            key={kendaraan.id}
+                                            className="hover:bg-gray-50"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <img
+                                                    src={
+                                                        kendaraan.image ||
+                                                        "/images/no-image.png"
+                                                    }
+                                                    alt={kendaraan.nama}
+                                                    className="h-12 w-12 rounded-lg object-cover"
+                                                />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {kendaraan.nama}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                    {kendaraan.jenis}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {kendaraan.plat}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {kendaraan.tahun}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span
+                                                    className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                        kendaraan.status ===
+                                                        "Tersedia"
+                                                            ? "bg-green-100 text-green-800"
+                                                            : kendaraan.status ===
+                                                              "Dalam Perjalanan"
+                                                            ? "bg-blue-100 text-blue-800"
+                                                            : "bg-red-100 text-red-800"
+                                                    }`}
+                                                >
+                                                    {kendaraan.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {kendaraan.last_trip ? (
+                                                    <div>
+                                                        <div>
+                                                            Tujuan:{" "}
+                                                            {
+                                                                kendaraan
+                                                                    .last_trip
+                                                                    .tujuan
+                                                            }
+                                                        </div>
+                                                        <div className="text-xs text-gray-400">
+                                                            {new Date(
+                                                                kendaraan.last_trip.waktu
+                                                            ).toLocaleDateString()}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400">
+                                                        -
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() =>
+                                                            openModal(kendaraan)
+                                                        }
+                                                        className="text-blue-600 hover:text-blue-900"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                kendaraan.id
+                                                            )
+                                                        }
+                                                        className="text-red-600 hover:text-red-900"
+                                                    >
+                                                        Hapus
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+
+                <Transition appear show={isOpen} as={Fragment}>
+                    <Dialog
+                        as="div"
+                        className="relative z-50"
+                        onClose={closeModal}
+                    >
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0"
+                            enterTo="opacity-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100"
+                            leaveTo="opacity-0"
+                        >
+                            <div className="fixed inset-0 bg-black bg-opacity-25" />
+                        </Transition.Child>
+
+                        <div className="fixed inset-0 overflow-y-auto">
+                            <div className="flex min-h-full items-center justify-center p-4 text-center">
+                                <Transition.Child
+                                    as={Fragment}
+                                    enter="ease-out duration-300"
+                                    enterFrom="opacity-0 scale-95"
+                                    enterTo="opacity-100 scale-100"
+                                    leave="ease-in duration-200"
+                                    leaveFrom="opacity-100 scale-100"
+                                    leaveTo="opacity-0 scale-95"
+                                >
+                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                        <Dialog.Title
+                                            as="h3"
+                                            className="text-lg font-medium leading-6 text-gray-900 mb-4"
+                                        >
+                                            {isEdit
+                                                ? "Edit Kendaraan"
+                                                : "Tambah Kendaraan Baru"}
+                                        </Dialog.Title>
+
+                                        <form
+                                            onSubmit={handleSubmit}
+                                            className="space-y-4"
+                                        >
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Nama Kendaraan
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.nama}
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            nama: e.target
+                                                                .value,
+                                                        })
+                                                    }
+                                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Jenis Kendaraan
+                                                </label>
+                                                <select
+                                                    value={formData.jenis}
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            jenis: e.target
+                                                                .value,
+                                                        })
+                                                    }
+                                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    <option value="Mobil">
+                                                        Mobil
+                                                    </option>
+                                                    <option value="Motor">
+                                                        Motor
+                                                    </option>
+                                                    <option value="Truk">
+                                                        Truk
+                                                    </option>
+                                                    <option value="Bus">
+                                                        Bus
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Nomor Plat
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.plat_nomor}
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            plat_nomor:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Tahun Pembuatan
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={
+                                                        formData.tahun_pembuatan
+                                                    }
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            tahun_pembuatan:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Foto Kendaraan
+                                                </label>
+                                                <input
+                                                    type="file"
+                                                    onChange={handleImageChange}
+                                                    className="mt-1 block w-full text-sm text-gray-500
+                                                        file:mr-4 file:py-2 file:px-4
+                                                        file:rounded-md file:border-0
+                                                        file:text-sm file:font-semibold
+                                                        file:bg-blue-50 file:text-blue-700
+                                                        hover:file:bg-blue-100"
+                                                    accept="image/*"
+                                                />
+                                                {previewUrl && (
+                                                    <div className="mt-2">
+                                                        <img
+                                                            src={previewUrl}
+                                                            alt="Preview"
+                                                            className="h-32 w-auto rounded-lg object-cover"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-6 flex justify-end space-x-3">
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                                    onClick={closeModal}
+                                                >
+                                                    Batal
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                                >
+                                                    {isEdit
+                                                        ? "Simpan Perubahan"
+                                                        : "Tambah Kendaraan"}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </Dialog.Panel>
+                                </Transition.Child>
+                            </div>
+                        </div>
+                    </Dialog>
+                </Transition>
             </DashboardLayout>
         </>
     );
