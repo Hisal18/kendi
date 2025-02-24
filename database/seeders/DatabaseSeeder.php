@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Trip::factory(100)->create();
-        Kendaraan::factory(5)->create();
+        Kendaraan::factory(10)->create();
 
         // User::factory()->create([
         //     'name' => 'Test User',

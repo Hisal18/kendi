@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import dateFormat from "dateformat";
@@ -6,6 +6,58 @@ import { FaArrowLeft } from "react-icons/fa";
 
 export default function DetailTrip({ trip }) {
     const [selectedImage, setSelectedImage] = useState(null);
+
+    // Fungsi untuk menampilkan foto
+    const renderPhotoSection = (photos, title) => {
+        // Pastikan photos adalah array dan tidak kosong
+        const photoArray = Array.isArray(photos) ? photos : [];
+
+        if (photoArray.length === 0) return null;
+
+        console.log(`Rendering ${title}:`, photoArray); // Debugging
+
+        return (
+            <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
+                    {title}
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {photoArray.map((photo, index) => (
+                        <div
+                            key={index}
+                            className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                            onClick={() => setSelectedImage(photo)}
+                        >
+                            <img
+                                src={`/storage/${photo}`}
+                                alt={`Foto ${title} ${index + 1}`}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                onError={(e) => {
+                                    console.error(
+                                        `Error loading image: ${photo}`
+                                    );
+                                    e.target.src =
+                                        "/path/to/fallback-image.jpg"; // Tambahkan fallback image
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    Lihat Foto
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    // Debug data trip
+    useEffect(() => {
+        console.log("Trip data:", trip);
+        console.log("Foto berangkat:", trip.foto_berangkat);
+        console.log("Foto kembali:", trip.foto_kembali);
+    }, [trip]);
 
     return (
         <>
@@ -104,7 +156,7 @@ export default function DetailTrip({ trip }) {
                                                 User
                                             </label>
                                             <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.jenis_trip || "-"}{" "}
+                                                {trip.penumpang || "-"}{" "}
                                                 {/*Untuk Penumpang*/}
                                             </p>
                                         </div>
@@ -165,38 +217,19 @@ export default function DetailTrip({ trip }) {
                                 </div>
                             </div>
 
-                            {/* Photos Section */}
-                            {trip.photos && trip.photos.length > 0 && (
-                                <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                                    <h2 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
-                                        Foto Trip
-                                    </h2>
-                                    <div className="grid grid-cols-5 gap-4">
-                                        {trip.photos.map((photo, index) => (
-                                            <div
-                                                key={index}
-                                                className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                                                onClick={() =>
-                                                    setSelectedImage(photo)
-                                                }
-                                            >
-                                                <img
-                                                    src={`/storage/${photo}`}
-                                                    alt={`Foto Trip ${
-                                                        index + 1
-                                                    }`}
-                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                />
-                                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                                                    <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                        Lihat Foto
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                            {/* Foto Berangkat */}
+                            {renderPhotoSection(
+                                trip.foto_berangkat,
+                                "Foto Keberangkatan"
                             )}
+
+                            {/* Foto Kembali */}
+                            {trip.status === "Selesai" &&
+                                trip.foto_kembali &&
+                                renderPhotoSection(
+                                    trip.foto_kembali,
+                                    "Foto Kembali"
+                                )}
                         </div>
 
                         {/* Sidebar - Right Side (1 Column) */}
@@ -239,10 +272,60 @@ export default function DetailTrip({ trip }) {
                                 <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
                                     Catatan
                                 </h2>
-                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                    {trip.catatan || "Tidak ada catatan"}
-                                </p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm text-gray-500 dark:text-gray-400">
+                                            Catatan Berangkat
+                                        </label>
+                                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                            {trip.catatan ||
+                                                "Tidak ada catatan"}
+                                        </p>
+                                    </div>
+
+                                    {trip.status === "Selesai" && (
+                                        <div>
+                                            <label className="text-sm text-gray-500 dark:text-gray-400">
+                                                Catatan Kembali
+                                            </label>
+                                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                                {trip.catatan_kembali ||
+                                                    "Tidak ada catatan"}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+
+                            {/* Additional Trip Info */}
+                            {trip.status === "Selesai" && (
+                                <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                                    <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+                                        Informasi Tambahan
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-sm text-gray-500 dark:text-gray-400">
+                                                Jarak Tempuh
+                                            </label>
+                                            <p className="text-gray-700 dark:text-gray-300">
+                                                {trip.jarak} km
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label className="text-sm text-gray-500 dark:text-gray-400">
+                                                Waktu Kembali
+                                            </label>
+                                            <p className="text-gray-700 dark:text-gray-300">
+                                                {dateFormat(
+                                                    trip.waktu_kembali,
+                                                    "dd mmmm yyyy, HH:MM"
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -251,11 +334,17 @@ export default function DetailTrip({ trip }) {
                 {selectedImage && (
                     <div
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
-                        onClick={() => setSelectedImage(null)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedImage(null);
+                        }}
                     >
                         <div className="relative max-w-7xl w-full">
                             <button
-                                onClick={() => setSelectedImage(null)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedImage(null);
+                                }}
                                 className="absolute -top-10 right-0 text-white hover:text-gray-300 text-xl"
                             >
                                 ✕
@@ -264,6 +353,12 @@ export default function DetailTrip({ trip }) {
                                 src={`/storage/${selectedImage}`}
                                 alt="Foto Trip"
                                 className="w-full h-auto max-h-[80vh] object-contain rounded-xl"
+                                onError={(e) => {
+                                    console.error(
+                                        `Error loading modal image: ${selectedImage}`
+                                    );
+                                    setSelectedImage(null);
+                                }}
                             />
                         </div>
                     </div>

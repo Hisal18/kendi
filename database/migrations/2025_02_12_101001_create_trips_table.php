@@ -17,12 +17,14 @@ return new class extends Migration
             $table->foreignId('kendaraan_id')->constrained('kendaraans')->onDelete('cascade');
             $table->dateTime('waktu_keberangkatan');
             $table->dateTime('waktu_kembali')->nullable();
+            $table->integer('km_akhir')->nullable();
             $table->string('tujuan');
             $table->enum('status', ['Sedang Berjalan', 'Selesai', 'Dibatalkan'])->default('Sedang Berjalan');
             $table->integer('jarak')->nullable();
             $table->text('catatan')->nullable();
-            $table->text('catatan_kembali')->nullable();
-            $table->json('photos')->nullable();
+            $table->json('foto_berangkat');
+            $table->json('foto_kembali')->nullable();
+            $table->text('penumpang');
             $table->timestamps();
         });
     }

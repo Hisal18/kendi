@@ -30,6 +30,8 @@ class TripFactory extends Factory
             'tujuan' => fake()->city(),
             'status' => fake()->randomElement(['Sedang Berjalan', 'Selesai', 'Dibatalkan']),
             'catatan' => fake()->optional()->text(200),
+            'foto_berangkat' => ["trips/67b8307e9e4af_1740124286.png"],
+            'penumpang' => fake()->name()
         ];
     }
 }

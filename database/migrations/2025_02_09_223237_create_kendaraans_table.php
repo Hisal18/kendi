@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('plat_kendaraan')->unique();
             $table->string('merek');
-            $table->integer('km_awal')->nullable();
-            $table->integer('km_akhir')->nullable();
+            $table->integer('km_awal');
             $table->enum('status', ['Tersedia', 'Digunakan', 'Dalam Perawatan'])->default('Tersedia');
             $table->timestamps();
         });

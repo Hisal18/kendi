@@ -27,11 +27,10 @@ import Modal from "@/Components/ModalNew";
 import { ToastContainer, toast, Flip } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Echo from "laravel-echo";
+import axios from "axios";
 
 export default function Trip({ trips: initialTrips, kendaraans, auth }) {
-    const [trips, setTrips] = useState(initialTrips);
-    // console.log(trips);
-
+    const [trips, setTrips] = useState(initialTrips || []);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentTime, setCurrentTime] = useState(new Date());
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,7 +40,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
     const [closeKendaraan, setCloseKendaraan] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState(null);
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const generateRandomCode = () => {
         const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -76,6 +75,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
         merek: "",
         plat_kendaraan: "",
         status: "",
+        penumpang: "",
     });
 
     const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -92,21 +92,25 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
     // Tambahkan state untuk mengontrol animasi
     const [isRotating, setIsRotating] = useState(false);
 
-    const [photoSource, setPhotoSource] = useState(null);
     const fileInputRef = useRef(null);
 
     // Tambahkan state untuk multiple photos
     const [photos, setPhotos] = useState([]);
     const [previewPhotos, setPreviewPhotos] = useState([]);
+    const fileInputRefClose = useRef(null);
 
-    const filteredTrips = trips.filter(
-        (trip) =>
-            trip?.kendaraan?.plat_kendaraan
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) ||
-            trip?.code_trip?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            trip?.tujuan?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredTrips = Array.isArray(trips)
+        ? trips.filter(
+              (trip) =>
+                  trip?.kendaraan?.plat_kendaraan
+                      ?.toLowerCase()
+                      ?.includes(searchTerm.toLowerCase()) ||
+                  trip?.code_trip
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                  trip?.tujuan?.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        : [];
 
     const totalPages = Math.ceil(filteredTrips.length / itemsPerPage);
 
@@ -139,7 +143,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 "dd mmmm yyyy, HH:MM:ss"
             ),
             "KM Awal": trip.kendaraan.km_awal,
-            "KM Akhir": trip.kendaraan.km_akhir,
+            "KM Akhir": trip.km_akhir,
             Status: trip.status,
             Catatan: trip.catatan,
         }));
@@ -215,29 +219,64 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("trips.create"), {
-            onSuccess: (response) => {
-                toast.success("Trip berhasil ditambahkan");
-                reset();
-                setData((prev) => ({
-                    ...prev,
-                    code_trip: generateRandomCode(),
-                    waktu_keberangkatan: dateFormat(
-                        new Date(),
-                        "yyyy-mm-dd'T'HH:MM"
-                    ),
-                }));
-                // Update trips state dengan data terbaru
-                setTrips((prevTrips) => [response.props.trip, ...prevTrips]);
-                setShowPopup(false);
-            },
-            onError: (errors) => {
-                toast.error(
-                    "Gagal menambahkan trip. Error: " +
-                        Object.values(errors).flat().join(", ")
-                );
-            },
+
+        // Validasi foto terlebih dahulu
+        if (photos.length === 0) {
+            toast.error("Harap tambahkan minimal 1 foto kendaraan");
+            return;
+        }
+
+        // Buat FormData object untuk mengirim file
+        const formData = new FormData();
+
+        // Tambahkan data trip sesuai dengan struktur database
+        formData.append("code_trip", data.code_trip);
+        formData.append("kendaraan_id", data.kendaraan_id);
+        formData.append("waktu_keberangkatan", data.waktu_keberangkatan);
+        formData.append("tujuan", data.tujuan);
+        formData.append("catatan", data.catatan);
+        formData.append("km_awal", data.km_awal);
+        formData.append("penumpang", data.penumpang);
+
+        // Tambahkan foto-foto dengan nama field yang benar
+        photos.forEach((photo, index) => {
+            formData.append(`foto_kendaraan[${index}]`, photo);
         });
+
+        // Tampilkan loading state
+        setIsLoading(true);
+
+        // Kirim dengan axios untuk mendukung upload file
+        axios
+            .post(route("trips.create"), formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            .then((response) => {
+                toast.success("Trip berhasil ditambahkan");
+                // Reset form dan state
+                reset();
+                setPhotos([]);
+                setPreviewPhotos([]);
+                setShowPopup(false);
+                // Redirect ke halaman detail
+                window.location.href = route(
+                    "trips.show",
+                    response.data.trip.code_trip
+                );
+                generateRandomCode();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                const errorMessage =
+                    error.response?.data?.message ||
+                    "Terjadi kesalahan saat menambahkan trip";
+                toast.error(errorMessage);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     };
 
     // Tambahkan fungsi untuk mengupdate data kendaraan saat dipilih
@@ -251,7 +290,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 kendaraan_id: selectedKendaraan.id,
                 merek: selectedKendaraan.merek,
                 plat_kendaraan: selectedKendaraan.plat_kendaraan,
-                km_awal: selectedKendaraan.km_akhir,
+                km_awal: selectedKendaraan.km_awal,
                 status: selectedKendaraan.status || "",
             });
         }
@@ -488,7 +527,6 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
 
     // Tambahkan state untuk close trip
     const [kmAkhir, setKmAkhir] = useState("");
-    const [catatanKembali, setCatatanKembali] = useState("");
     const { post: postCloseTrip, processing: processingCloseTrip } = useForm();
 
     const handleCloseTrip = (e) => {
@@ -503,31 +541,193 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
             return;
         }
 
-        const formData = {
-            km_akhir: kmAkhir,
-            catatan_kembali: catatanKembali,
-            waktu_kembali: dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM:ss"),
-        };
+        // Hitung jarak yang ditempuh
+        const jarak =
+            parseInt(kmAkhir) - parseInt(selectedTrip.kendaraan.km_awal);
 
-        postCloseTrip(route("trips.close", selectedTrip.id), formData, {
-            preserveScroll: true,
-            onSuccess: () => {
+        const formData = new FormData();
+        formData.append("km_akhir", kmAkhir);
+        formData.append(
+            "waktu_kembali",
+            dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM:ss")
+        );
+        formData.append("jarak", jarak);
+        formData.append("status", "Selesai");
+
+        // Tambahkan foto kembali jika ada
+        if (photos.length > 0) {
+            photos.forEach((photo) => {
+                formData.append("foto_kembali[]", photo);
+            });
+        }
+
+        // Gunakan axios untuk mengirim request
+        axios
+            .post(route("trips.close", selectedTrip.id), formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            .then((response) => {
                 toast.success("Trip berhasil ditutup");
                 setCloseKendaraan(false);
                 setSelectedTrip(null);
                 setKmAkhir("");
-                setCatatanKembali("");
-                window.location.reload();
-            },
-            onError: (errors) => {
-                toast.error("Gagal menutup trip");
-                console.error(errors);
-            },
-        });
+                setPhotos([]);
+                setPreviewPhotos([]);
+                window.location.href = route(
+                    "trips.show",
+                    selectedTrip.code_trip
+                );
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                toast.error(
+                    "Gagal menutup trip: " +
+                        (error.response?.data?.message || "Terjadi kesalahan")
+                );
+            });
     };
 
     // Modifikasi fungsi handleFileUpload
     const handleFileUpload = (e) => {
+        const files = Array.from(e.target.files);
+
+        // Validasi jumlah foto
+        if (photos.length + files.length > 5) {
+            toast.error("Maksimal 5 foto yang dapat diunggah");
+            return;
+        }
+
+        // Validasi setiap file
+        const validFiles = files.filter((file) => {
+            // Cek tipe file
+            if (!file.type.startsWith("image/")) {
+                toast.error(`${file.name} bukan file gambar yang valid`);
+                return false;
+            }
+            // Cek ukuran file (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error(`${file.name} melebihi batas ukuran 5MB`);
+                return false;
+            }
+            return true;
+        });
+
+        // Update state photos dengan file asli
+        setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
+
+        // Generate preview untuk setiap file
+        validFiles.forEach((file) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewPhotos((prev) => [...prev, reader.result]);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Reset input file
+        e.target.value = "";
+    };
+
+    // Modifikasi removePhoto untuk menghapus dari kedua state
+    const removePhoto = (index) => {
+        setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
+        setPreviewPhotos((prevPreviews) =>
+            prevPreviews.filter((_, i) => i !== index)
+        );
+    };
+
+    // Fungsi untuk membuka kamera native device
+    const handleCameraCapture = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.setAttribute("capture", "environment");
+            fileInputRef.current.setAttribute("accept", "image/*");
+            fileInputRef.current.click();
+        }
+    };
+
+    // Fungsi untuk membuka galeri
+    const handleGalleryUpload = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.removeAttribute("capture");
+            fileInputRef.current.setAttribute("accept", "image/*");
+            fileInputRef.current.click();
+        }
+    };
+
+    // Tambahkan state untuk modal detail
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [detailTrip, setDetailTrip] = useState(null);
+
+    // Tambahkan fungsi untuk menampilkan detail trip
+    const handleShowDetail = (trip) => {
+        setDetailTrip(trip);
+        setShowDetailModal(true);
+    };
+
+    // Modifikasi useEffect untuk menambahkan loading state
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(route("trips.index"));
+                // Pastikan response.data.trips ada sebelum mengupdate state
+                if (response.data && response.data.trips) {
+                    setTrips(response.data.trips);
+                } else {
+                    console.warn("Data trips tidak ditemukan dalam response");
+                    setTrips([]); // Set array kosong jika tidak ada data
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                toast.error("Gagal memuat data trips");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        // Jika initialTrips kosong, fetch data dari server
+        if (!initialTrips || initialTrips.length === 0) {
+            fetchData();
+        } else {
+            setTrips(initialTrips);
+            setIsLoading(false);
+        }
+    }, [initialTrips]);
+
+    // Tambahkan komponen Skeleton
+    const TableSkeleton = () => (
+        <div className="animate-pulse">
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-t-lg mb-4"></div>
+            {[1, 2, 3, 4, 5].map((index) => (
+                <div
+                    key={index}
+                    className="h-16 bg-gray-100 dark:bg-gray-800 mb-2 rounded-lg"
+                ></div>
+            ))}
+        </div>
+    );
+
+    // Fungsi untuk upload file dari galeri untuk close trip
+    const handleGalleryUploadClose = () => {
+        if (fileInputRefClose.current) {
+            fileInputRefClose.current.removeAttribute("capture");
+            fileInputRefClose.current.setAttribute("accept", "image/*");
+            fileInputRefClose.current.click();
+        }
+    };
+
+    // Fungsi untuk mengambil foto dari kamera untuk close trip
+    const handleCameraCaptureClose = () => {
+        if (fileInputRefClose.current) {
+            fileInputRefClose.current.setAttribute("capture", "environment");
+            fileInputRefClose.current.setAttribute("accept", "image/*");
+            fileInputRefClose.current.click();
+        }
+    };
+
+    // Fungsi untuk menangani file yang diupload
+    const handleFileUploadClose = (e) => {
         const files = Array.from(e.target.files);
 
         // Validasi setiap file
@@ -556,91 +756,14 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
             };
             reader.readAsDataURL(file);
         });
-
-        // Update form data
-        setData("foto_kendaraan", validFiles);
     };
 
     // Fungsi untuk menghapus foto
-    const removePhoto = (index) => {
+    const removePhotoClose = (index) => {
         setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
         setPreviewPhotos((prevPreviews) =>
             prevPreviews.filter((_, i) => i !== index)
         );
-        setData(
-            "foto_kendaraan",
-            photos.filter((_, i) => i !== index)
-        );
-    };
-
-    // Fungsi untuk membuka kamera native device
-    const handleCameraCapture = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.setAttribute("capture", "environment");
-            fileInputRef.current.setAttribute("accept", "image/*");
-            fileInputRef.current.click();
-        }
-    };
-
-    // Fungsi untuk membuka galeri
-    const handleGalleryUpload = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.removeAttribute("capture");
-            fileInputRef.current.setAttribute("accept", "image/*");
-            fileInputRef.current.click();
-        }
-    };
-
-    useEffect(() => {
-        // Subscribe ke channel trips
-        window.Echo.channel("trips").listen("TripUpdated", (e) => {
-            setTrips((prevTrips) => {
-                const updatedTrips = [...prevTrips];
-                const index = updatedTrips.findIndex(
-                    (trip) => trip.id === e.trip.id
-                );
-
-                if (index !== -1) {
-                    // Update trip yang sudah ada
-                    updatedTrips[index] = e.trip;
-                } else {
-                    // Tambahkan trip baru
-                    updatedTrips.unshift(e.trip);
-                }
-
-                return updatedTrips;
-            });
-
-            // Update filtered trips juga
-            const newFilteredTrips = trips.filter(
-                (trip) =>
-                    trip?.kendaraan?.plat_kendaraan
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                    trip?.code_trip
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                    trip?.tujuan
-                        ?.toLowerCase()
-                        .includes(searchTerm.toLowerCase())
-            );
-            setFilteredTrips(newFilteredTrips);
-        });
-
-        // Cleanup subscription
-        return () => {
-            window.Echo.leave("trips");
-        };
-    }, []);
-
-    // Tambahkan state untuk modal detail
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [detailTrip, setDetailTrip] = useState(null);
-
-    // Tambahkan fungsi untuk menampilkan detail trip
-    const handleShowDetail = (trip) => {
-        setDetailTrip(trip);
-        setShowDetailModal(true);
     };
 
     return (
@@ -813,146 +936,156 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                             </div>
                         </div>
                         <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-[#515151]">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            No
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            code Trip
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            No Polisi
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Tujuan
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Tanggal Berangkat
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Tanggal Kembali
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            KM Awal
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            KM Akhir
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Jarak
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            action
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white dark:bg-[#313131] divide-y divide-gray-200 dark:divide-gray-700">
-                                    {currentItems.map((item, index) => (
-                                        <tr
-                                            key={index}
-                                            className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
-                                        >
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {indexOfFirstItem + index + 1}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                <Link
-                                                    href={route(
-                                                        "trips.show",
-                                                        item.code_trip
-                                                    )}
-                                                    className="text-blue-500 hover:text-blue-700 underline"
-                                                >
-                                                    {item.code_trip}
-                                                </Link>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {item.kendaraan.plat_kendaraan}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {item.tujuan}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {dateFormat(
-                                                    item.waktu_keberangkatan,
-                                                    "dd mmmm yyyy, HH:MM:ss"
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {item.waktu_kembali === null
-                                                    ? "-"
-                                                    : dateFormat(
-                                                          item.waktu_kembali,
-                                                          "dd mmmm yyyy, HH:MM:ss"
-                                                      )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {new Intl.NumberFormat(
-                                                    "id-ID"
-                                                ).format(
-                                                    item.kendaraan.km_awal
-                                                )}
-                                                {" KM"}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {new Intl.NumberFormat(
-                                                    "id-ID"
-                                                ).format(
-                                                    item.kendaraan.km_akhir
-                                                )}
-                                                {" KM"}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {item.km_akhir - item.km_awal}
-                                                {" KM"}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span
-                                                    className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
-                                                        item.status ===
-                                                        "Sedang Berjalan"
-                                                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                                            : item.status ===
-                                                              "Selesai"
-                                                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                                                    }`}
-                                                >
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {item.status ===
-                                                "Sedang Berjalan" ? (
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedTrip(
-                                                                item
-                                                            );
-                                                            setCloseKendaraan(
-                                                                true
-                                                            );
-                                                        }}
-                                                        type="button"
-                                                        className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white p-1.5 rounded-lg shadow-sm hover:shadow-md"
-                                                    >
-                                                        <FaCarSide />
-                                                    </button>
-                                                ) : (
-                                                    <span>
-                                                        <FaCheck className="text-blue-500" />
-                                                    </span>
-                                                )}
-                                            </td>
+                            {isLoading ? (
+                                <TableSkeleton />
+                            ) : (
+                                <table className="w-full">
+                                    <thead className="bg-gray-50 dark:bg-[#515151]">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                No
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                code Trip
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                No Polisi
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Tujuan
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Tanggal Berangkat
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Tanggal Kembali
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                KM Awal
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                KM Akhir
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Jarak
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                action
+                                            </th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="bg-white dark:bg-[#313131] divide-y divide-gray-200 dark:divide-gray-700">
+                                        {currentItems.map((item, index) => (
+                                            <tr
+                                                key={index}
+                                                className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {indexOfFirstItem +
+                                                        index +
+                                                        1}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    <Link
+                                                        href={route(
+                                                            "trips.show",
+                                                            item.code_trip
+                                                        )}
+                                                        className="text-blue-500 hover:text-blue-700 underline"
+                                                    >
+                                                        {item.code_trip}
+                                                    </Link>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {
+                                                        item.kendaraan
+                                                            .plat_kendaraan
+                                                    }
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {item.tujuan}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {dateFormat(
+                                                        item.waktu_keberangkatan,
+                                                        "dd mmmm yyyy, HH:MM:ss"
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {item.waktu_kembali === null
+                                                        ? "-"
+                                                        : dateFormat(
+                                                              item.waktu_kembali,
+                                                              "dd mmmm yyyy, HH:MM:ss"
+                                                          )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {new Intl.NumberFormat(
+                                                        "id-ID"
+                                                    ).format(
+                                                        item.kendaraan.km_awal
+                                                    )}
+                                                    {" KM"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {item?.km_akhir === null ||
+                                                    item?.km_akhir === undefined
+                                                        ? "-"
+                                                        : new Intl.NumberFormat(
+                                                              "id-ID"
+                                                          ).format(
+                                                              item.km_akhir
+                                                          ) + " KM"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {item.jarak + " KM"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span
+                                                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
+                                                            item.status ===
+                                                            "Sedang Berjalan"
+                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                                                : item.status ===
+                                                                  "Selesai"
+                                                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                                                        }`}
+                                                    >
+                                                        {item.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {item.status ===
+                                                    "Sedang Berjalan" ? (
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedTrip(
+                                                                    item
+                                                                );
+                                                                setCloseKendaraan(
+                                                                    true
+                                                                );
+                                                            }}
+                                                            type="button"
+                                                            className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white p-1.5 rounded-lg shadow-sm hover:shadow-md"
+                                                        >
+                                                            <FaCarSide />
+                                                        </button>
+                                                    ) : (
+                                                        <span>
+                                                            <FaCheck className="text-blue-500" />
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
 
                             {/* Pagination baru yang lebih modern */}
                             <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
@@ -1188,6 +1321,21 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                         />
                                     </div>
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Penumpang
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.penumpang}
+                                        onChange={(e) =>
+                                            setData("penumpang", e.target.value)
+                                        }
+                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        placeholder="Nama penumpang"
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             {/* Kolom Kanan */}
@@ -1273,18 +1421,20 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                                     )
                                                 )}
                                                 {previewPhotos.length < 5 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={
-                                                            handleGalleryUpload
-                                                        }
-                                                        className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
-                                                    >
-                                                        <FaPlus className="text-gray-400 text-2xl mb-2" />
-                                                        <span className="text-gray-600 dark:text-gray-400">
-                                                            Tambah Foto
-                                                        </span>
-                                                    </button>
+                                                    <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+                                                        <button
+                                                            type="button"
+                                                            onClick={
+                                                                handleGalleryUpload
+                                                            }
+                                                            className="flex flex-col items-center justify-center w-full h-full"
+                                                        >
+                                                            <FaPlus className="text-gray-400 text-2xl mb-2" />
+                                                            <span className="text-gray-600 dark:text-gray-400">
+                                                                Tambah Foto
+                                                            </span>
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
@@ -1346,6 +1496,9 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 onClose={() => {
                     setCloseKendaraan(false);
                     setSelectedTrip(null);
+                    setKmAkhir("");
+                    setPhotos([]);
+                    setPreviewPhotos([]);
                 }}
                 title="Close Trip"
             >
@@ -1410,21 +1563,105 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                 </div>
                             </div>
 
-                            {/* Catatan */}
+                            {/* Foto Kembali */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Catatan
+                                    Foto Kendaraan Kembali
                                 </label>
-                                <textarea
-                                    value={catatanKembali}
-                                    onChange={(e) =>
-                                        setCatatanKembali(e.target.value)
-                                    }
-                                    rows="4"
-                                    className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                                    placeholder="Tambahkan catatan jika diperlukan..."
-                                />
+                                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                                    {previewPhotos.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center h-full space-y-4 w-full min-h-[200px]">
+                                            <div className="text-center space-y-2 flex flex-col items-center justify-center">
+                                                <FaImage className="h-12 w-12 text-gray-400" />
+                                                <div className="text-gray-600 dark:text-gray-400">
+                                                    <span className="font-medium">
+                                                        Pilih foto atau ambil
+                                                        gambar
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex space-x-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handleGalleryUploadClose
+                                                    }
+                                                    className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                                >
+                                                    <FaUpload className="mr-2" />
+                                                    Galeri
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handleCameraCaptureClose
+                                                    }
+                                                    className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                                                >
+                                                    <FaCamera className="mr-2" />
+                                                    Kamera
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                            {previewPhotos.map(
+                                                (preview, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative"
+                                                    >
+                                                        <img
+                                                            src={preview}
+                                                            alt={`Foto Kendaraan ${
+                                                                index + 1
+                                                            }`}
+                                                            className="w-full h-48 object-cover rounded-lg"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removePhotoClose(
+                                                                    index
+                                                                )
+                                                            }
+                                                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                                        >
+                                                            <FaTimes />
+                                                        </button>
+                                                    </div>
+                                                )
+                                            )}
+                                            {previewPhotos.length < 5 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handleGalleryUploadClose
+                                                    }
+                                                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+                                                >
+                                                    <FaPlus className="text-gray-400 text-2xl mb-2" />
+                                                    <span className="text-gray-600 dark:text-gray-400">
+                                                        Tambah Foto
+                                                    </span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+
+                            {/* Input file tersembunyi */}
+                            <input
+                                type="file"
+                                ref={fileInputRefClose}
+                                className="hidden"
+                                onChange={handleFileUploadClose}
+                                multiple
+                                accept="image/*"
+                            />
                         </div>
 
                         {/* Tombol Submit */}
@@ -1434,6 +1671,9 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                 onClick={() => {
                                     setCloseKendaraan(false);
                                     setSelectedTrip(null);
+                                    setKmAkhir("");
+                                    setPhotos([]);
+                                    setPreviewPhotos([]);
                                 }}
                                 className="px-6 py-2.5 border border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                             >

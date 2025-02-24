@@ -24,7 +24,6 @@ class KendaraanFactory extends Factory
                                fake()->randomLetter() . fake()->randomLetter()),
             'merek' => fake()->randomElement($merek),
             'km_awal' => $km_awal,
-            'km_akhir' => $km_awal + fake()->numberBetween(10, 500),
             'status' => fake()->randomElement(['Tersedia', 'Digunakan', 'Dalam Perawatan']),
         ];
     }

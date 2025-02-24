@@ -28,7 +28,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 // Route untuk user saja
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/trips', [KendaraanController::class, 'store'])->name('trips.store');
-    Route::post('/trips/{trip}/close', [KendaraanController::class, 'closeTrip'])->name('trips.close');
+    // Route::post('/trips/{trip}/close', [KendaraanController::class, 'close'])->name('trips.close');
 
     // ... route user
 });
@@ -47,6 +47,7 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::post('/trips/{trip}/close', [TripController::class, 'close'])->name('trips.close');
     
     // ... route umum lainnya
 });

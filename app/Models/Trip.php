@@ -18,15 +18,19 @@ class Trip extends Model
         'kendaraan_id',
         'waktu_keberangkatan',
         'waktu_kembali',
+        'km_akhir',
         'tujuan',
-        'catatan',
-        'catatan_kembali',
         'status',
-        'photos'
+        'jarak',
+        'catatan',
+        'penumpang',
+        'foto_berangkat',
+        'foto_kembali',
     ];
 
     protected $casts = [
-        'photos' => 'array',
+        'foto_berangkat' => 'array',
+        'foto_kembali' => 'array',
         'waktu_keberangkatan' => 'datetime',
         'waktu_kembali' => 'datetime',
     ];
