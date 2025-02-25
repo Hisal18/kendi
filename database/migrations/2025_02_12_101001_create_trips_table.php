@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('code_trip')->unique();
             $table->foreignId('kendaraan_id')->constrained('kendaraans')->onDelete('cascade');
+            $table->foreignId('driver_id')->constrained('drivers')->onDelete('cascade');
             $table->dateTime('waktu_keberangkatan');
             $table->dateTime('waktu_kembali')->nullable();
             $table->integer('km_akhir')->nullable();

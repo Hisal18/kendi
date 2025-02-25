@@ -16,6 +16,7 @@ class Trip extends Model
     protected $fillable = [
         'code_trip',
         'kendaraan_id',
+        'driver_id',
         'waktu_keberangkatan',
         'waktu_kembali',
         'km_akhir',
@@ -38,5 +39,9 @@ class Trip extends Model
     public function kendaraan()
     {
         return $this->belongsTo(Kendaraan::class);
+    }
+
+    public function driver() {
+        return $this->belongsTo(Driver::class);
     }
 }

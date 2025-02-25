@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Driver;
 use App\Models\Kendaraan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,13 +25,14 @@ class TripFactory extends Factory
         return [
             'code_trip' => fake()->unique()->regexify('[A-Za-z0-9]{10}'),
             'kendaraan_id' => Kendaraan::factory(),
+            'driver_id' => Driver::factory(),
             'waktu_keberangkatan' => $waktu_keberangkatan,
             'waktu_kembali' => $waktu_kembali,
             
             'tujuan' => fake()->city(),
             'status' => fake()->randomElement(['Sedang Berjalan', 'Selesai', 'Dibatalkan']),
             'catatan' => fake()->optional()->text(200),
-            'foto_berangkat' => ["trips/67b8307e9e4af_1740124286.png"],
+            'foto_berangkat' => "",
             'penumpang' => fake()->name()
         ];
     }

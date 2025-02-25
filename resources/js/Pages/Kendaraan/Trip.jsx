@@ -20,6 +20,17 @@ import {
     FaCarSide,
     FaUpload,
     FaImage,
+    FaLock,
+    FaIdCard,
+    FaTachometerAlt,
+    FaMapMarkerAlt,
+    FaClock,
+    FaUsers,
+    FaInfo,
+    FaUserTie,
+    FaEdit,
+    FaSave,
+    FaSpinner,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { useForm } from "@inertiajs/react";
@@ -29,7 +40,12 @@ import "react-toastify/dist/ReactToastify.css";
 import Echo from "laravel-echo";
 import axios from "axios";
 
-export default function Trip({ trips: initialTrips, kendaraans, auth }) {
+export default function Trip({
+    trips: initialTrips,
+    kendaraans,
+    drivers,
+    auth,
+}) {
     const [trips, setTrips] = useState(initialTrips || []);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -68,6 +84,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         code_trip: generateRandomCode(),
         kendaraan_id: "",
+        driver_id: "",
         waktu_keberangkatan: dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM"),
         tujuan: "",
         catatan: "",
@@ -93,11 +110,11 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
     const [isRotating, setIsRotating] = useState(false);
 
     const fileInputRef = useRef(null);
+    const fileInputRefClose = useRef(null);
 
     // Tambahkan state untuk multiple photos
     const [photos, setPhotos] = useState([]);
     const [previewPhotos, setPreviewPhotos] = useState([]);
-    const fileInputRefClose = useRef(null);
 
     const filteredTrips = Array.isArray(trips)
         ? trips.filter(
@@ -108,7 +125,12 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                   trip?.code_trip
                       ?.toLowerCase()
                       .includes(searchTerm.toLowerCase()) ||
-                  trip?.tujuan?.toLowerCase().includes(searchTerm.toLowerCase())
+                  trip?.tujuan
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                  trip?.driver?.name
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase())
           )
         : [];
 
@@ -133,7 +155,10 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
             No: index + 1,
             "Kode Trip": trip.code_trip,
             "Plat Kendaraan": trip.kendaraan.plat_kendaraan,
+            "Nama Driver": trip.driver?.name || "-",
+            "No. HP Driver": trip.driver?.phone_number || "-",
             Tujuan: trip.tujuan,
+            Penumpang: trip.penumpang || "-",
             "Tanggal Berangkat": dateFormat(
                 trip.waktu_keberangkatan,
                 "dd mmmm yyyy, HH:MM:ss"
@@ -143,25 +168,40 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 "dd mmmm yyyy, HH:MM:ss"
             ),
             "KM Awal": trip.kendaraan.km_awal,
-            "KM Akhir": trip.km_akhir,
+            "KM Akhir": trip.km_akhir || "-",
+            "Jarak Tempuh": trip.jarak + " KM" || "-",
             Status: trip.status,
-            Catatan: trip.catatan,
+            "Catatan Berangkat": trip.catatan || "-",
+            "Dibuat Pada": dateFormat(
+                trip.created_at,
+                "dd mmmm yyyy, HH:MM:ss"
+            ),
+            "Diperbarui Pada": dateFormat(
+                trip.updated_at,
+                "dd mmmm yyyy, HH:MM:ss"
+            ),
         }));
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(dataToExport);
 
         const colWidths = [
-            { wch: 5 },
-            { wch: 15 },
-            { wch: 15 },
-            { wch: 20 },
-            { wch: 30 },
-            { wch: 30 },
-            { wch: 10 },
-            { wch: 15 },
-            { wch: 15 },
-            { wch: 50 },
+            { wch: 5 }, //A
+            { wch: 15 }, //B
+            { wch: 15 }, //C
+            { wch: 20 }, //D
+            { wch: 30 }, //E
+            { wch: 30 }, //F
+            { wch: 30 }, //G
+            { wch: 40 }, //H
+            { wch: 40 }, //I
+            { wch: 15 }, //J
+            { wch: 15 }, //K
+            { wch: 10 }, //L
+            { wch: 20 }, //M
+            { wch: 30 }, //N
+            { wch: 30 }, //O
+            { wch: 30 }, //P
         ];
         ws["!cols"] = colWidths;
 
@@ -200,53 +240,44 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
         return pages;
     };
 
-    // Tambahkan useEffect untuk menangani flash message
-    useEffect(() => {
-        // Cek flash message dari Laravel
-        if (document.querySelector("div[data-flash]")) {
-            const flashMessage = document.querySelector("div[data-flash]");
-            const message = flashMessage.getAttribute("data-flash-message");
-            const type = flashMessage.getAttribute("data-flash-type");
-
-            // Tampilkan toast sesuai tipe
-            if (type === "success") {
-                toast.success(message);
-            } else if (type === "error") {
-                toast.error(message);
-            }
-        }
-    }, []);
+    // Konfigurasi default untuk semua toast
+    const toastConfig = {
+        position: "top-right", // Ubah posisi ke pojok kanan atas
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Validasi foto terlebih dahulu
         if (photos.length === 0) {
-            toast.error("Harap tambahkan minimal 1 foto kendaraan");
+            toast.error(
+                "Harap tambahkan minimal 1 foto kendaraan",
+                toastConfig
+            );
             return;
         }
 
-        // Buat FormData object untuk mengirim file
         const formData = new FormData();
-
-        // Tambahkan data trip sesuai dengan struktur database
         formData.append("code_trip", data.code_trip);
         formData.append("kendaraan_id", data.kendaraan_id);
+        formData.append("driver_id", data.driver_id);
         formData.append("waktu_keberangkatan", data.waktu_keberangkatan);
         formData.append("tujuan", data.tujuan);
         formData.append("catatan", data.catatan);
         formData.append("km_awal", data.km_awal);
         formData.append("penumpang", data.penumpang);
 
-        // Tambahkan foto-foto dengan nama field yang benar
         photos.forEach((photo, index) => {
             formData.append(`foto_kendaraan[${index}]`, photo);
         });
 
-        // Tampilkan loading state
         setIsLoading(true);
 
-        // Kirim dengan axios untuk mendukung upload file
         axios
             .post(route("trips.create"), formData, {
                 headers: {
@@ -254,25 +285,31 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 },
             })
             .then((response) => {
-                toast.success("Trip berhasil ditambahkan");
-                // Reset form dan state
-                reset();
-                setPhotos([]);
-                setPreviewPhotos([]);
-                setShowPopup(false);
-                // Redirect ke halaman detail
-                window.location.href = route(
-                    "trips.show",
-                    response.data.trip.code_trip
-                );
-                generateRandomCode();
+                if (response.data.success) {
+                    toast.success(response.data.message, toastConfig);
+
+                    // Reset form
+                    reset();
+                    setPhotos([]);
+                    setPreviewPhotos([]);
+                    setShowPopup(false);
+
+                    // Redirect ke halaman detail setelah toast muncul
+                    setTimeout(() => {
+                        window.location.href = route(
+                            "trips.show",
+                            response.data.trip.code_trip
+                        );
+                    }, 2000);
+                }
             })
             .catch((error) => {
                 console.error("Error:", error);
-                const errorMessage =
+                toast.error(
                     error.response?.data?.message ||
-                    "Terjadi kesalahan saat menambahkan trip";
-                toast.error(errorMessage);
+                        "Terjadi kesalahan saat menambahkan trip",
+                    toastConfig
+                );
             })
             .finally(() => {
                 setIsLoading(false);
@@ -405,14 +442,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                         "Silakan coba refresh halaman atau gunakan browser yang berbeda.";
             }
 
-            toast.error(errorMessage, {
-                position: "top-center",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-            });
+            toast.error(errorMessage, toastConfig);
         } finally {
             setIsInitializingCamera(false);
         }
@@ -440,7 +470,8 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
             } catch (fallbackErr) {
                 console.error("Fallback gagal:", fallbackErr);
                 toast.error(
-                    "Tidak dapat mengakses kamera sama sekali. Mohon periksa pengaturan browser Anda."
+                    "Tidak dapat mengakses kamera sama sekali. Mohon periksa pengaturan browser Anda.",
+                    toastConfig
                 );
             }
         }
@@ -536,7 +567,8 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
 
         if (parseInt(kmAkhir) <= parseInt(selectedTrip.kendaraan.km_awal)) {
             toast.error(
-                "Kilometer akhir harus lebih besar dari kilometer awal"
+                "Kilometer akhir harus lebih besar dari kilometer awal",
+                toastConfig
             );
             return;
         }
@@ -569,7 +601,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 },
             })
             .then((response) => {
-                toast.success("Trip berhasil ditutup");
+                toast.success("Trip berhasil ditutup", toastConfig);
                 setCloseKendaraan(false);
                 setSelectedTrip(null);
                 setKmAkhir("");
@@ -584,37 +616,57 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 console.error("Error:", error);
                 toast.error(
                     "Gagal menutup trip: " +
-                        (error.response?.data?.message || "Terjadi kesalahan")
+                        (error.response?.data?.message || "Terjadi kesalahan"),
+                    toastConfig
                 );
             });
     };
 
-    // Modifikasi fungsi handleFileUpload
+    // Perbaiki fungsi handleGalleryUpload
+    const handleGalleryUpload = () => {
+        if (previewPhotos.length >= 5) {
+            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
+            return;
+        }
+
+        // Pastikan ref tersedia dan reset input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Reset input
+            fileInputRef.current.removeAttribute("capture"); // Hapus attribute capture
+            fileInputRef.current.setAttribute("accept", "image/*"); // Set accept attribute
+            fileInputRef.current.click();
+        }
+    };
+
+    // Pastikan handleFileUpload berfungsi dengan benar
     const handleFileUpload = (e) => {
         const files = Array.from(e.target.files);
 
-        // Validasi jumlah foto
-        if (photos.length + files.length > 5) {
-            toast.error("Maksimal 5 foto yang dapat diunggah");
+        if (previewPhotos.length + files.length > 5) {
+            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
             return;
         }
 
         // Validasi setiap file
         const validFiles = files.filter((file) => {
-            // Cek tipe file
             if (!file.type.startsWith("image/")) {
-                toast.error(`${file.name} bukan file gambar yang valid`);
+                toast.error(
+                    `${file.name} bukan file gambar yang valid`,
+                    toastConfig
+                );
                 return false;
             }
-            // Cek ukuran file (5MB)
             if (file.size > 5 * 1024 * 1024) {
-                toast.error(`${file.name} melebihi batas ukuran 5MB`);
+                toast.error(
+                    `${file.name} melebihi batas ukuran 5MB`,
+                    toastConfig
+                );
                 return false;
             }
             return true;
         });
 
-        // Update state photos dengan file asli
+        // Update state photos dan preview
         setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
 
         // Generate preview untuk setiap file
@@ -625,40 +677,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
             };
             reader.readAsDataURL(file);
         });
-
-        // Reset input file
-        e.target.value = "";
     };
-
-    // Modifikasi removePhoto untuk menghapus dari kedua state
-    const removePhoto = (index) => {
-        setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
-        setPreviewPhotos((prevPreviews) =>
-            prevPreviews.filter((_, i) => i !== index)
-        );
-    };
-
-    // Fungsi untuk membuka kamera native device
-    const handleCameraCapture = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.setAttribute("capture", "environment");
-            fileInputRef.current.setAttribute("accept", "image/*");
-            fileInputRef.current.click();
-        }
-    };
-
-    // Fungsi untuk membuka galeri
-    const handleGalleryUpload = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.removeAttribute("capture");
-            fileInputRef.current.setAttribute("accept", "image/*");
-            fileInputRef.current.click();
-        }
-    };
-
-    // Tambahkan state untuk modal detail
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [detailTrip, setDetailTrip] = useState(null);
 
     // Tambahkan fungsi untuk menampilkan detail trip
     const handleShowDetail = (trip) => {
@@ -680,7 +699,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
-                toast.error("Gagal memuat data trips");
+                toast.error("Gagal memuat data trips", toastConfig);
             } finally {
                 setIsLoading(false);
             }
@@ -734,12 +753,18 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
         const validFiles = files.filter((file) => {
             // Cek tipe file
             if (!file.type.startsWith("image/")) {
-                toast.error(`${file.name} bukan file gambar yang valid`);
+                toast.error(
+                    `${file.name} bukan file gambar yang valid`,
+                    toastConfig
+                );
                 return false;
             }
             // Cek ukuran file (5MB)
             if (file.size > 5 * 1024 * 1024) {
-                toast.error(`${file.name} melebihi batas ukuran 5MB`);
+                toast.error(
+                    `${file.name} melebihi batas ukuran 5MB`,
+                    toastConfig
+                );
                 return false;
             }
             return true;
@@ -766,15 +791,36 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
         );
     };
 
+    // Tambahkan fungsi handleCameraCapture
+    const handleCameraCapture = () => {
+        if (previewPhotos.length >= 5) {
+            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
+            return;
+        }
+
+        // Pastikan fileInputRef ada
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Reset input
+            fileInputRef.current.removeAttribute("capture"); // Hapus attribute capture
+            fileInputRef.current.setAttribute("accept", "image/*"); // Set accept attribute
+            fileInputRef.current.click();
+        }
+    };
+
+    // Tambahkan state untuk menyimpan driver yang tersedia
+    const driversAvailable = Array.isArray(drivers)
+        ? drivers.filter((driver) => driver.status === "Tersedia")
+        : [];
+
     return (
         <>
             <Head title="Monitoring Kendaraan" />
             <DashboardLayout>
-                <div className="py-4">
+                <div className="py-0">
                     {/* Header Section dengan Background Gradient dan Waktu Real-time */}
-                    <div className="mb-8 text-white">
+                    <div className="mb-4 text-white">
                         <h1 className="text-3xl font-bold mb-2 text-gray-500 dark:text-gray-400">
-                            Monitoring Kendaraan
+                            Monitoring Perjalanan
                         </h1>
                         <p className="opacity-90 text-gray-700 dark:text-gray-500">
                             Data monitoring kendaraan hari ini -{" "}
@@ -1180,208 +1226,314 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                 onClose={() => setShowPopup(false)}
                 title="Tambah Trip"
             >
-                <div className="">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Kolom Kiri */}
-                            <div className="space-y-6">
-                                {/* Code Trip */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Kode Trip
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.code_trip}
-                                        className="block w-full px-4 py-3 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed"
-                                        disabled
-                                    />
-                                </div>
+                <div className="max-h-[85vh] overflow-y-auto px-1">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Kolom Kiri - Informasi Trip */}
+                            <div>
+                                <div className="bg-gray-50 dark:bg-[#414141] rounded-lg p-4 space-y-3">
+                                    {/* Header Info */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Kode Trip
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={data.code_trip}
+                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    disabled
+                                                />
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <FaLock className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Waktu
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="datetime-local"
+                                                    value={
+                                                        data.waktu_keberangkatan
+                                                    }
+                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    disabled
+                                                />
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <FaClock className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                {/* Kendaraan Selection */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Pilih Kendaraan
-                                    </label>
-                                    <select
-                                        value={data.kendaraan_id}
-                                        onChange={handleKendaraanChange}
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                                        required
-                                    >
-                                        <option value="">
+                                    {/* Kendaraan Selection */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Pilih Kendaraan
-                                        </option>
-                                        {Array.isArray(
-                                            kendaraanTersediaStatus
-                                        ) &&
-                                            kendaraanTersediaStatus.map(
-                                                (kendaraan) => (
-                                                    <option
-                                                        key={kendaraan.id}
-                                                        value={kendaraan.id}
-                                                    >
-                                                        {
-                                                            kendaraan.plat_kendaraan
-                                                        }{" "}
-                                                        - {kendaraan.merek}
-                                                    </option>
-                                                )
-                                            )}
-                                    </select>
-                                </div>
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                value={data.kendaraan_id}
+                                                onChange={handleKendaraanChange}
+                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
+                                                required
+                                            >
+                                                <option value="">
+                                                    Pilih Kendaraan
+                                                </option>
+                                                {Array.isArray(
+                                                    kendaraanTersediaStatus
+                                                ) &&
+                                                    kendaraanTersediaStatus.map(
+                                                        (kendaraan) => (
+                                                            <option
+                                                                key={
+                                                                    kendaraan.id
+                                                                }
+                                                                value={
+                                                                    kendaraan.id
+                                                                }
+                                                            >
+                                                                {
+                                                                    kendaraan.plat_kendaraan
+                                                                }{" "}
+                                                                -{" "}
+                                                                {
+                                                                    kendaraan.merek
+                                                                }
+                                                            </option>
+                                                        )
+                                                    )}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                <FaCarSide className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                {/* Detail Kendaraan */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Merek Kendaraan
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.merek}
-                                            className="block w-full disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed"
-                                            disabled
-                                        />
+                                    {/* Detail Kendaraan */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Merek
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={data.merek}
+                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    disabled
+                                                />
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <FaCar className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Plat Nomor
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={data.plat_kendaraan}
+                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    disabled
+                                                />
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <FaIdCard className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Plat Kendaraan
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.plat_kendaraan}
-                                            className="block w-full disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed"
-                                            disabled
-                                        />
-                                    </div>
-                                </div>
 
-                                {/* Kilometer */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Kilometer Awal
-                                        </label>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            value={data.km_awal}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "km_awal",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                                            required
-                                        />
+                                    {/* KM dan Status */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Kilometer Awal
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={data.km_awal}
+                                                    onChange={(e) =>
+                                                        setData(
+                                                            "km_awal",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                    required
+                                                />
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <FaTachometerAlt className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Status
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={data.status}
+                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    disabled
+                                                />
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <FaInfo className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Status Kendaraan
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.status}
-                                            className="block w-full disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed"
-                                            disabled
-                                        />
-                                    </div>
-                                </div>
 
-                                {/* Tujuan dan Waktu */}
-                                <div className="grid grid-cols-2 gap-4">
+                                    {/* Tujuan dan Driver */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Tujuan
                                         </label>
-                                        <input
-                                            type="text"
-                                            value={data.tujuan}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "tujuan",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                                            required
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={data.tujuan}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "tujuan",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                placeholder="Masukkan tujuan"
+                                                required
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <FaMapMarkerAlt className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Waktu Keberangkatan
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Penumpang
                                         </label>
-                                        <input
-                                            type="datetime-local"
-                                            value={data.waktu_keberangkatan}
-                                            className="block w-full disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed"
-                                            disabled
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={data.penumpang}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "penumpang",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                placeholder="Nama penumpang"
+                                                required
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <FaUsers className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Penumpang
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.penumpang}
-                                        onChange={(e) =>
-                                            setData("penumpang", e.target.value)
-                                        }
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                                        placeholder="Nama penumpang"
-                                        required
-                                    />
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Driver
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                value={data.driver_id}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "driver_id",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
+                                                required
+                                            >
+                                                <option value="">
+                                                    Pilih Driver
+                                                </option>
+                                                {driversAvailable.map(
+                                                    (driver) => (
+                                                        <option
+                                                            key={driver.id}
+                                                            value={driver.id}
+                                                        >
+                                                            {driver.name} -{" "}
+                                                            {
+                                                                driver.phone_number
+                                                            }
+                                                        </option>
+                                                    )
+                                                )}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                <FaUserTie className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
+                                        </div>
+                                        {errors.driver_id && (
+                                            <div className="text-red-500 text-xs mt-1">
+                                                {errors.driver_id}
+                                            </div>
+                                        )}
+                                        {driversAvailable.length === 0 && (
+                                            <div className="text-yellow-500 text-xs mt-1">
+                                                Tidak ada driver yang tersedia
+                                                saat ini
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Kolom Kanan */}
-                            <div className="space-y-6">
+                            {/* Kolom Kanan - Foto dan Catatan */}
+                            <div className="space-y-3">
                                 {/* Foto Kendaraan */}
-                                <div>
+                                <div className="bg-gray-50 dark:bg-[#414141] rounded-lg p-4">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Foto Kendaraan
                                     </label>
                                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
                                         {previewPhotos.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center h-full space-y-4 w-full min-h-[300px]">
-                                                <div className="text-center space-y-2 flex flex-col items-center justify-center">
-                                                    <FaImage className="h-12 w-12 text-gray-400" />
-                                                    <div className="text-gray-600 dark:text-gray-400">
-                                                        <span className="font-medium">
-                                                            Pilih foto atau
-                                                            ambil gambar
-                                                        </span>
-                                                    </div>
+                                            <div className="flex flex-col items-center justify-center space-y-3 py-5">
+                                                <FaImage className="h-10 w-10 text-gray-400" />
+                                                <div className="text-gray-600 dark:text-gray-400 text-sm text-center">
+                                                    <span className="font-medium">
+                                                        Pilih foto atau ambil
+                                                        gambar
+                                                    </span>
                                                 </div>
-
-                                                <div className="flex space-x-3">
+                                                <div className="flex space-x-2">
                                                     <button
                                                         type="button"
                                                         onClick={
                                                             handleGalleryUpload
                                                         }
-                                                        className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                                        className="inline-flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
                                                     >
-                                                        <FaUpload className="mr-2" />
+                                                        <FaUpload className="mr-1 w-3 h-3" />
                                                         Galeri
                                                     </button>
-
                                                     <button
                                                         type="button"
                                                         onClick={
                                                             handleCameraCapture
                                                         }
-                                                        className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                                                        className="inline-flex items-center px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
                                                     >
-                                                        <FaCamera className="mr-2" />
+                                                        <FaCamera className="mr-1 w-3 h-3" />
                                                         Kamera
                                                     </button>
                                                 </div>
-
                                                 <input
                                                     type="file"
                                                     ref={fileInputRef}
@@ -1392,19 +1544,19 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                                 />
                                             </div>
                                         ) : (
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                            <div className="grid grid-cols-3 gap-2">
                                                 {previewPhotos.map(
                                                     (preview, index) => (
                                                         <div
                                                             key={index}
-                                                            className="relative"
+                                                            className="relative group"
                                                         >
                                                             <img
                                                                 src={preview}
-                                                                alt={`Foto Kendaraan ${
+                                                                alt={`Foto ${
                                                                     index + 1
                                                                 }`}
-                                                                className="w-full h-48 object-cover rounded-lg"
+                                                                className="w-full h-24 object-cover rounded-lg"
                                                             />
                                                             <button
                                                                 type="button"
@@ -1413,55 +1565,61 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                                                         index
                                                                     )
                                                                 }
-                                                                className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
                                                             >
-                                                                <FaTimes />
+                                                                <FaTimes className="w-3 h-3" />
                                                             </button>
                                                         </div>
                                                     )
                                                 )}
                                                 {previewPhotos.length < 5 && (
-                                                    <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
-                                                        <button
-                                                            type="button"
-                                                            onClick={
-                                                                handleGalleryUpload
-                                                            }
-                                                            className="flex flex-col items-center justify-center w-full h-full"
-                                                        >
-                                                            <FaPlus className="text-gray-400 text-2xl mb-2" />
-                                                            <span className="text-gray-600 dark:text-gray-400">
-                                                                Tambah Foto
-                                                            </span>
-                                                        </button>
-                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={
+                                                            handleGalleryUpload
+                                                        }
+                                                        className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+                                                    >
+                                                        <FaPlus className="text-gray-400 w-4 h-4 mb-1" />
+                                                        <span className="text-gray-600 dark:text-gray-400 text-xs">
+                                                            Tambah
+                                                        </span>
+                                                    </button>
                                                 )}
                                             </div>
                                         )}
                                     </div>
                                     {errors.foto_kendaraan && (
-                                        <p className="mt-2 text-sm text-red-600">
+                                        <p className="mt-1 text-xs text-red-600">
                                             {errors.foto_kendaraan}
                                         </p>
                                     )}
                                 </div>
 
                                 {/* Catatan */}
-                                <div>
+                                <div className="bg-gray-50 dark:bg-[#414141] rounded-lg p-4">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Catatan
                                     </label>
-                                    <textarea
-                                        value={data.catatan}
-                                        onChange={(e) =>
-                                            setData("catatan", e.target.value)
-                                        }
-                                        rows="4"
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
-                                        placeholder="Tambahkan catatan jika diperlukan..."
-                                    />
+                                    <div className="relative">
+                                        <textarea
+                                            value={data.catatan}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "catatan",
+                                                    e.target.value
+                                                )
+                                            }
+                                            rows="3"
+                                            className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                            placeholder="Tambahkan catatan jika diperlukan..."
+                                        />
+                                        <div className="absolute top-2 right-2">
+                                            <FaEdit className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                        </div>
+                                    </div>
                                     {errors.catatan && (
-                                        <div className="text-red-500 text-sm mt-1">
+                                        <div className="text-red-500 text-xs mt-1">
                                             {errors.catatan}
                                         </div>
                                     )}
@@ -1470,20 +1628,30 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                         </div>
 
                         {/* Tombol Submit */}
-                        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <button
                                 type="button"
                                 onClick={() => setShowPopup(false)}
-                                className="px-6 py-2.5 border border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                className="px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
                             >
                                 Batal
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors flex items-center space-x-2 text-sm"
                             >
-                                {processing ? "Menyimpan..." : "Simpan"}
+                                {processing ? (
+                                    <>
+                                        <FaSpinner className="animate-spin w-4 h-4" />
+                                        <span>Menyimpan...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FaSave className="w-4 h-4" />
+                                        <span>Simpan</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </form>
@@ -1606,7 +1774,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-3 gap-4">
                                             {previewPhotos.map(
                                                 (preview, index) => (
                                                     <div
@@ -1615,7 +1783,7 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                                     >
                                                         <img
                                                             src={preview}
-                                                            alt={`Foto Kendaraan ${
+                                                            alt={`Foto ${
                                                                 index + 1
                                                             }`}
                                                             className="w-full h-48 object-cover rounded-lg"
@@ -1642,9 +1810,9 @@ export default function Trip({ trips: initialTrips, kendaraans, auth }) {
                                                     }
                                                     className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
                                                 >
-                                                    <FaPlus className="text-gray-400 text-2xl mb-2" />
-                                                    <span className="text-gray-600 dark:text-gray-400">
-                                                        Tambah Foto
+                                                    <FaPlus className="text-gray-400 w-4 h-4 mb-1" />
+                                                    <span className="text-gray-600 dark:text-gray-400 text-xs">
+                                                        Tambah
                                                     </span>
                                                 </button>
                                             )}

@@ -245,7 +245,7 @@ export default function DetailTrip({ trip }) {
                                             Nama Driver
                                         </label>
                                         <p className="font-medium text-gray-900 dark:text-white">
-                                            {/* {trip.driver?.name || "-"} */}
+                                            {trip.driver?.name}
                                         </p>
                                     </div>
                                     <div>
@@ -253,15 +253,7 @@ export default function DetailTrip({ trip }) {
                                             Kontak
                                         </label>
                                         <p className="font-medium text-gray-900 dark:text-white">
-                                            {/* {trip.driver?.phone || "-"} */}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
-                                            Email
-                                        </label>
-                                        <p className="font-medium text-gray-900 dark:text-white">
-                                            {/* {trip.driver?.email || "-"} */}
+                                            {trip.driver?.phone_number || "-"}
                                         </p>
                                     </div>
                                 </div>

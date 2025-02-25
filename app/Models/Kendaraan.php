@@ -15,7 +15,6 @@ class Kendaraan extends Model
         'plat_kendaraan',
         'merek',
         'km_awal',
-        'km_akhir',
         'status'
     ];
 
