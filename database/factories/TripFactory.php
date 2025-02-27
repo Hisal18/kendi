@@ -30,7 +30,7 @@ class TripFactory extends Factory
             'waktu_kembali' => $waktu_kembali,
             
             'tujuan' => fake()->city(),
-            'status' => fake()->randomElement(['Sedang Berjalan', 'Selesai', 'Dibatalkan']),
+            'status' => fake()->randomElement(['Sedang Berjalan', 'Selesai']),
             'catatan' => fake()->optional()->text(200),
             'foto_berangkat' => "",
             'penumpang' => fake()->name()

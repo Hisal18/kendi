@@ -7,6 +7,7 @@ import {
     FaUserFriends,
     FaTools,
     FaSignOutAlt,
+    FaCircle,
 } from "react-icons/fa";
 
 import ApplicationLogo from "./ApplicationLogo";
@@ -14,6 +15,7 @@ import ApplicationLogo from "./ApplicationLogo";
 export default function Sidebar() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isKendaraanOpen, setIsKendaraanOpen] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const { url = "", auth } = usePage().props;
     const sidebarRef = useRef();
 
@@ -32,6 +34,14 @@ export default function Sidebar() {
         return () =>
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Function untuk mengecek active route
+    const isActive = (path) => {
+        if (path === "/dashboard") {
+            return url === path;
+        }
+        return url.startsWith(path);
+    };
 
     return (
         <>
@@ -69,15 +79,16 @@ export default function Sidebar() {
                     <nav className="space-y-1 flex-1">
                         <Link
                             href={route("dashboard.index")}
-                            className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                url === "/dashboard"
-                                    ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
-                                    : ""
-                            }`}
+                            className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                ${
+                                    isActive("/dashboard")
+                                        ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm"
+                                        : "text-gray-600 dark:text-gray-400"
+                                }`}
                         >
                             <FaHome
                                 className={`w-5 h-5 mr-3 transition-colors ${
-                                    url === "/dashboard"
+                                    isActive("/dashboard")
                                         ? "text-indigo-600 dark:text-indigo-400"
                                         : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                 }`}
@@ -89,16 +100,17 @@ export default function Sidebar() {
                                 onClick={() =>
                                     setIsKendaraanOpen(!isKendaraanOpen)
                                 }
-                                className={`w-full flex items-center justify-between py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                    url.startsWith("/kendaraan")
-                                        ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
-                                        : ""
-                                }`}
+                                className={`w-full flex items-center justify-between py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                    ${
+                                        isActive("/kendaraan")
+                                            ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm"
+                                            : "text-gray-600 dark:text-gray-400"
+                                    }`}
                             >
                                 <div className="flex items-center">
                                     <FaCar
                                         className={`w-5 h-5 mr-3 transition-colors ${
-                                            url.startsWith("/kendaraan")
+                                            isActive("/kendaraan")
                                                 ? "text-indigo-600 dark:text-indigo-400"
                                                 : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                         }`}
@@ -131,41 +143,72 @@ export default function Sidebar() {
                             >
                                 <Link
                                     href={route("trips.index")}
-                                    className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                        url === "/trip"
-                                            ? "text-indigo-600 dark:text-indigo-400 font-medium"
-                                            : "text-gray-600 dark:text-gray-400"
-                                    }`}
+                                    className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                        ${
+                                            isActive("/trip")
+                                                ? "text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50/50 dark:bg-gray-800/50"
+                                                : "text-gray-600 dark:text-gray-400"
+                                        }`}
                                 >
-                                    Trip
+                                    <FaCircle className="h-2 mx-1" />
+                                    Dinas
+                                </Link>
+                                <Link
+                                    href={route("tamu.index")}
+                                    className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                        ${
+                                            isActive("/tamu")
+                                                ? "text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50/50 dark:bg-gray-800/50"
+                                                : "text-gray-600 dark:text-gray-400"
+                                        }`}
+                                >
+                                    <FaCircle className="h-2 mx-1" />
+                                    Tamu
                                 </Link>
 
                                 {auth.user.role === "admin" && (
-                                    <Link
-                                        href={route("kendaraan.index")}
-                                        className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                            url === "/kendaraan"
-                                                ? "text-indigo-600 dark:text-indigo-400 font-medium"
-                                                : "text-gray-600 dark:text-gray-400"
-                                        }`}
-                                    >
-                                        Data Kendaraan
-                                    </Link>
+                                    <>
+                                        <Link
+                                            href={route("kendaraan.index")}
+                                            className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                            ${
+                                                isActive("/kendaraan")
+                                                    ? "text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50/50 dark:bg-gray-800/50"
+                                                    : "text-gray-600 dark:text-gray-400"
+                                            }`}
+                                        >
+                                            <FaCircle className="h-2 mx-1" />
+                                            Kendaraan
+                                        </Link>
+                                        <Link
+                                            href={route("driver.index")}
+                                            className={`flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                            ${
+                                                isActive("/driver")
+                                                    ? "text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50/50 dark:bg-gray-800/50"
+                                                    : "text-gray-600 dark:text-gray-400"
+                                            }`}
+                                        >
+                                            <FaCircle className="h-2 mx-1" />
+                                            Driver
+                                        </Link>
+                                    </>
                                 )}
                             </div>
                         </div>
                         {auth.user.role === "admin" && (
                             <Link
                                 href={route("user.index")}
-                                className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                    url === "/users"
-                                        ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
-                                        : ""
-                                }`}
+                                className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                    ${
+                                        isActive("/users")
+                                            ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm"
+                                            : "text-gray-600 dark:text-gray-400"
+                                    }`}
                             >
                                 <FaUserFriends
                                     className={`w-5 h-5 mr-3 transition-colors ${
-                                        url === "/users"
+                                        isActive("/users")
                                             ? "text-indigo-600 dark:text-indigo-400"
                                             : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                     }`}
@@ -175,15 +218,16 @@ export default function Sidebar() {
                         )}
                         <Link
                             href={route("profile.edit")}
-                            className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group ${
-                                url === "/profile"
-                                    ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium"
-                                    : ""
-                            }`}
+                            className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                ${
+                                    isActive("/profile")
+                                        ? "bg-indigo-50 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm"
+                                        : "text-gray-600 dark:text-gray-400"
+                                }`}
                         >
                             <FaTools
                                 className={`w-5 h-5 mr-3 transition-colors ${
-                                    url === "/profile"
+                                    isActive("/profile")
                                         ? "text-indigo-600 dark:text-indigo-400"
                                         : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                 }`}
@@ -193,20 +237,52 @@ export default function Sidebar() {
                     </nav>
 
                     <div className="pt-4 mt-4 border-t border-gray-700 dark:border-gray-600">
-                        <Link
-                            href={route("logout")}
-                            method="post"
-                            as="button"
-                            className={`flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group w-full text-left`}
+                        <button
+                            onClick={() => setShowLogoutModal(true)}
+                            className="flex items-center py-3 px-4 rounded-lg transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group w-full text-left text-gray-600 dark:text-gray-400"
                         >
                             <FaSignOutAlt
                                 className={`w-5 h-5 mr-3 transition-colors text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400`}
                             />
                             Logout
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* Modal Konfirmasi Logout */}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+                        onClick={() => setShowLogoutModal(false)}
+                    ></div>
+                    <div className="bg-white dark:bg-[#313131] rounded-lg p-6 shadow-xl z-10 max-w-md w-full mx-4">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                            Konfirmasi Logout
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            Apakah Anda yakin ingin keluar dari aplikasi?
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutModal(false)}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-[#717171] dark:text-gray-300 dark:hover:bg-gray-600"
+                            >
+                                Batal
+                            </button>
+                            <Link
+                                href={route("logout")}
+                                method="post"
+                                as="button"
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                            >
+                                Ya, Logout
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

@@ -1,5 +1,5 @@
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import React, { useState, useEffect, useRef } from "react";
 import dateFormat, { masks } from "dateformat";
 import {
@@ -33,11 +33,9 @@ import {
     FaSpinner,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
-import { useForm } from "@inertiajs/react";
 import Modal from "@/Components/ModalNew";
 import { ToastContainer, toast, Flip } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Echo from "laravel-echo";
 import axios from "axios";
 
 export default function Trip({
@@ -449,84 +447,13 @@ export default function Trip({
     };
 
     // Tambahkan fungsi fallback jika getUserMedia gagal
-    const startCameraWithFallback = async () => {
-        try {
-            await startCamera();
-        } catch (err) {
-            console.error("Fallback: mencoba dengan constraints minimal");
-            try {
-                const minimalConstraints = {
-                    video: true,
-                    audio: false,
-                };
-                const stream = await navigator.mediaDevices.getUserMedia(
-                    minimalConstraints
-                );
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                    streamRef.current = stream;
-                    setIsCameraOpen(true);
-                }
-            } catch (fallbackErr) {
-                console.error("Fallback gagal:", fallbackErr);
-                toast.error(
-                    "Tidak dapat mengakses kamera sama sekali. Mohon periksa pengaturan browser Anda.",
-                    toastConfig
-                );
-            }
-        }
-    };
+    
 
     // Modifikasi fungsi switchCamera
-    const switchCamera = async () => {
-        setIsRotating(true); // Mulai animasi
-
-        // Hentikan stream kamera yang sedang berjalan
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => track.stop());
-        }
-
-        // Tukar facing mode
-        setFacingMode((prevMode) =>
-            prevMode === "environment" ? "user" : "environment"
-        );
-
-        // Restart kamera dengan facing mode yang baru
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode:
-                        facingMode === "environment" ? "user" : "environment",
-                },
-            });
-
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                streamRef.current = stream;
-            }
-        } catch (err) {
-            console.error("Error saat menukar kamera:", err);
-            alert(
-                "Gagal menukar kamera. Pastikan perangkat Anda memiliki kamera depan dan belakang."
-            );
-        } finally {
-            // Hentikan animasi setelah 1 detik
-            setTimeout(() => {
-                setIsRotating(false);
-            }, 1000);
-        }
-    };
+    
 
     // Fungsi untuk mengambil foto
-    const capturePhoto = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
-        const photoData = canvas.toDataURL("image/jpeg");
-        setPhoto(photoData);
-        stopCamera();
-    };
+    
 
     // Fungsi untuk menghentikan kamera
     const stopCamera = () => {
@@ -537,9 +464,7 @@ export default function Trip({
     };
 
     // Fungsi untuk menghapus foto
-    const deletePhoto = () => {
-        setPhoto(null);
-    };
+    
 
     // Hitung statistik kendaraan
     const totalKendaraan = kendaraans.length;
@@ -558,7 +483,7 @@ export default function Trip({
 
     // Tambahkan state untuk close trip
     const [kmAkhir, setKmAkhir] = useState("");
-    const { post: postCloseTrip, processing: processingCloseTrip } = useForm();
+    const { processing: processingCloseTrip } = useForm();
 
     const handleCloseTrip = (e) => {
         e.preventDefault();
@@ -679,12 +604,6 @@ export default function Trip({
         });
     };
 
-    // Tambahkan fungsi untuk menampilkan detail trip
-    const handleShowDetail = (trip) => {
-        setDetailTrip(trip);
-        setShowDetailModal(true);
-    };
-
     // Modifikasi useEffect untuk menambahkan loading state
     useEffect(() => {
         const fetchData = async () => {
@@ -784,7 +703,7 @@ export default function Trip({
     };
 
     // Fungsi untuk menghapus foto
-    const removePhotoClose = (index) => {
+    const removePhoto = (index) => {
         setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
         setPreviewPhotos((prevPreviews) =>
             prevPreviews.filter((_, i) => i !== index)
@@ -811,6 +730,8 @@ export default function Trip({
     const driversAvailable = Array.isArray(drivers)
         ? drivers.filter((driver) => driver.status === "Tersedia")
         : [];
+
+    // console.log(currentItems);
 
     return (
         <>
@@ -998,6 +919,9 @@ export default function Trip({
                                                 No Polisi
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Driver
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Tujuan
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -1052,6 +976,9 @@ export default function Trip({
                                                     }
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                    {item.driver.name}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                                                     {item.tujuan}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
@@ -1094,11 +1021,8 @@ export default function Trip({
                                                         className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
                                                             item.status ===
                                                             "Sedang Berjalan"
-                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                                                : item.status ===
-                                                                  "Selesai"
-                                                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                                                                ? "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300"
+                                                                : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                                                         }`}
                                                     >
                                                         {item.status}
@@ -1662,6 +1586,7 @@ export default function Trip({
             <Modal
                 isOpen={closeKendaraan}
                 onClose={() => {
+                    reset()
                     setCloseKendaraan(false);
                     setSelectedTrip(null);
                     setKmAkhir("");
@@ -1791,7 +1716,7 @@ export default function Trip({
                                                         <button
                                                             type="button"
                                                             onClick={() =>
-                                                                removePhotoClose(
+                                                                removePhoto(
                                                                     index
                                                                 )
                                                             }
@@ -1837,6 +1762,7 @@ export default function Trip({
                             <button
                                 type="button"
                                 onClick={() => {
+                                    reset()
                                     setCloseKendaraan(false);
                                     setSelectedTrip(null);
                                     setKmAkhir("");

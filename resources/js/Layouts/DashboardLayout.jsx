@@ -49,6 +49,10 @@ export default function DashboardLayout({ children }) {
                                 {url.startsWith("/user") && "Users"}
                                 {url.startsWith("/trip") && "Trip"}
                                 {url.startsWith("/profile") && "Profile"}
+                                {url.startsWith("/driver") && "Driver"}
+                                {url.startsWith("/tamu") && "Kendaraan Tamu"}
+                                {url.startsWith("/kendaraan") &&
+                                    "Kendaraan Dinas"}
                             </h1>
                             <div className="flex items-center space-x-4">
                                 <div className="flex ml-4 items-center">

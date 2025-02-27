@@ -20,7 +20,7 @@ return new class extends Migration
             $table->dateTime('waktu_kembali')->nullable();
             $table->integer('km_akhir')->nullable();
             $table->string('tujuan');
-            $table->enum('status', ['Sedang Berjalan', 'Selesai', 'Dibatalkan'])->default('Sedang Berjalan');
+            $table->enum('status', ['Sedang Berjalan', 'Selesai'])->default('Sedang Berjalan');
             $table->integer('jarak')->nullable();
             $table->text('catatan')->nullable();
             $table->json('foto_berangkat');

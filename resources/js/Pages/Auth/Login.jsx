@@ -6,6 +6,8 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -18,13 +20,39 @@ export default function Login({ status, canResetPassword }) {
         e.preventDefault();
 
         post(route("login"), {
+            onSuccess: () => {
+                toast.success("Login berhasil!", {
+                    position: "top-right",
+                    duration: 3000,
+                    style: {
+                        background: "#22C55E",
+                        color: "#fff",
+                    },
+                });
+            },
             onFinish: () => reset("password"),
+            onError: (errors) => {
+                if (errors.email || errors.password) {
+                    toast.error("Email atau password salah", {
+                        position: "top-right",
+                        duration: 3000,
+                        style: {
+                            background: "#EF4444",
+                            color: "#fff",
+                        },
+                    });
+                }
+            },
         });
     };
 
     return (
         <GuestLayout>
             <Head title="Log in" />
+
+            <div>
+                <Toaster />
+            </div>
 
             <div className="flex flex-col items-center">
                 <ApplicationLogo className="block h-40 w-auto fill-current text-gray-900 dark:text-white" />
@@ -38,10 +66,7 @@ export default function Login({ status, canResetPassword }) {
                     </div>
                 )}
 
-                <form
-                    onSubmit={submit}
-                    className="w-full max-w-md p-8"
-                >
+                <form onSubmit={submit} className="w-full max-w-md p-8">
                     <div>
                         <InputLabel
                             htmlFor="email"

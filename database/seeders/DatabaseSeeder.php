@@ -19,10 +19,12 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
            UserSeeder::class,
+           DriverSeeder::class,
+           KendaraanSeeder::class
         ]);
 
-        Trip::factory(10)->create();
-        Kendaraan::factory(10)->create();
+        // Trip::factory(10)->create();
+        // Kendaraan::factory(10)->create();
 
         // User::factory()->create([
         //     'name' => 'Test User',
