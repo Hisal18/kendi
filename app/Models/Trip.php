@@ -19,6 +19,7 @@ class Trip extends Model
         'driver_id',
         'waktu_keberangkatan',
         'waktu_kembali',
+        'km_awal',
         'km_akhir',
         'tujuan',
         'status',

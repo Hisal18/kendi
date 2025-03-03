@@ -7,6 +7,19 @@ import { FaArrowLeft } from "react-icons/fa";
 export default function DetailTrip({ trip }) {
     const [selectedImage, setSelectedImage] = useState(null);
 
+    // Format tanggal untuk tampilan yang lebih baik
+    const formatDate = (dateString) => {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
+        return date.toLocaleString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     // Extracting the status class into a separate variable
     let statusClass = "";
     if (trip.status === "Sedang Berjalan") {
@@ -20,37 +33,44 @@ export default function DetailTrip({ trip }) {
     // Fungsi untuk menampilkan foto
     const renderPhotoSection = (photos, title) => {
         // Pastikan photos adalah array dan tidak kosong
-        const photoArray = Array.isArray(photos) ? photos : [];
-
-        if (photoArray.length === 0) return null;
-
+        let photoArray = [];
+        
+        try {
+            if (typeof photos === 'string') {
+                photoArray = JSON.parse(photos);
+            } else if (Array.isArray(photos)) {
+                photoArray = photos;
+            }
+        } catch (e) {
+            console.error("Error parsing photos:", e);
+        }
+        
+        if (!photoArray || photoArray.length === 0) return null;
+        
         return (
-            <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
+            <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6">
+                <h2 className="text-lg font-medium mb-4 md:mb-6 text-gray-900 dark:text-white">
                     {title}
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {photoArray.map((photo) => (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                    {photoArray.map((photo, index) => (
                         <button
-                            key={photo.id}
+                            key={`${title}-${index}`}
                             className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                            onClick={() => setSelectedImage(photo)}
-                            aria-label={`Lihat foto ${title} ${photo.id}`}
+                            onClick={() => setSelectedImage(`/storage/${photo}`)}
+                            aria-label={`Lihat foto ${title} ${index + 1}`}
                         >
                             <img
                                 src={`/storage/${photo}`}
-                                alt={`Foto ${title} ${photo.id}`}
+                                alt={`Foto ${title} ${index + 1}`}
                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 onError={(e) => {
-                                    console.error(
-                                        `Error loading image: ${photo}`
-                                    );
-                                    e.target.src =
-                                        "/path/to/fallback-image.jpg"; // Tambahkan fallback image
+                                    console.error(`Error loading image: ${photo}`);
+                                    e.target.src = "/path/to/fallback-image.jpg"; // Tambahkan fallback image
                                 }}
                             />
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-sm md:text-base">
                                     Lihat Foto
                                 </span>
                             </div>
@@ -61,296 +81,175 @@ export default function DetailTrip({ trip }) {
         );
     };
 
-
     return (
         <>
             <Head title={`Trip - ${trip.code_trip}`} />
             <DashboardLayout>
-                <div className="rounded-xl mx-auto py-6 px-4 sm:px-6 lg:px-0 dark:bg-[#212121]">
-                    {/* Header Section */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <div className="flex items-center gap-4 mb-2">
-                                <Link
-                                    href={route("trips.index")}
-                                    className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                                >
-                                    <FaArrowLeft className="mr-2" /> Kembali
-                                </Link>
-                                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                                    KODE TRIP - {trip.code_trip}
-                                </h1>
-                                <span className={`px-4 py-1 text-sm rounded-full ${statusClass}`}>
-                                    {trip.status}
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Dibuat pada:{" "}
-                                {dateFormat(
-                                    trip.created_at,
-                                    "dd mmmm yyyy, HH:MM"
-                                )}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
+                <div className="p-0 md:px-0">
+                    {/* Header dengan tombol kembali */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                        <div className="flex items-center mb-4 md:mb-0">
                             <Link
-                                // href={route("trips.edit", trip.code_trip)}
-                                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600"
+                                href={route("trips.index")}
+                                className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                             >
-                                Edit Trip
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
                             </Link>
+                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                                Detail Trip: {trip.code_trip}
+                            </h1>
+                        </div>
+                        
+                        <div className="flex items-center">
+                            <span className={`px-3 py-1 text-sm rounded-full ${statusClass}`}>
+                                {trip.status}
+                            </span>
                         </div>
                     </div>
-
-                    <div className="grid grid-cols-3 gap-6">
-                        {/* Main Content - Left Side (2 Columns) */}
-                        <div className="col-span-2 space-y-6">
-                            {/* Trip Details */}
-                            <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                                <h2 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
-                                    Informasi Trip
-                                </h2>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Tujuan
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.tujuan}
-                                            </p>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Waktu Keberangkatan
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {dateFormat(
-                                                    trip.waktu_keberangkatan,
-                                                    "dd mmmm yyyy, HH:MM"
-                                                )}
-                                            </p>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Waktu Kembali
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.waktu_kembali
-                                                    ? dateFormat(
-                                                          trip.waktu_kembali,
-                                                          "dd mmmm yyyy, HH:MM"
-                                                      )
-                                                    : "-"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                User
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.penumpang || "-"}{" "}
-                                                {/*Untuk Penumpang*/}
-                                            </p>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Status
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.status}
-                                            </p>
-                                        </div>
-                                    </div>
+                    
+                    {/* Informasi Trip */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        {/* Informasi Kendaraan dan Driver */}
+                        <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+                            <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+                                Informasi Kendaraan & Driver
+                            </h2>
+                            <div className="space-y-3">
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-full md:w-1/3">
+                                        Kendaraan:
+                                    </span>
+                                    <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3">
+                                        {trip.kendaraan?.merek || "-"} ({trip.kendaraan?.plat_kendaraan || "-"})
+                                    </span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-full md:w-1/3">
+                                        Driver:
+                                    </span>
+                                    <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3">
+                                        {trip.driver?.name || "-"}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-full md:w-1/3">
+                                        Penumpang:
+                                    </span>
+                                    <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3">
+                                        {trip.penumpang || "-"}
+                                    </span>
                                 </div>
                             </div>
-
-                            {/* Vehicle Information */}
-                            <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                                <h2 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
-                                    Informasi Kendaraan
-                                </h2>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Merek/Tipe
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.kendaraan.merek}
-                                            </p>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Plat Nomor
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.kendaraan.plat_kendaraan}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                KM Awal
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.kendaraan.km_awal}
-                                            </p>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                KM Akhir
-                                            </label>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.km_akhir || "-"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Foto Berangkat */}
-                            {renderPhotoSection(
-                                trip.foto_berangkat,
-                                "Foto Keberangkatan"
-                            )}
-
-                            {/* Foto Kembali */}
-                            {trip.status === "Selesai" &&
-                                trip.foto_kembali &&
-                                renderPhotoSection(
-                                    trip.foto_kembali,
-                                    "Foto Kembali"
-                                )}
                         </div>
-
-                        {/* Sidebar - Right Side (1 Column) */}
-                        <div className="space-y-6">
-                            {/* Driver Information */}
-                            <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                                <h2 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
-                                    Informasi Driver
-                                </h2>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
-                                            Nama Driver
-                                        </label>
-                                        <p className="font-medium text-gray-900 dark:text-white">
-                                            {trip.driver?.name}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
-                                            Kontak
-                                        </label>
-                                        <p className="font-medium text-gray-900 dark:text-white">
-                                            {trip.driver?.phone_number || "-"}
-                                        </p>
-                                    </div>
+                        
+                        {/* Informasi Perjalanan */}
+                        <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+                            <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+                                Informasi Perjalanan
+                            </h2>
+                            <div className="space-y-3">
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-full md:w-1/3">
+                                        Tujuan:
+                                    </span>
+                                    <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3">
+                                        {trip.tujuan || "-"}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-full md:w-1/3">
+                                        Waktu Berangkat:
+                                    </span>
+                                    <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3">
+                                        {formatDate(trip.waktu_keberangkatan)}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-full md:w-1/3">
+                                        Waktu Kembali:
+                                    </span>
+                                    <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3">
+                                        {formatDate(trip.waktu_kembali) || "-"}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-full md:w-1/3">
+                                        Catatan:
+                                    </span>
+                                    <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3">
+                                        {trip.catatan || "-"}
+                                    </span>
                                 </div>
                             </div>
-
-                            {/* Notes Section */}
-                            <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                                <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
-                                    Catatan
-                                </h2>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-sm text-gray-500 dark:text-gray-400">
-                                            Catatan Berangkat
-                                        </label>
-                                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                            {trip.catatan ||
-                                                "Tidak ada catatan"}
-                                        </p>
-                                    </div>
-
-                                    {trip.status === "Selesai" && (
-                                        <div>
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Catatan Kembali
-                                            </label>
-                                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                                {trip.catatan_kembali ||
-                                                    "Tidak ada catatan"}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Additional Trip Info */}
-                            {trip.status === "Selesai" && (
-                                <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                                    <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
-                                        Informasi Tambahan
-                                    </h2>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Jarak Tempuh
-                                            </label>
-                                            <p className="text-gray-700 dark:text-gray-300">
-                                                {trip.jarak} km
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <label className="text-sm text-gray-500 dark:text-gray-400">
-                                                Waktu Kembali
-                                            </label>
-                                            <p className="text-gray-700 dark:text-gray-300">
-                                                {dateFormat(
-                                                    trip.waktu_kembali,
-                                                    "dd mmmm yyyy, HH:MM"
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
+                    
+                    {/* Informasi Kilometer */}
+                    <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6">
+                        <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+                            Informasi Kilometer
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                    Kilometer Awal
+                                </p>
+                                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {trip.km_awal || "-"} km
+                                </p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                    Kilometer Akhir
+                                </p>
+                                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {trip.km_akhir || "-"} km
+                                </p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                    Jarak Tempuh
+                                </p>
+                                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {trip.jarak || "-"} km
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Foto Berangkat */}
+                    {renderPhotoSection(trip.foto_berangkat, "Foto Keberangkatan")}
+                    
+                    {/* Foto Kembali */}
+                    {renderPhotoSection(trip.foto_kembali, "Foto Kembali")}
+                    
+                    {/* Lightbox untuk melihat foto */}
+                    {selectedImage && (
+                        <div 
+                            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
+                            onClick={() => setSelectedImage(null)}
+                        >
+                            <div className="relative max-w-4xl w-full">
+                                <button 
+                                    className="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                                    onClick={() => setSelectedImage(null)}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                <img 
+                                    src={selectedImage} 
+                                    alt="Foto diperbesar" 
+                                    className="max-h-[85vh] max-w-full mx-auto object-contain"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
-
-                {/* Image Modal */}
-                {selectedImage && (
-                    <button
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedImage(null);
-                        }}
-                        aria-label="Close image modal"
-                    >
-                        <div className="relative max-w-7xl w-full">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedImage(null);
-                                }}
-                                className="absolute -top-10 right-0 text-white hover:text-gray-300 text-xl"
-                            >
-                                ✕
-                            </button>
-                            <img
-                                src={`/storage/${selectedImage}`}
-                                alt="Foto Trip"
-                                className="w-full h-auto max-h-[80vh] object-contain rounded-xl"
-                                onError={(e) => {
-                                    console.error(
-                                        `Error loading modal image: ${selectedImage}`
-                                    );
-                                    setSelectedImage(null);
-                                }}
-                            />
-                        </div>
-                    </button>
-                )}
             </DashboardLayout>
         </>
     );

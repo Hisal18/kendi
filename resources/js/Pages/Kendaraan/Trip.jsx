@@ -1,5 +1,5 @@
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, router } from "@inertiajs/react";
 import React, { useState, useEffect, useRef } from "react";
 import dateFormat, { masks } from "dateformat";
 import {
@@ -31,6 +31,9 @@ import {
     FaEdit,
     FaSave,
     FaSpinner,
+    FaFileExport,
+    FaChevronDown,
+    FaEye,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import Modal from "@/Components/ModalNew";
@@ -53,8 +56,37 @@ export default function Trip({
     const [showPopup, setShowPopup] = useState(false);
     const [closeKendaraan, setCloseKendaraan] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState(null);
+    const [isClosingTrip, setIsClosingTrip] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
+
+    // Tambahkan state untuk mengelola dropdown
+    const [openDropdown, setOpenDropdown] = useState(null);
+
+    // Tambahkan fungsi untuk mengelola dropdown
+    const toggleDropdown = (id) => {
+        if (openDropdown === id) {
+            setOpenDropdown(null);
+        } else {
+            setOpenDropdown(id);
+        }
+    };
+
+    
+
+    // Tambahkan useEffect untuk menutup dropdown ketika user mengklik di luar
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (openDropdown && !event.target.closest('.dropdown-container')) {
+                setOpenDropdown(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openDropdown]);
 
     const generateRandomCode = () => {
         const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -86,26 +118,13 @@ export default function Trip({
         waktu_keberangkatan: dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM"),
         tujuan: "",
         catatan: "",
-        km_awal: "",
+        km: "",
         merek: "",
         plat_kendaraan: "",
         status: "",
         penumpang: "",
     });
-
-    const [isCameraOpen, setIsCameraOpen] = useState(false);
-    const [photo, setPhoto] = useState(null);
-    const videoRef = useRef(null);
-    const streamRef = useRef(null);
-
-    // Tambahkan state untuk mengontrol rendering video element
-    const [isInitializingCamera, setIsInitializingCamera] = useState(false);
-
-    // Tambahkan state untuk facing mode kamera
-    const [facingMode, setFacingMode] = useState("environment"); // 'environment' untuk kamera belakang, 'user' untuk kamera depan
-
-    // Tambahkan state untuk mengontrol animasi
-    const [isRotating, setIsRotating] = useState(false);
+    
 
     const fileInputRef = useRef(null);
     const fileInputRefClose = useRef(null);
@@ -165,17 +184,13 @@ export default function Trip({
                 trip.waktu_kembali,
                 "dd mmmm yyyy, HH:MM:ss"
             ),
-            "KM Awal": trip.kendaraan.km_awal,
+            "KM Awal": trip.km_awal,
             "KM Akhir": trip.km_akhir || "-",
             "Jarak Tempuh": trip.jarak + " KM" || "-",
             Status: trip.status,
             "Catatan Berangkat": trip.catatan || "-",
             "Dibuat Pada": dateFormat(
                 trip.created_at,
-                "dd mmmm yyyy, HH:MM:ss"
-            ),
-            "Diperbarui Pada": dateFormat(
-                trip.updated_at,
                 "dd mmmm yyyy, HH:MM:ss"
             ),
         }));
@@ -199,7 +214,6 @@ export default function Trip({
             { wch: 20 }, //M
             { wch: 30 }, //N
             { wch: 30 }, //O
-            { wch: 30 }, //P
         ];
         ws["!cols"] = colWidths;
 
@@ -249,14 +263,13 @@ export default function Trip({
         progress: undefined,
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        // Validate that photos exist
         if (photos.length === 0) {
-            toast.error(
-                "Harap tambahkan minimal 1 foto kendaraan",
-                toastConfig
-            );
+            toast.error("Harap tambahkan minimal 1 foto kendaraan", toastConfig);
             return;
         }
 
@@ -266,52 +279,44 @@ export default function Trip({
         formData.append("driver_id", data.driver_id);
         formData.append("waktu_keberangkatan", data.waktu_keberangkatan);
         formData.append("tujuan", data.tujuan);
-        formData.append("catatan", data.catatan);
-        formData.append("km_awal", data.km_awal);
-        formData.append("penumpang", data.penumpang);
-
+        formData.append("catatan", data.catatan || '');
+        formData.append("km", data.km);
+        formData.append("penumpang", data.penumpang || '');
+        
+        // Append each photo with the correct field name
         photos.forEach((photo, index) => {
-            formData.append(`foto_kendaraan[${index}]`, photo);
+            formData.append(`foto_berangkat[${index}]`, photo);
         });
 
         setIsLoading(true);
 
-        axios
-            .post(route("trips.create"), formData, {
+        try {
+            const response = await axios.post(route("trips.create"), formData, {
                 headers: {
-                    "Content-Type": "multipart/form-data",
+                    'Content-Type': 'multipart/form-data',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                 },
-            })
-            .then((response) => {
-                if (response.data.success) {
-                    toast.success(response.data.message, toastConfig);
-
-                    // Reset form
-                    reset();
-                    setPhotos([]);
-                    setPreviewPhotos([]);
-                    setShowPopup(false);
-
-                    // Redirect ke halaman detail setelah toast muncul
-                    setTimeout(() => {
-                        window.location.href = route(
-                            "trips.show",
-                            response.data.trip.code_trip
-                        );
-                    }, 2000);
-                }
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                toast.error(
-                    error.response?.data?.message ||
-                        "Terjadi kesalahan saat menambahkan trip",
-                    toastConfig
-                );
-            })
-            .finally(() => {
-                setIsLoading(false);
             });
+
+            toast.success("Trip berhasil ditambahkan", toastConfig);
+            reset();
+            setPhotos([]);
+            setPreviewPhotos([]);
+            setShowPopup(false);
+            
+            setTimeout(() => {
+                router.visit(route("trips.show", response.data.trip.code_trip));
+            }, 2000);
+        } catch (errors) {
+            console.error("Error response:", errors);
+            toast.error(
+                errors.response?.data?.message || "Gagal menambahkan trip: " + (errors.response?.data?.foto_berangkat || "Terjadi kesalahan"),
+                toastConfig
+            );
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Tambahkan fungsi untuk mengupdate data kendaraan saat dipilih
@@ -325,142 +330,11 @@ export default function Trip({
                 kendaraan_id: selectedKendaraan.id,
                 merek: selectedKendaraan.merek,
                 plat_kendaraan: selectedKendaraan.plat_kendaraan,
-                km_awal: selectedKendaraan.km_awal,
+                km: selectedKendaraan.km,
                 status: selectedKendaraan.status || "",
             });
         }
     };
-
-    // Update fungsi startCamera untuk menggunakan facingMode
-    const startCamera = async () => {
-        try {
-            setIsInitializingCamera(true);
-
-            // Cek apakah browser mendukung getUserMedia
-            if (
-                !navigator.mediaDevices ||
-                !navigator.mediaDevices.getUserMedia
-            ) {
-                throw new Error("Browser Anda tidak mendukung akses kamera");
-            }
-
-            // Cek device yang tersedia
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(
-                (device) => device.kind === "videoinput"
-            );
-
-            if (videoDevices.length === 0) {
-                throw new Error(
-                    "Tidak ada kamera yang terdeteksi pada perangkat ini"
-                );
-            }
-
-            console.log("Kamera yang tersedia:", videoDevices);
-
-            const constraints = {
-                video: {
-                    facingMode: facingMode,
-                    width: { ideal: 640 }, // Menurunkan resolusi lebih rendah
-                    height: { ideal: 480 }, // untuk kompatibilitas lebih baik
-                    frameRate: { ideal: 24 },
-                },
-                audio: false,
-            };
-
-            console.log(
-                "Mencoba mengakses kamera dengan constraints:",
-                constraints
-            );
-
-            const stream = await navigator.mediaDevices.getUserMedia(
-                constraints
-            );
-            console.log(
-                "Stream berhasil didapatkan:",
-                stream.getVideoTracks()[0].getSettings()
-            );
-
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                streamRef.current = stream;
-
-                videoRef.current.onerror = (error) => {
-                    console.error("Video element error:", error);
-                    stopCamera();
-                };
-
-                await new Promise((resolve) => {
-                    videoRef.current.onloadedmetadata = () => {
-                        videoRef.current
-                            .play()
-                            .then(resolve)
-                            .catch((error) => {
-                                console.error("Error saat play video:", error);
-                                throw error;
-                            });
-                    };
-                });
-
-                setIsCameraOpen(true);
-                console.log("Kamera berhasil diinisialisasi");
-            } else {
-                stream.getTracks().forEach((track) => track.stop());
-                throw new Error("Video element tidak tersedia");
-            }
-        } catch (err) {
-            console.error("Error detail:", err);
-            let errorMessage = "Terjadi kesalahan saat mengakses kamera. ";
-
-            switch (err.name) {
-                case "NotAllowedError":
-                    errorMessage =
-                        "Mohon izinkan akses kamera pada browser Anda. Klik ikon kamera di address bar dan pilih 'Allow'.";
-                    break;
-                case "NotFoundError":
-                    errorMessage =
-                        "Tidak dapat menemukan perangkat kamera. Pastikan kamera terhubung dengan benar.";
-                    break;
-                case "NotReadableError":
-                    errorMessage =
-                        "Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi lain yang mungkin menggunakan kamera.";
-                    break;
-                case "OverconstrainedError":
-                    errorMessage =
-                        "Konfigurasi kamera tidak didukung. Mencoba dengan pengaturan yang lebih sederhana.";
-                    // Bisa mencoba ulang dengan constraints yang lebih sederhana
-                    break;
-                case "SecurityError":
-                    errorMessage =
-                        "Akses kamera diblokir oleh kebijakan keamanan browser.";
-                    break;
-                default:
-                    errorMessage +=
-                        err.message ||
-                        "Silakan coba refresh halaman atau gunakan browser yang berbeda.";
-            }
-
-            toast.error(errorMessage, toastConfig);
-        } finally {
-            setIsInitializingCamera(false);
-        }
-    };
-
-    // Tambahkan fungsi fallback jika getUserMedia gagal
-
-    // Modifikasi fungsi switchCamera
-
-    // Fungsi untuk mengambil foto
-
-    // Fungsi untuk menghentikan kamera
-    const stopCamera = () => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => track.stop());
-            setIsCameraOpen(false);
-        }
-    };
-
-    // Fungsi untuk menghapus foto
 
     // Hitung statistik kendaraan
     const totalKendaraan = kendaraans.length;
@@ -477,6 +351,7 @@ export default function Trip({
         (k) => k.status === "Tersedia"
     );
 
+
     // Tambahkan state untuk close trip
     const [kmAkhir, setKmAkhir] = useState("");
     const { processing: processingCloseTrip } = useForm();
@@ -486,7 +361,10 @@ export default function Trip({
 
         if (!selectedTrip) return;
 
-        if (parseInt(kmAkhir) <= parseInt(selectedTrip.kendaraan.km_awal)) {
+        // Make sure we're using the correct property for km_awal
+        const kmAwal = selectedTrip.km_awal || selectedTrip.kendaraan?.km || 0;
+        
+        if (parseInt(kmAkhir) <= parseInt(kmAwal)) {
             toast.error(
                 "Kilometer akhir harus lebih besar dari kilometer awal",
                 toastConfig
@@ -494,9 +372,11 @@ export default function Trip({
             return;
         }
 
+        // Set closing state to true to show loading indicator
+        setIsClosingTrip(true);
+
         // Hitung jarak yang ditempuh
-        const jarak =
-            parseInt(kmAkhir) - parseInt(selectedTrip.kendaraan.km_awal);
+        const jarak = parseInt(kmAkhir) - parseInt(kmAwal);
 
         const formData = new FormData();
         formData.append("km_akhir", kmAkhir);
@@ -505,7 +385,6 @@ export default function Trip({
             dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM:ss")
         );
         formData.append("jarak", jarak);
-        formData.append("status", "Selesai");
 
         // Tambahkan foto kembali jika ada
         if (photos.length > 0) {
@@ -528,18 +407,20 @@ export default function Trip({
                 setKmAkhir("");
                 setPhotos([]);
                 setPreviewPhotos([]);
-                window.location.href = route(
-                    "trips.show",
-                    selectedTrip.code_trip
-                );
+                
+                // Refresh the page or navigate to show the updated trip
+                router.visit(route("trips.show", selectedTrip.code_trip));
             })
             .catch((error) => {
-                console.error("Error:", error);
                 toast.error(
                     "Gagal menutup trip: " +
                         (error.response?.data?.message || "Terjadi kesalahan"),
                     toastConfig
                 );
+            })
+            .finally(() => {
+                // Reset closing state when done (success or error)
+                setIsClosingTrip(false);
             });
     };
 
@@ -550,51 +431,84 @@ export default function Trip({
             return;
         }
 
-        // Pastikan ref tersedia dan reset input
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset input
-            fileInputRef.current.removeAttribute("capture"); // Hapus attribute capture
-            fileInputRef.current.setAttribute("accept", "image/*"); // Set accept attribute
-            fileInputRef.current.click();
-        }
+        // Create a new file input element
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = 'image/*';
+        
+        input.onchange = (e) => {
+            const files = Array.from(e.target.files);
+            
+            if (files.length + previewPhotos.length > 5) {
+                toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
+                return;
+            }
+
+            // Validate each file
+            const validFiles = files.filter(file => {
+                if (!file.type.startsWith('image/')) {
+                    toast.error(`${file.name} bukan file gambar yang valid`, toastConfig);
+                    return false;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    toast.error(`${file.name} melebihi batas ukuran 5MB`, toastConfig);
+                    return false;
+                }
+                return true;
+            });
+
+            // Update photos state with actual File objects
+            setPhotos(prevPhotos => [...prevPhotos, ...validFiles]);
+
+            // Generate previews
+            validFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPreviewPhotos(prev => [...prev, reader.result]);
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+
+        input.click();
     };
 
-    // Pastikan handleFileUpload berfungsi dengan benar
+    // Make sure the handleFileUpload function properly stores File objects
     const handleFileUpload = (e) => {
         const files = Array.from(e.target.files);
-
-        if (previewPhotos.length + files.length > 5) {
+        
+        // Validate total number of photos
+        if (photos.length + files.length > 5) {
             toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
             return;
         }
-
-        // Validasi setiap file
-        const validFiles = files.filter((file) => {
-            if (!file.type.startsWith("image/")) {
-                toast.error(
-                    `${file.name} bukan file gambar yang valid`,
-                    toastConfig
-                );
+        
+        // Validate each file
+        const validFiles = files.filter(file => {
+            // Check if it's an image
+            if (!file.type.startsWith('image/')) {
+                toast.error(`File ${file.name} bukan gambar yang valid`, toastConfig);
                 return false;
             }
+            
+            // Check file size (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
-                toast.error(
-                    `${file.name} melebihi batas ukuran 5MB`,
-                    toastConfig
-                );
+                toast.error(`File ${file.name} terlalu besar (maks 5MB)`, toastConfig);
                 return false;
             }
+            
             return true;
         });
-
-        // Update state photos dan preview
-        setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
-
-        // Generate preview untuk setiap file
-        validFiles.forEach((file) => {
+        
+        // Update state with valid files
+        setPhotos(prevPhotos => [...prevPhotos, ...validFiles]);
+        
+        // Generate previews
+        validFiles.forEach(file => {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewPhotos((prev) => [...prev, reader.result]);
+            reader.onload = (e) => {
+                setPreviewPhotos(prevPreviews => [...prevPreviews, e.target.result]);
             };
             reader.readAsDataURL(file);
         });
@@ -706,20 +620,56 @@ export default function Trip({
         );
     };
 
-    // Tambahkan fungsi handleCameraCapture
+    // Perbaiki fungsi handleCameraCapture
     const handleCameraCapture = () => {
-        if (previewPhotos.length >= 5) {
-            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
-            return;
-        }
-
-        // Pastikan fileInputRef ada
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset input
-            fileInputRef.current.removeAttribute("capture"); // Hapus attribute capture
-            fileInputRef.current.setAttribute("accept", "image/*"); // Set accept attribute
-            fileInputRef.current.click();
-        }
+        // Buat elemen input baru untuk menghindari masalah dengan event change
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment'; // Gunakan kamera belakang
+        
+        // Tambahkan event listener untuk menangani file yang dipilih
+        input.onchange = (e) => {
+            const files = Array.from(e.target.files);
+            
+            // Validasi jumlah foto
+            if (photos.length + files.length > 5) {
+                toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
+                return;
+            }
+            
+            // Validasi setiap file
+            const validFiles = files.filter(file => {
+                // Cek apakah file adalah gambar
+                if (!file.type.startsWith('image/')) {
+                    toast.error(`File ${file.name} bukan gambar yang valid`, toastConfig);
+                    return false;
+                }
+                
+                // Cek ukuran file (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    toast.error(`File ${file.name} terlalu besar (maks 5MB)`, toastConfig);
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            // Update state dengan file yang valid
+            setPhotos(prevPhotos => [...prevPhotos, ...validFiles]);
+            
+            // Generate preview untuk setiap file
+            validFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setPreviewPhotos(prevPreviews => [...prevPreviews, e.target.result]);
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+        
+        // Klik input untuk membuka kamera
+        input.click();
     };
 
     // Tambahkan state untuk menyimpan driver yang tersedia
@@ -727,7 +677,6 @@ export default function Trip({
         ? drivers.filter((driver) => driver.status === "Tersedia")
         : [];
 
-    // console.log(currentItems);
 
     return (
         <>
@@ -829,28 +778,29 @@ export default function Trip({
                                     {/* Button Tambah Data */}
                                     <button
                                         onClick={() => setShowPopup(true)}
-                                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
                                     >
                                         <FaPlus className="text-lg" />
                                         <span>Tambah Data</span>
                                     </button>
 
                                     {/* Dropdown Export */}
-
                                     {auth.user.role === "admin" && (
-                                        <div className="relative">
+                                        <div className="relative w-full md:w-auto">
                                             <button
                                                 onClick={() =>
                                                     setShowExportDropdown(
                                                         !showExportDropdown
                                                     )
                                                 }
-                                                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white p-4 rounded-lg shadow-sm hover:shadow-md"
+                                                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md w-full md:w-auto justify-center"
                                             >
-                                                <FaChevronRight
+                                                <FaFileExport className="text-lg" />
+                                                <span>Export</span>
+                                                <FaChevronDown
                                                     className={`text-sm transition-transform duration-200 ${
                                                         showExportDropdown
-                                                            ? "rotate-90"
+                                                            ? "rotate-180"
                                                             : ""
                                                     }`}
                                                 />
@@ -859,36 +809,28 @@ export default function Trip({
                                             {/* Dropdown Menu */}
                                             {showExportDropdown && (
                                                 <div
-                                                    className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-[#313131] ring-1 ring-black ring-opacity-5 z-50 transform transition-all duration-300 ease-in-out origin-top-right ${
-                                                        showExportDropdown
-                                                            ? "scale-100 opacity-100"
-                                                            : "scale-95 opacity-0"
-                                                    }`}
+                                                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-[#313131] ring-1 ring-black ring-opacity-5 z-50 transform transition-all duration-300 ease-in-out origin-top-right"
                                                 >
                                                     <div className="py-1">
                                                         <button
                                                             onClick={() => {
                                                                 exportToExcel();
-                                                                setShowExportDropdown(
-                                                                    false
-                                                                );
+                                                                setShowExportDropdown(false);
                                                             }}
-                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#414141] w-full transition-colors duration-200 transform hover:translate-x-1"
+                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#414141] w-full transition-colors duration-200 rounded-md"
                                                         >
                                                             <FaFileExcel className="text-emerald-500" />
-                                                            Export Excel
+                                                            <span className="font-medium">Export Excel</span>
                                                         </button>
                                                         <button
                                                             onClick={() => {
                                                                 // Handle PDF export
-                                                                setShowExportDropdown(
-                                                                    false
-                                                                );
+                                                                setShowExportDropdown(false);
                                                             }}
-                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#414141] w-full transition-colors duration-200 transform hover:translate-x-1"
+                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#414141] w-full transition-colors duration-200 rounded-md"
                                                         >
                                                             <FaFilePdf className="text-red-500" />
-                                                            Export PDF
+                                                            <span className="font-medium">Export PDF</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -920,12 +862,7 @@ export default function Trip({
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Tujuan
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                Tanggal Berangkat
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                Tanggal Kembali
-                                            </th>
+                                            
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 KM Awal
                                             </th>
@@ -978,24 +915,10 @@ export default function Trip({
                                                     {item.tujuan}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                    {dateFormat(
-                                                        item.waktu_keberangkatan,
-                                                        "dd mmmm yyyy, HH:MM:ss"
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                    {item.waktu_kembali === null
-                                                        ? "-"
-                                                        : dateFormat(
-                                                              item.waktu_kembali,
-                                                              "dd mmmm yyyy, HH:MM:ss"
-                                                          )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                                                     {new Intl.NumberFormat(
                                                         "id-ID"
                                                     ).format(
-                                                        item.kendaraan.km_awal
+                                                        item.km_awal
                                                     )}
                                                     {" KM"}
                                                 </td>
@@ -1024,28 +947,56 @@ export default function Trip({
                                                         {item.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {item.status ===
-                                                    "Sedang Berjalan" ? (
+                                                <td className="px-4 py-3 text-sm">
+                                                    <div className="dropdown-container relative">
                                                         <button
-                                                            onClick={() => {
-                                                                setSelectedTrip(
-                                                                    item
-                                                                );
-                                                                setCloseKendaraan(
-                                                                    true
-                                                                );
-                                                            }}
+                                                            onClick={() => toggleDropdown(item.id)}
                                                             type="button"
-                                                            className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white p-1.5 rounded-lg shadow-sm hover:shadow-md"
+                                                            className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md"
                                                         >
-                                                            <FaCarSide />
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                            </svg>
                                                         </button>
-                                                    ) : (
-                                                        <span>
-                                                            <FaCheck className="text-blue-500" />
-                                                        </span>
-                                                    )}
+                                                        
+                                                        {openDropdown === item.id && (
+                                                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
+                                                                <div className="py-1">
+                                                                    {item.status === "Sedang Berjalan" ? (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedTrip(item);
+                                                                                setCloseKendaraan(true);
+                                                                                setOpenDropdown(null);
+                                                                            }}
+                                                                            type="button"
+                                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                        >
+                                                                            <FaCarSide className="text-teal-500" />
+                                                                            <span>Tutup Trip</span>
+                                                                        </button>
+                                                                    ) : (
+                                                                        <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                                                            <FaCheck className="text-blue-500" />
+                                                                            <span>Trip Selesai</span>
+                                                                        </div>
+                                                                    )}
+                                                                    
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            router.visit(route("trips.show", item.code_trip));
+                                                                            setOpenDropdown(null);
+                                                                        }}
+                                                                        type="button"
+                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                    >
+                                                                        <FaEye className="text-blue-500" />
+                                                                        <span>Lihat Detail</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -1283,10 +1234,10 @@ export default function Trip({
                                                 <input
                                                     type="text"
                                                     inputMode="numeric"
-                                                    value={data.km_awal}
+                                                    value={data.km}
                                                     onChange={(e) =>
                                                         setData(
-                                                            "km_awal",
+                                                            "km",
                                                             e.target.value
                                                         )
                                                     }
@@ -1513,9 +1464,9 @@ export default function Trip({
                                             </div>
                                         )}
                                     </div>
-                                    {errors.foto_kendaraan && (
+                                    {errors.foto_berangkat && (
                                         <p className="mt-1 text-xs text-red-600">
-                                            {errors.foto_kendaraan}
+                                            {errors.foto_berangkat}
                                         </p>
                                     )}
                                 </div>
@@ -1607,7 +1558,7 @@ export default function Trip({
                                     <input
                                         type="text"
                                         value={selectedTrip.code_trip}
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        className="block w-full px-4 py-3 rounded-lg bg-gray-100 cursor-not-allowed border-gray-300 dark:border-gray-600 dark:bg-[#717171] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         disabled
                                     />
                                 </div>
@@ -1621,7 +1572,7 @@ export default function Trip({
                                             selectedTrip.kendaraan
                                                 .plat_kendaraan
                                         }
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed dark:border-gray-600 dark:bg-[#717171] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         disabled
                                     />
                                 </div>
@@ -1635,8 +1586,8 @@ export default function Trip({
                                     </label>
                                     <input
                                         type="text"
-                                        value={selectedTrip.kendaraan.km_awal}
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        value={selectedTrip.km_awal}
+                                        className="block w-full px-4 py-3 rounded-lg border-gray-300  bg-gray-100 cursor-not-allowed dark:border-gray-600 dark:bg-[#717171] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         disabled
                                     />
                                 </div>

@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Events\TripUpdated;
 use App\Models\Driver;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TripController extends Controller
 {
@@ -29,60 +30,76 @@ class TripController extends Controller
      */
     public function create(Request $request)
     {
-        try {
-            $driver = Driver::find($request->driver_id);
-            $kendaraan = Kendaraan::find($request->kendaraan_id);
-            $validated = $request->validate([
-                'code_trip' => 'required|unique:trips',
-                'kendaraan_id' => 'required|exists:kendaraans,id',
-                'driver_id' => 'required|exists:drivers,id',
-                'waktu_keberangkatan' => 'required|date',
-                'tujuan' => 'required|string',
-                'catatan' => 'nullable|string',
-                'km_awal' => 'required|numeric|min:' . $kendaraan->km_awal,
-                'foto_kendaraan' => 'required|array|min:1|max:5',
-                'foto_kendaraan.*' => 'required|image|max:5120',
-                'penumpang' => 'nullable|string',
-            ]);
+        $kendaraan = Kendaraan::find($request->kendaraan_id);
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'code_trip' => 'required|unique:trips,code_trip',
+            'kendaraan_id' => 'required|exists:kendaraans,id',
+            'driver_id' => 'required|exists:drivers,id',
+            'waktu_keberangkatan' => 'required|date',
+            'tujuan' => 'required|string',
+            'catatan' => 'nullable|string',
+            'km' => 'required|numeric|min:' . $kendaraan->km,
+            'penumpang' => 'nullable|string',
+            'foto_berangkat' => 'required|array',
+            'foto_berangkat.*' => 'required|image|max:5120', // 5MB max per image
+        ]);
 
-            $tripData = collect($validated)->except(['km_awal', 'foto_kendaraan'])->toArray();
-            
-            $photos = [];
-            if ($request->hasFile('foto_kendaraan')) {
-                foreach ($request->file('foto_kendaraan') as $photo) {
-                    $fileName = uniqid() . '_' . time() . '.' . $photo->getClientOriginalExtension();
-                    $path = $photo->storeAs('trips', $fileName, 'public');
-                    $photos[] = $path;
-                }
+        if ($validator->fails()) {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Gagal menambahkan trip: ' . $validator->errors()->first()
+            ], 422);
+        }
+
+        // Process photo uploads
+        $photos = [];
+        if ($request->hasFile('foto_berangkat')) {
+            foreach ($request->file('foto_berangkat') as $photo) {
+                $path = $photo->store('trip-photos', 'public');
+                $photos[] = $path;
             }
+        }
 
-            $tripData['foto_berangkat'] = $photos;
-            $tripData['status'] = 'Sedang Berjalan';
+        // Check if we have any valid photos
+        if (empty($photos)) {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Tidak ada foto yang valid untuk diunggah'
+            ], 422);
+        }
 
-            $trip = Trip::create($tripData);
-            
-            $kendaraan->update([
-                'km_awal' => $request->km_awal,
-                'status' => 'Digunakan'
+        // Get vehicle and driver
+        $kendaraan = Kendaraan::find($request->kendaraan_id);
+        $driver = Driver::find($request->driver_id);
+
+        // Create the trip
+        try {
+            $trip = Trip::create([
+                'code_trip' => $request->code_trip,
+                'kendaraan_id' => $request->kendaraan_id,
+                'driver_id' => $request->driver_id,
+                'waktu_keberangkatan' => $request->waktu_keberangkatan,
+                'tujuan' => $request->tujuan,
+                'catatan' => $request->catatan,
+                'km_awal' => $request->km,
+                'penumpang' => $request->penumpang,
+                'status' => 'Sedang Berjalan',
+                'foto_berangkat' => json_encode($photos), // Ensure photos are JSON encoded
             ]);
 
-            $driver->update([
-                'status' => 'Sedang Bertugas'
-            ]);
-
-            broadcast(new TripUpdated($trip))->toOthers();
+            // Update vehicle and driver status
+            $kendaraan->update(['status' => 'Digunakan']);
+            $driver->update(['status' => 'Sedang Bertugas']);
 
             return response()->json([
-                'success' => true,
+                'type' => 'success',
                 'message' => 'Trip berhasil ditambahkan',
-                'trip' => [
-                    'code_trip' => $trip->code_trip
-                ]
-            ], 201);
-
+                'trip' => $trip
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
+                'type' => 'error',
                 'message' => 'Gagal menambahkan trip: ' . $e->getMessage()
             ], 500);
         }
@@ -93,21 +110,8 @@ class TripController extends Controller
      */
     public function store(Request $request)
     {
-        // try {
-        //     $trip = Trip::create($request->all());
-            
-        //     // Load relasi kendaraan
-        //     $trip->load('kendaraan');
-
-        //     return redirect()->back()->with([
-        //         'success' => 'Trip berhasil ditambahkan',
-        //         'trip' => $trip
-        //     ]);
-        // } catch (\Exception $e) {
-        //     return redirect()->back()->withErrors([
-        //         'error' => 'Gagal menambahkan trip: ' . $e->getMessage()
-        //     ]);
-        // }
+        // Redirect to create method for consistency
+        return $this->create($request);
     }
 
     /**
@@ -133,7 +137,6 @@ class TripController extends Controller
                 'trip' => $trip
             ]);
         } catch (\Exception $e) {
-            Log::error('Error showing trip: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal menampilkan detail trip');
         }
     }
@@ -170,49 +173,63 @@ class TripController extends Controller
 
     public function close(Request $request, Trip $trip)
     {
-        $validated = $request->validate([
-            'km_akhir' => 'required|numeric|min:' . $trip->kendaraan->km_awal,
-            'waktu_kembali' => 'required|date',
-            'jarak' => 'required|numeric',
-            'foto_kembali' => 'required|array|min:1|max:5',
-            'foto_kembali.*' => 'required|image|max:5120',
-        ]);
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'km_akhir' => 'required|numeric|min:' . $trip->km_awal,
+                'waktu_kembali' => 'required|date',
+                'jarak' => 'required|numeric',
+                'foto_kembali' => 'required|array',
+                'foto_kembali.*' => 'required|image|max:5120', // 5MB max per image
+            ]);
 
-        // Proses foto kembali
-        $photos = [];
-        if ($request->hasFile('foto_kembali')) {
-            foreach ($request->file('foto_kembali') as $photo) {
-                $fileName = uniqid() . '_' . time() . '.' . $photo->getClientOriginalExtension();
-                $path = $photo->storeAs('trips', $fileName, 'public');
-                $photos[] = $path;
+            // Process photos
+            $photos = [];
+            if ($request->hasFile('foto_kembali')) {
+                foreach ($request->file('foto_kembali') as $photo) {
+                    $fileName = uniqid() . '_' . time() . '.' . $photo->getClientOriginalExtension();
+                    $path = $photo->storeAs('trips', $fileName, 'public');
+                    $photos[] = $path;
+                }
             }
+
+            // Update trip with all data using the update method
+            $trip->update([
+                'waktu_kembali' => $validated['waktu_kembali'],
+                'status' => 'Selesai',
+                'jarak' => $validated['jarak'],
+                'km_akhir' => $validated['km_akhir'],
+                'foto_kembali' => !empty($photos) ? json_encode($photos) : null
+            ]);
+            
+            // Update kendaraan status and km
+            $trip->kendaraan->update([
+                'km' => $validated['km_akhir'],
+                'status' => 'Tersedia'
+            ]);
+
+            // Update driver status
+            $trip->driver->update([
+                'status' => 'Tersedia'
+            ]);
+
+            // Try to broadcast the event if it exists
+            try {
+                if (class_exists('App\Events\TripUpdated')) {
+                    broadcast(new \App\Events\TripUpdated($trip))->toOthers();
+                }
+            } catch (\Exception $broadcastError) {
+                // Silently handle broadcasting errors
+            }
+
+            return redirect()->route('trips.show', $trip->code_trip)
+                ->with('type', 'success')
+                ->with('message', 'Trip berhasil ditutup');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('type', 'error')
+                ->with('message', 'Gagal menutup trip: ' . $e->getMessage());
         }
-
-        // Update trip dengan semua data yang divalidasi
-        $trip->update([
-            'waktu_kembali' => $validated['waktu_kembali'],
-            'status' => 'Selesai',
-            'jarak' => $validated['jarak'],
-            'foto_kembali' => $photos,
-            'km_akhir' => $validated['km_akhir'],
-        ]);
-
-        // Update kendaraan
-        $trip->kendaraan->update([
-            'km_awal' => $validated['km_akhir'],
-            'status' => 'Tersedia'
-        ]);
-
-        // Update driver - Perbaikan di sini
-        $trip->driver->update([
-            'status' => 'Tersedia'
-        ]);
-
-        // Broadcast event setelah trip diupdate
-        broadcast(new TripUpdated($trip))->toOthers();
-
-        return redirect()->back()
-            ->with('type', 'success')
-            ->with('message', 'Trip berhasil ditutup');
     }
 }

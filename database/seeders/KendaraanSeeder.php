@@ -21,7 +21,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 1,
                 'plat_kendaraan' => 'T 1765 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -30,7 +30,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 2,
                 'plat_kendaraan' => 'T 1780 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -39,7 +39,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 3,
                 'plat_kendaraan' => 'T 1781 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -48,7 +48,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 4,
                 'plat_kendaraan' => 'T 1782 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -57,7 +57,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 5,
                 'plat_kendaraan' => 'T 1783 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -66,7 +66,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 6,
                 'plat_kendaraan' => 'T 1784 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -75,7 +75,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 7,
                 'plat_kendaraan' => 'T 1785 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -84,7 +84,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 8,
                 'plat_kendaraan' => 'T 1786 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -93,7 +93,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 9,
                 'plat_kendaraan' => 'T 1787 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -102,7 +102,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 10,
                 'plat_kendaraan' => 'T 1788 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -111,7 +111,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 11,
                 'plat_kendaraan' => 'T 1789 KI',
                 'merek' => 'ALL NEW VELOZ MT 1.5',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -120,7 +120,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 12,
                 'plat_kendaraan' => 'T 7211 DA',
                 'merek' => 'HIACE',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -129,7 +129,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 13,
                 'plat_kendaraan' => 'T 7215 DA',
                 'merek' => 'HIACE',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -138,7 +138,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 14,
                 'plat_kendaraan' => 'T 7209 DA',
                 'merek' => 'HIACE',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -147,7 +147,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 15,
                 'plat_kendaraan' => 'T 8301 EA',
                 'merek' => 'TRUK PDKB',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -156,7 +156,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 16,
                 'plat_kendaraan' => 'T 8299 EA',
                 'merek' => 'TRUK PDKB',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -165,7 +165,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 17,
                 'plat_kendaraan' => 'D 8284 FV  ',
                 'merek' => 'TOYOTA HILUX',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -174,7 +174,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 18,
                 'plat_kendaraan' => 'D 8285 FV',
                 'merek' => 'TOYOTA HILUX',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -183,7 +183,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 19,
                 'plat_kendaraan' => 'D 8240 FV',
                 'merek' => 'TOYOTA HILUX',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),
@@ -192,7 +192,7 @@ class KendaraanSeeder extends Seeder
                 'id' => 20,
                 'plat_kendaraan' => 'T 8889 HK',
                 'merek' => 'L300',
-                'km_awal' => 0,
+                'km' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ),

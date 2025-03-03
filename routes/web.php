@@ -22,11 +22,24 @@ Route::get('/', function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
 
-    Route::resource('driver', DriverController::class);
+    // Driver routes
+    Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
+    Route::get('/drivers/create', [DriverController::class, 'create'])->name('drivers.create');
+    Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
+    Route::get('/drivers/{driver}', [DriverController::class, 'show'])->name('drivers.show');
+    Route::get('/drivers/{driver}/edit', [DriverController::class, 'edit'])->name('drivers.edit');
+    Route::put('/drivers/{driver}', [DriverController::class, 'update'])->name('drivers.update');
+    Route::delete('/drivers/{driver}', [DriverController::class, 'destroy'])->name('drivers.destroy');
     
-    Route::resource('kendaraan', KendaraanController::class);
-    // Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan.index');
-    // ... route admin lainnya
+    // Kendaraan routes
+    Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan.index');
+    Route::get('/kendaraan/create', [KendaraanController::class, 'create'])->name('kendaraan.create');
+    Route::post('/kendaraan', [KendaraanController::class, 'store'])->name('kendaraan.store');
+    Route::get('/kendaraan/{kendaraan}', [KendaraanController::class, 'show'])->name('kendaraan.show');
+    Route::get('/kendaraan/{kendaraan}/edit', [KendaraanController::class, 'edit'])->name('kendaraan.edit');
+    Route::put('/kendaraan/{kendaraan}', [KendaraanController::class, 'update'])->name('kendaraan.update');
+    Route::delete('/kendaraan/{kendaraan}', [KendaraanController::class, 'destroy'])->name('kendaraan.destroy');
+    
 });
 
 // Route untuk user saja
@@ -43,6 +56,7 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
 
     Route::get('/trip', [TripController::class, 'index'])->name('trips.index');
     Route::post('/trips', [TripController::class, 'create'])->name('trips.create');
+    Route::post('/trips/store', [TripController::class, 'store'])->name('trips.store');
     Route::get('/trips/{code_trip}', [TripController::class, 'show'])->name('trips.show');
     Route::get('/trips/{code_trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
 
@@ -54,10 +68,21 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/trips/{trip}/close', [TripController::class, 'close'])->name('trips.close');
+
+    Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
     
     // ... route umum lainnya
 });
 
-
+Route::middleware(['auth', 'verified'])->group(function () {
+    // ... existing routes ...
+    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Tambahkan route untuk drivers
+   
+    
+    // ... existing routes ...
+});
 
 require __DIR__.'/auth.php';

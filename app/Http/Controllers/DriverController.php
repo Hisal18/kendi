@@ -13,8 +13,10 @@ class DriverController extends Controller
      */
     public function index()
     {
+        $drivers = Driver::all();
+        
         return Inertia::render('Kendaraan/Driver', [
-            'drivers' => Driver::all()
+            'drivers' => $drivers
         ]);
     }
 

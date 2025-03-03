@@ -17,6 +17,6 @@ class Driver extends Model
     ];
 
     public function trip() {
-        return $this->hasMany(Driver::class);
+        return $this->hasMany(Trip::class);
     }
 }

@@ -14,7 +14,7 @@ class Kendaraan extends Model
     protected $fillable = [
         'plat_kendaraan',
         'merek',
-        'km_awal',
+        'km',
         'status'
     ];
 

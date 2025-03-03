@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('driver_id')->constrained('drivers')->onDelete('cascade');
             $table->dateTime('waktu_keberangkatan');
             $table->dateTime('waktu_kembali')->nullable();
+            $table->integer('km_awal');
             $table->integer('km_akhir')->nullable();
             $table->string('tujuan');
             $table->enum('status', ['Sedang Berjalan', 'Selesai'])->default('Sedang Berjalan');
