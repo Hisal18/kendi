@@ -44,15 +44,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 // Route untuk user saja
 Route::middleware(['auth', 'role:user'])->group(function () {
-    // Route::post('/trips', [KendaraanController::class, 'store'])->name('trips.store');
-    // Route::post('/trips/{trip}/close', [KendaraanController::class, 'close'])->name('trips.close');
+    
 
     // ... route user
 });
 
 // Route untuk admin dan user
 Route::middleware(['auth', 'role:admin,user'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/trip', [TripController::class, 'index'])->name('trips.index');
     Route::post('/trips', [TripController::class, 'create'])->name('trips.create');
@@ -62,7 +61,6 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
 
     Route::get('/tamu', [TamuController::class, 'index'])->name('tamu.index');
 
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -71,18 +69,7 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
 
     Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
     
-    // ... route umum lainnya
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    // ... existing routes ...
-    
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-    // Tambahkan route untuk drivers
-   
-    
-    // ... existing routes ...
-});
 
 require __DIR__.'/auth.php';
