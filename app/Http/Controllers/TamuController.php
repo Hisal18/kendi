@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tamu;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,7 +13,9 @@ class TamuController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Kendaraan/Tamu');
+        return Inertia::render('Kendaraan/Tamu', [
+            'tamus' => Tamu::all()
+        ]);
     }
 
     /**

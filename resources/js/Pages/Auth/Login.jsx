@@ -145,7 +145,7 @@ export default function Login({ status, canResetPassword }) {
                         Masuk
                     </PrimaryButton>
 
-                    <p className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
+                    {/* <p className="mt-6 text-center text-sm text-gray-700 dark:text-gray-300">
                         Belum punya akun?{" "}
                         <Link
                             href={route("register")}
@@ -153,7 +153,7 @@ export default function Login({ status, canResetPassword }) {
                         >
                             Daftar disini
                         </Link>
-                    </p>
+                    </p> */}
                 </form>
             </div>
         </GuestLayout>

@@ -9,4 +9,13 @@ class Tamu extends Model
 {
     /** @use HasFactory<\Database\Factories\TamuFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'plat_kendaraan',
+        'waktu_kedatangan',
+        'waktu_kepergian',
+        'foto_kedatangan',
+        'foto_kepergian',
+        'status'
+    ];
 }

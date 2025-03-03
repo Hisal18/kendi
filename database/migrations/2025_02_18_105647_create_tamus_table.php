@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('tamus', function (Blueprint $table) {
             $table->id();
+            $table->string('plat_kendaraan')->unique();
+            $table->dateTime('waktu_kedatangan');
+            $table->dateTime('waktu_kepergian');
+            $table->json('foto_kedatangan');
+            $table->json('foto_kepergian')->nullable();
+            $table->enum('status', ['New', 'Close'])->default('New');
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Kendaraan;
+use App\Models\Tamu;
 use App\Models\Trip;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -22,6 +23,8 @@ class DatabaseSeeder extends Seeder
            DriverSeeder::class,
            KendaraanSeeder::class
         ]);
+
+        Tamu::factory(10)->create();
 
         // Trip::factory(10)->create();
         // Kendaraan::factory(10)->create();

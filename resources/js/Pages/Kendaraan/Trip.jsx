@@ -447,13 +447,10 @@ export default function Trip({
     };
 
     // Tambahkan fungsi fallback jika getUserMedia gagal
-    
 
     // Modifikasi fungsi switchCamera
-    
 
     // Fungsi untuk mengambil foto
-    
 
     // Fungsi untuk menghentikan kamera
     const stopCamera = () => {
@@ -464,7 +461,6 @@ export default function Trip({
     };
 
     // Fungsi untuk menghapus foto
-    
 
     // Hitung statistik kendaraan
     const totalKendaraan = kendaraans.length;
@@ -1212,8 +1208,11 @@ export default function Trip({
                                                 {Array.isArray(
                                                     kendaraanTersediaStatus
                                                 ) &&
-                                                    kendaraanTersediaStatus.map(
-                                                        (kendaraan) => (
+                                                    kendaraanTersediaStatus
+                                                        .toSorted((a, b) => 
+                                                            a.merek.localeCompare(b.merek)
+                                                        )
+                                                        .map((kendaraan) => (
                                                             <option
                                                                 key={
                                                                     kendaraan.id
@@ -1230,8 +1229,7 @@ export default function Trip({
                                                                     kendaraan.merek
                                                                 }
                                                             </option>
-                                                        )
-                                                    )}
+                                                        ))}
                                             </select>
                                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                                 <FaCarSide className="w-3 h-3 text-gray-500 dark:text-gray-400" />
@@ -1386,8 +1384,11 @@ export default function Trip({
                                                 <option value="">
                                                     Pilih Driver
                                                 </option>
-                                                {driversAvailable.map(
-                                                    (driver) => (
+                                                {driversAvailable
+                                                    .toSorted((a, b) =>
+                                                        a.name.localeCompare(b.name)
+                                                    )
+                                                    .map((driver) => (
                                                         <option
                                                             key={driver.id}
                                                             value={driver.id}
@@ -1397,8 +1398,7 @@ export default function Trip({
                                                                 driver.phone_number
                                                             }
                                                         </option>
-                                                    )
-                                                )}
+                                                    ))}
                                             </select>
                                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                                 <FaUserTie className="w-3 h-3 text-gray-500 dark:text-gray-400" />
@@ -1586,7 +1586,7 @@ export default function Trip({
             <Modal
                 isOpen={closeKendaraan}
                 onClose={() => {
-                    reset()
+                    reset();
                     setCloseKendaraan(false);
                     setSelectedTrip(null);
                     setKmAkhir("");
@@ -1762,7 +1762,7 @@ export default function Trip({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    reset()
+                                    reset();
                                     setCloseKendaraan(false);
                                     setSelectedTrip(null);
                                     setKmAkhir("");

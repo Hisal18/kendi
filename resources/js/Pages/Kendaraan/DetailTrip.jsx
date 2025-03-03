@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import dateFormat from "dateformat";
@@ -7,6 +7,16 @@ import { FaArrowLeft } from "react-icons/fa";
 export default function DetailTrip({ trip }) {
     const [selectedImage, setSelectedImage] = useState(null);
 
+    // Extracting the status class into a separate variable
+    let statusClass = "";
+    if (trip.status === "Sedang Berjalan") {
+        statusClass = "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+    } else if (trip.status === "Selesai") {
+        statusClass = "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    } else {
+        statusClass = "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    }
+
     // Fungsi untuk menampilkan foto
     const renderPhotoSection = (photos, title) => {
         // Pastikan photos adalah array dan tidak kosong
@@ -14,23 +24,22 @@ export default function DetailTrip({ trip }) {
 
         if (photoArray.length === 0) return null;
 
-        console.log(`Rendering ${title}:`, photoArray); // Debugging
-
         return (
             <div className="bg-white dark:bg-[#313131] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
                     {title}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {photoArray.map((photo, index) => (
-                        <div
-                            key={index}
+                    {photoArray.map((photo) => (
+                        <button
+                            key={photo.id}
                             className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
                             onClick={() => setSelectedImage(photo)}
+                            aria-label={`Lihat foto ${title} ${photo.id}`}
                         >
                             <img
                                 src={`/storage/${photo}`}
-                                alt={`Foto ${title} ${index + 1}`}
+                                alt={`Foto ${title} ${photo.id}`}
                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 onError={(e) => {
                                     console.error(
@@ -45,19 +54,13 @@ export default function DetailTrip({ trip }) {
                                     Lihat Foto
                                 </span>
                             </div>
-                        </div>
+                        </button>
                     ))}
                 </div>
             </div>
         );
     };
 
-    // Debug data trip
-    useEffect(() => {
-        console.log("Trip data:", trip);
-        console.log("Foto berangkat:", trip.foto_berangkat);
-        console.log("Foto kembali:", trip.foto_kembali);
-    }, [trip]);
 
     return (
         <>
@@ -77,15 +80,7 @@ export default function DetailTrip({ trip }) {
                                 <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
                                     KODE TRIP - {trip.code_trip}
                                 </h1>
-                                <span
-                                    className={`px-4 py-1 text-sm rounded-full ${
-                                        trip.status === "Sedang Berjalan"
-                                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                            : trip.status === "Selesai"
-                                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                    }`}
-                                >
+                                <span className={`px-4 py-1 text-sm rounded-full ${statusClass}`}>
                                     {trip.status}
                                 </span>
                             </div>
@@ -210,7 +205,7 @@ export default function DetailTrip({ trip }) {
                                                 KM Akhir
                                             </label>
                                             <p className="font-medium text-gray-900 dark:text-white">
-                                                {trip.kendaraan.km_akhir || "-"}
+                                                {trip.km_akhir || "-"}
                                             </p>
                                         </div>
                                     </div>
@@ -324,12 +319,13 @@ export default function DetailTrip({ trip }) {
 
                 {/* Image Modal */}
                 {selectedImage && (
-                    <div
+                    <button
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
                         onClick={(e) => {
                             e.stopPropagation();
                             setSelectedImage(null);
                         }}
+                        aria-label="Close image modal"
                     >
                         <div className="relative max-w-7xl w-full">
                             <button
@@ -353,7 +349,7 @@ export default function DetailTrip({ trip }) {
                                 }}
                             />
                         </div>
-                    </div>
+                    </button>
                 )}
             </DashboardLayout>
         </>
