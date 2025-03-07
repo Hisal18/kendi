@@ -15,7 +15,8 @@ class Kendaraan extends Model
         'plat_kendaraan',
         'merek',
         'km',
-        'status'
+        'status',
+        'foto'
     ];
 
     public function trips()

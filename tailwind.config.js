@@ -24,6 +24,23 @@ export default {
                     "text-secondary": "#a0a0a0",
                 },
             },
+            animation: {
+                'fadeIn': 'fadeIn 0.3s ease-in-out',
+                'scale-102': 'scale-102 0.3s ease-in-out',
+            },
+            keyframes: {
+                fadeIn: {
+                    '0%': { opacity: '0' },
+                    '100%': { opacity: '1' },
+                },
+                'scale-102': {
+                    '0%': { transform: 'scale(1)' },
+                    '100%': { transform: 'scale(1.02)' },
+                },
+            },
+            scale: {
+                '102': '1.02',
+            },
         },
     },
 

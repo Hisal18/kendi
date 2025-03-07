@@ -241,6 +241,7 @@ export default function DetailTrip({ trip }) {
                                     </svg>
                                 </button>
                                 <img 
+                                    loading="lazy"
                                     src={selectedImage} 
                                     alt="Foto diperbesar" 
                                     className="max-h-[85vh] max-w-full mx-auto object-contain"

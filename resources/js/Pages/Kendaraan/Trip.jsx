@@ -31,12 +31,15 @@ import {
     FaEdit,
     FaSave,
     FaSpinner,
-    FaFileExport,
+    FaCalendarAlt,
+    FaGlobe,
     FaChevronDown,
     FaEye,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import Modal from "@/Components/ModalNew";
+import DatePicker from "react-datepicker";
+import { Menu, Transition, RadioGroup } from '@headlessui/react';
 import { ToastContainer, toast, Flip } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -57,8 +60,12 @@ export default function Trip({
     const [closeKendaraan, setCloseKendaraan] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState(null);
     const [isClosingTrip, setIsClosingTrip] = useState(false);
-
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportMonth, setExportMonth] = useState('');
+    const [exportType, setExportType] = useState('all');
+    const [exportDate, setExportDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
+    
 
     // Tambahkan state untuk mengelola dropdown
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -124,7 +131,7 @@ export default function Trip({
         status: "",
         penumpang: "",
     });
-    
+
 
     const fileInputRef = useRef(null);
     const fileInputRefClose = useRef(null);
@@ -168,63 +175,110 @@ export default function Trip({
 
     // Export ke Excel
     const exportToExcel = () => {
-        const dataToExport = filteredTrips.map((trip, index) => ({
-            No: index + 1,
-            "Kode Trip": trip.code_trip,
-            "Plat Kendaraan": trip.kendaraan.plat_kendaraan,
-            "Nama Driver": trip.driver?.name || "-",
-            "No. HP Driver": trip.driver?.phone_number || "-",
-            Tujuan: trip.tujuan,
-            Penumpang: trip.penumpang || "-",
-            "Tanggal Berangkat": dateFormat(
-                trip.waktu_keberangkatan,
-                "dd mmmm yyyy, HH:MM:ss"
-            ),
-            "Tanggal Kembali": dateFormat(
-                trip.waktu_kembali,
-                "dd mmmm yyyy, HH:MM:ss"
-            ),
-            "KM Awal": trip.km_awal,
-            "KM Akhir": trip.km_akhir || "-",
-            "Jarak Tempuh": trip.jarak + " KM" || "-",
-            Status: trip.status,
-            "Catatan Berangkat": trip.catatan || "-",
-            "Dibuat Pada": dateFormat(
-                trip.created_at,
-                "dd mmmm yyyy, HH:MM:ss"
-            ),
-        }));
+        try {
+            let dataToExport = [];
+            let fileName = '';
+            
+            if (exportType === 'month') {
+                // Validasi bulan yang dipilih
+                if (!exportMonth) {
+                    toast.error("Silakan pilih bulan terlebih dahulu!");
+                    return;
+                }
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(dataToExport);
+                // Filter data berdasarkan bulan yang dipilih
+                const [year, month] = exportMonth.split('-');
+                dataToExport = Array.isArray(trips) 
+                    ? trips.filter(trip => {
+                        const tripDate = new Date(trip.waktu_keberangkatan);
+                        return tripDate.getFullYear() === parseInt(year) && 
+                               tripDate.getMonth() === parseInt(month) - 1; // Month is 0-indexed in JS
+                    })
+                    : [];
 
+                if (dataToExport.length === 0) {
+                    toast.warning(`Tidak ada data untuk bulan ${month}/${year}`);
+                    return;
+                }
+
+                // Set nama file dengan bulan dan tahun
+                const monthName = new Date(exportMonth + '-01').toLocaleString('id-ID', { month: 'long' });
+                fileName = `Data_Kendaraan_Dinas_${monthName}_${year}.xlsx`;
+            } else {
+                // Export semua data
+                dataToExport = trips || [];
+                
+                if (dataToExport.length === 0) {
+                    toast.warning("Tidak ada data untuk diexport");
+                    return;
+                }
+                
+                // Set nama file dengan tanggal hari ini
+                fileName = `Data_Kendaraan_Trip_All_${dateFormat(new Date(), "dd-mm-yyyy")}.xlsx`;
+            }
+
+            // Format data untuk Excel
+            const formattedData = dataToExport.map((trip, index) => ({
+                'No': index + 1,
+                'Code trip': trip.code_trip,
+                'Plat kendaraan': trip.kendaraan.plat_kendaraan,
+                'Driver': trip.driver.name,
+                'Waktu Keberangkatan':  formatDate(trip.waktu_keberangkatan),
+                'Waktu Kembali': formatDate(trip.waktu_kembali),
+                'Km Awal': trip.km_awal,
+                'Km Akhir': trip.km_akhir,
+                'Tujuan': trip.tujuan,
+                'Jarak': trip.jarak + ' km',
+                'Catatan': trip.catatan,
+                'merek': trip.kendaraan.merek,
+                'status': trip.status,
+                'penumpang': trip.penumpang,
+            }));
+
+            // Buat workbook dan worksheet
+            const worksheet = XLSX.utils.json_to_sheet(formattedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Kendaraan Dinas");
+
+            // Atur lebar kolom
         const colWidths = [
-            { wch: 5 }, //A
+                { wch: 10 }, //A
             { wch: 15 }, //B
             { wch: 15 }, //C
             { wch: 20 }, //D
             { wch: 30 }, //E
             { wch: 30 }, //F
-            { wch: 30 }, //G
-            { wch: 40 }, //H
-            { wch: 40 }, //I
-            { wch: 15 }, //J
-            { wch: 15 }, //K
-            { wch: 10 }, //L
-            { wch: 20 }, //M
-            { wch: 30 }, //N
-            { wch: 30 }, //O
-        ];
-        ws["!cols"] = colWidths;
+                { wch: 10 }, //G
+                { wch: 10 }, //H
+                { wch: 15 }, //I
+                { wch: 10 }, //J
+                { wch: 20 }, //K
+                { wch: 20 }, //L
+                { wch: 10 }, //M
+                { wch: 10 }, //N
 
-        XLSX.utils.book_append_sheet(wb, ws, "Data Kendaraan Keluar");
+            ];
+            worksheet['!cols'] = colWidths;
 
-        const fileName = `Data_Kendaraan_Keluar_${
-            new Date().toISOString().split("T")[0]
-        }.xlsx`;
+            // Generate file Excel
+            XLSX.writeFile(workbook, fileName);
 
-        XLSX.writeFile(wb, fileName);
+            // Tampilkan pesan sukses
+            if (exportType === 'month') {
+                const [year, month] = exportMonth.split('-');
+                const monthName = new Date(exportMonth + '-01').toLocaleString('id-ID', { month: 'long' });
+                toast.success(`Data berhasil diexport ke Excel untuk bulan ${monthName} ${year}`);
+            } else {
+                toast.success("Semua data berhasil diexport ke Excel");
+            }
+            
+            setShowExportModal(false);
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            toast.error('Terjadi kesalahan saat mengexport data');
+        }
     };
+
 
     const getPaginationNumbers = () => {
         const pages = [];
@@ -266,7 +320,7 @@ export default function Trip({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Validate that photos exist
         if (photos.length === 0) {
             toast.error("Harap tambahkan minimal 1 foto kendaraan", toastConfig);
@@ -282,14 +336,14 @@ export default function Trip({
         formData.append("catatan", data.catatan || '');
         formData.append("km", data.km);
         formData.append("penumpang", data.penumpang || '');
-        
+
         // Append each photo with the correct field name
         photos.forEach((photo, index) => {
             formData.append(`foto_berangkat[${index}]`, photo);
         });
 
         setIsLoading(true);
-
+        
         try {
             const response = await axios.post(route("trips.create"), formData, {
                 headers: {
@@ -299,24 +353,24 @@ export default function Trip({
                 },
             });
 
-            toast.success("Trip berhasil ditambahkan", toastConfig);
-            reset();
-            setPhotos([]);
-            setPreviewPhotos([]);
-            setShowPopup(false);
-            
-            setTimeout(() => {
+                toast.success("Trip berhasil ditambahkan", toastConfig);
+                reset();
+                setPhotos([]);
+                setPreviewPhotos([]);
+                setShowPopup(false);
+                
+                setTimeout(() => {
                 router.visit(route("trips.show", response.data.trip.code_trip));
-            }, 2000);
+                }, 2000);
         } catch (errors) {
             console.error("Error response:", errors);
-            toast.error(
+                toast.error(
                 errors.response?.data?.message || "Gagal menambahkan trip: " + (errors.response?.data?.foto_berangkat || "Terjadi kesalahan"),
-                toastConfig
-            );
+                    toastConfig
+                );
         } finally {
-            setIsLoading(false);
-        }
+                setIsLoading(false);
+            }
     };
 
     // Tambahkan fungsi untuk mengupdate data kendaraan saat dipilih
@@ -477,13 +531,13 @@ export default function Trip({
     // Make sure the handleFileUpload function properly stores File objects
     const handleFileUpload = (e) => {
         const files = Array.from(e.target.files);
-        
+
         // Validate total number of photos
         if (photos.length + files.length > 5) {
             toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
             return;
         }
-        
+
         // Validate each file
         const validFiles = files.filter(file => {
             // Check if it's an image
@@ -500,10 +554,10 @@ export default function Trip({
             
             return true;
         });
-        
+
         // Update state with valid files
         setPhotos(prevPhotos => [...prevPhotos, ...validFiles]);
-        
+
         // Generate previews
         validFiles.forEach(file => {
             const reader = new FileReader();
@@ -634,10 +688,10 @@ export default function Trip({
             
             // Validasi jumlah foto
             if (photos.length + files.length > 5) {
-                toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
-                return;
-            }
-            
+            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
+            return;
+        }
+
             // Validasi setiap file
             const validFiles = files.filter(file => {
                 // Cek apakah file adalah gambar
@@ -676,6 +730,18 @@ export default function Trip({
     const driversAvailable = Array.isArray(drivers)
         ? drivers.filter((driver) => driver.status === "Tersedia")
         : [];
+
+        const formatDate = (dateString) => {
+            if (!dateString) return "-";
+            const date = new Date(dateString);
+            return date.toLocaleString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
 
 
     return (
@@ -786,56 +852,13 @@ export default function Trip({
 
                                     {/* Dropdown Export */}
                                     {auth.user.role === "admin" && (
-                                        <div className="relative w-full md:w-auto">
                                             <button
-                                                onClick={() =>
-                                                    setShowExportDropdown(
-                                                        !showExportDropdown
-                                                    )
-                                                }
-                                                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md w-full md:w-auto justify-center"
-                                            >
-                                                <FaFileExport className="text-lg" />
-                                                <span>Export</span>
-                                                <FaChevronDown
-                                                    className={`text-sm transition-transform duration-200 ${
-                                                        showExportDropdown
-                                                            ? "rotate-180"
-                                                            : ""
-                                                    }`}
-                                                />
+                                            onClick={() => setShowExportModal(true)}
+                                            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
+                                        >
+                                            <FaFileExcel className="text-lg" />
+                                            <span>Export Excel</span>
                                             </button>
-
-                                            {/* Dropdown Menu */}
-                                            {showExportDropdown && (
-                                                <div
-                                                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-[#313131] ring-1 ring-black ring-opacity-5 z-50 transform transition-all duration-300 ease-in-out origin-top-right"
-                                                >
-                                                    <div className="py-1">
-                                                        <button
-                                                            onClick={() => {
-                                                                exportToExcel();
-                                                                setShowExportDropdown(false);
-                                                            }}
-                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#414141] w-full transition-colors duration-200 rounded-md"
-                                                        >
-                                                            <FaFileExcel className="text-emerald-500" />
-                                                            <span className="font-medium">Export Excel</span>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                // Handle PDF export
-                                                                setShowExportDropdown(false);
-                                                            }}
-                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#414141] w-full transition-colors duration-200 rounded-md"
-                                                        >
-                                                            <FaFilePdf className="text-red-500" />
-                                                            <span className="font-medium">Export PDF</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -960,25 +983,25 @@ export default function Trip({
                                                         </button>
                                                         
                                                         {openDropdown === item.id && (
-                                                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
-                                                                <div className="py-1">
+                                                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-20 border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                                                <div className="py-1 divide-y divide-gray-200 dark:divide-gray-700">
                                                                     {item.status === "Sedang Berjalan" ? (
-                                                                        <button
-                                                                            onClick={() => {
+                                                        <button
+                                                            onClick={() => {
                                                                                 setSelectedTrip(item);
                                                                                 setCloseKendaraan(true);
                                                                                 setOpenDropdown(null);
-                                                                            }}
-                                                                            type="button"
-                                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                                                        >
-                                                                            <FaCarSide className="text-teal-500" />
-                                                                            <span>Tutup Trip</span>
-                                                                        </button>
-                                                                    ) : (
-                                                                        <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                                                            <FaCheck className="text-blue-500" />
-                                                                            <span>Trip Selesai</span>
+                                                            }}
+                                                            type="button"
+                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors duration-200"
+                                                        >
+                                                                            <FaCarSide className="text-teal-500 text-lg flex-shrink-0" />
+                                                                            <span className="font-medium">Tutup Trip</span>
+                                                        </button>
+                                                    ) : (
+                                                                        <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3 bg-gray-50 dark:bg-gray-900">
+                                                                            <FaCheck className="text-green-500 text-lg flex-shrink-0" />
+                                                                            <span className="font-medium">Trip Selesai</span>
                                                                         </div>
                                                                     )}
                                                                     
@@ -988,10 +1011,10 @@ export default function Trip({
                                                                             setOpenDropdown(null);
                                                                         }}
                                                                         type="button"
-                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors duration-200"
                                                                     >
-                                                                        <FaEye className="text-blue-500" />
-                                                                        <span>Lihat Detail</span>
+                                                                        <FaEye className="text-blue-500 text-lg flex-shrink-0" />
+                                                                        <span className="font-medium">Lihat Detail</span>
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -1538,11 +1561,11 @@ export default function Trip({
                 isOpen={closeKendaraan}
                 onClose={() => {
                     reset();
-                    setCloseKendaraan(false);
                     setSelectedTrip(null);
                     setKmAkhir("");
                     setPhotos([]);
                     setPreviewPhotos([]);
+                    setCloseKendaraan(false);
                 }}
                 title="Close Trip"
             >
@@ -1737,7 +1760,269 @@ export default function Trip({
                     </form>
                 )}
             </Modal>
-
+            <Modal
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                title="Export Data ke Excel"
+            >
+                <div className="p-4">
+                    <div className="mb-6">
+                        <div className="flex flex-col space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Pilih Jenis Export
+                                </label>
+                                <div className="flex space-x-4">
+                                    <div className="flex items-center">
+                                        <input
+                                            id="export-month"
+                                            type="radio"
+                                            name="export-type"
+                                            value="month"
+                                            checked={exportType === 'month'}
+                                            onChange={() => setExportType('month')}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        />
+                                        <label htmlFor="export-month" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                            Berdasarkan Bulan
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <input
+                                            id="export-all"
+                                            type="radio"
+                                            name="export-type"
+                                            value="all"
+                                            checked={exportType === 'all'}
+                                            onChange={() => setExportType('all')}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        />
+                                        <label htmlFor="export-all" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                            Semua Data
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {exportType === 'month' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Pilih Bulan
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <FaCalendarAlt className="text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="month"
+                                            value={exportMonth}
+                                            onChange={(e) => setExportMonth(e.target.value)}
+                                            className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                        Data akan difilter berdasarkan bulan yang dipilih
+                                    </p>
+                                </div>
+                            )}
+                            
+                            {exportType === 'all' && (
+                                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+                                    <FaGlobe className="text-blue-500 flex-shrink-0" />
+                                    <p className="text-sm">
+                                        Semua data kendaraan dinas akan diexport ke file Excel
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="flex justify-end space-x-3">
+                        <button
+                            type="button"
+                            onClick={() => setShowExportModal(false)}
+                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            onClick={exportToExcel}
+                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
+                        >
+                            <FaFileExcel />
+                            <span>Export Excel</span>
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+            <Modal
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                title="Export Data ke Excel"
+            >
+                <div className="p-4">
+                    <div className="mb-6">
+                        <div className="flex flex-col space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    Pilih Jenis Export
+                                </label>
+                                <RadioGroup value={exportType} onChange={setExportType} className="space-y-3">
+                                    <RadioGroup.Option value="month">
+                                        {({ checked }) => (
+                                            <div className={`
+                                                relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
+                                                ${checked 
+                                                    ? 'bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102' 
+                                                    : 'border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400'}
+                                            `}>
+                                                <div className="flex items-center justify-between w-full">
+                                                    <div className="flex items-center">
+                                                        <div className={`
+                                                            rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
+                                                            ${checked 
+                                                                ? 'border-blue-500 bg-blue-500 transform scale-110' 
+                                                                : 'border-gray-400 dark:border-gray-500'}
+                                                        `}>
+                                                            {checked && (
+                                                                <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm transition-all duration-300">
+                                                            <RadioGroup.Label as="p" className={`font-medium transition-colors duration-300 ${checked ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                                Berdasarkan Bulan
+                                                            </RadioGroup.Label>
+                                                            <RadioGroup.Description as="span" className={`inline transition-colors duration-300 ${checked ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                                                                Export data untuk bulan tertentu
+                                                            </RadioGroup.Description>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`p-2 rounded-full transform transition-all duration-300 ${checked ? 'bg-blue-100 dark:bg-blue-800 rotate-0 scale-110' : 'bg-gray-100 dark:bg-gray-700 rotate-0'}`}>
+                                                        <FaCalendarAlt className={`w-5 h-5 transition-colors duration-300 ${checked ? 'text-blue-500' : 'text-gray-400'}`} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </RadioGroup.Option>
+                                    
+                                    <RadioGroup.Option value="all">
+                                        {({ checked }) => (
+                                            <div className={`
+                                                relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
+                                                ${checked 
+                                                    ? 'bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102' 
+                                                    : 'border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400'}
+                                            `}>
+                                                <div className="flex items-center justify-between w-full">
+                                                    <div className="flex items-center">
+                                                        <div className={`
+                                                            rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
+                                                            ${checked 
+                                                                ? 'border-blue-500 bg-blue-500 transform scale-110' 
+                                                                : 'border-gray-400 dark:border-gray-500'}
+                                                        `}>
+                                                            {checked && (
+                                                                <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm transition-all duration-300">
+                                                            <RadioGroup.Label as="p" className={`font-medium transition-colors duration-300 ${checked ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                                Semua Data
+                                                            </RadioGroup.Label>
+                                                            <RadioGroup.Description as="span" className={`inline transition-colors duration-300 ${checked ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                                                                Export seluruh data kendaraan dinas
+                                                            </RadioGroup.Description>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`p-2 rounded-full transform transition-all duration-300 ${checked ? 'bg-blue-100 dark:bg-blue-800 rotate-0 scale-110' : 'bg-gray-100 dark:bg-gray-700 rotate-0'}`}>
+                                                        <FaGlobe className={`w-5 h-5 transition-colors duration-300 ${checked ? 'text-blue-500' : 'text-gray-400'}`} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </RadioGroup.Option>
+                                </RadioGroup>
+                            </div>
+                            
+                            <div className="overflow-hidden transition-all duration-500 ease-in-out" 
+                                 style={{ 
+                                     maxHeight: exportType === 'month' ? '200px' : '0',
+                                     opacity: exportType === 'month' ? 1 : 0,
+                                     marginTop: exportType === 'month' ? '1.5rem' : '0'
+                                 }}>
+                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Pilih Bulan
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <FaCalendarAlt className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="month"
+                                            value={`${exportDate.getFullYear()}-${String(exportDate.getMonth() + 1).padStart(2, '0')}`}
+                                            onChange={(e) => {
+                                                const [year, month] = e.target.value.split('-');
+                                                const newDate = new Date(year, month - 1);
+                                                setExportDate(newDate);
+                                            }}
+                                            className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        />
+                                    </div>
+                                    <div className="mt-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                        <FaInfo className="w-4 h-4 mr-2 text-blue-500" />
+                                        <p>
+                                            Data akan difilter berdasarkan bulan yang dipilih
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="overflow-hidden transition-all duration-500 ease-in-out" 
+                                 style={{ 
+                                     maxHeight: exportType === 'all' ? '200px' : '0',
+                                     opacity: exportType === 'all' ? 1 : 0,
+                                     marginTop: exportType === 'all' ? '1.5rem' : '0'
+                                 }}>
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <div className="flex items-center">
+                                        <div className="bg-blue-100 dark:bg-blue-800 p-3 rounded-full mr-3">
+                                            <FaFileExcel className="text-blue-500 w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                                                Export Semua Data
+                                            </h3>
+                                            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                                                Semua data kendaraan dinas akan diexport ke file Excel
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            type="button"
+                            onClick={() => setShowExportModal(false)}
+                            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            onClick={exportToExcel}
+                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2 shadow-sm hover:shadow-md"
+                        >
+                            <FaFileExcel className="w-4 h-4" />
+                            <span>Export Excel</span>
+                        </button>
+                    </div>
+                </div>
+            </Modal>
             <ToastContainer
                 position="top-right"
                 autoClose={5000}

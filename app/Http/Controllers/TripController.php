@@ -188,7 +188,7 @@ class TripController extends Controller
             if ($request->hasFile('foto_kembali')) {
                 foreach ($request->file('foto_kembali') as $photo) {
                     $fileName = uniqid() . '_' . time() . '.' . $photo->getClientOriginalExtension();
-                    $path = $photo->storeAs('trips', $fileName, 'public');
+                    $path = $photo->storeAs('trip-photos', $fileName, 'public');
                     $photos[] = $path;
                 }
             }

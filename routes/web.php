@@ -48,6 +48,7 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
     Route::get('/trips/{code_trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
 
     Route::get('/tamu', [TamuController::class, 'index'])->name('tamu.index');
+    Route::post('/tamu', [TamuController::class, 'store'])->name('tamu.store');
 
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -56,9 +57,21 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
 
     Route::post('/trips/{trip}/close', [TripController::class, 'close'])->name('trips.close');
     
+    Route::post('/tamu/{tamu}/close', [TamuController::class, 'close'])->name('tamu.close');
+    
     // ... route umum lainnya
 });
 
-
+Route::middleware(['auth'])->group(function () {
+    // Existing routes...
+    
+    // User management routes (only for admin)
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('user.index');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    });
+});
 
 require __DIR__.'/auth.php';

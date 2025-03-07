@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
@@ -15,18 +16,20 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = User::query();
-        
+
         if ($request->has('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->search . '%')
-                  ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                  ->orWhere('role', 'LIKE', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
+        $users = $query->paginate(10);
+
         return Inertia::render('User/User', [
-            'users' => $query->paginate(10),
-            'filters' => $request->only(['search'])
+            'users' => $users,
+            'filters' => $request->only('search'),
         ]);
     }
 
@@ -43,23 +46,21 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'role' => 'required|string|in:admin,user',
-            'status' => 'required|string|in:active,inactive'
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => 'required|in:admin,user',
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
-            'status' => $validated['status']
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
         ]);
 
-        return redirect()->back()->with('success', 'User berhasil ditambahkan');
+        return redirect()->back();
     }
 
     /**
@@ -81,42 +82,45 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $user)
     {
-        $user = User::findOrFail($id);
-        
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,'.$id,
-            'password' => 'nullable|string|min:8',
-            'role' => 'required|string|in:admin,user',
-            'status' => 'required|string|in:active,inactive'
-        ]);
-
-        $updateData = [
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'role' => $validated['role'],
-            'status' => $validated['status']
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'role' => 'required|in:admin,user',
         ];
 
-        if ($validated['password']) {
-            $updateData['password'] = Hash::make($validated['password']);
+        if ($request->filled('password')) {
+            $rules['password'] = ['required', 'confirmed', Rules\Password::defaults()];
         }
 
-        $user->update($updateData);
+        $request->validate($rules);
 
-        return redirect()->back()->with('success', 'User berhasil diperbarui');
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->role = $request->role;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return redirect()->back();
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
-        $user = User::findOrFail($id);
+    
+        if ($user->id == request()->user()->id) {
+            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
         $user->delete();
 
-        return redirect()->back()->with('success', 'User berhasil dihapus');
+        return redirect()->back();
     }
 }

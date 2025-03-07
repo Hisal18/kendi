@@ -18,4 +18,11 @@ class Tamu extends Model
         'foto_kepergian',
         'status'
     ];
+
+    protected $casts = [
+        'foto_kedatangan' => 'array',
+        'foto_kepergian' => 'array',
+        'waktu_kedatangan' => 'datetime',
+        'waktu_kepergian' => 'datetime',
+    ];
 }

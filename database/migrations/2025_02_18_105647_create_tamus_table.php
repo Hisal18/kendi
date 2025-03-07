@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('plat_kendaraan')->unique();
             $table->dateTime('waktu_kedatangan');
-            $table->dateTime('waktu_kepergian');
+            $table->dateTime('waktu_kepergian')->nullable();
             $table->json('foto_kedatangan');
             $table->json('foto_kepergian')->nullable();
             $table->enum('status', ['New', 'Close'])->default('New');
