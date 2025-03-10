@@ -372,13 +372,14 @@ export default function Trip({
         formData.append("penumpang", data.penumpang || "");
 
         // Append each photo with the correct field name
-        photos.forEach((photo, index) => {
-            formData.append(`foto_berangkat[${index}]`, photo);
+        photos.forEach((photo) => {
+            formData.append("foto_berangkat", photo);
         });
 
         setIsLoading(true);
 
         try {
+            console.log("Submitting form data:", Object.fromEntries(formData));
             const response = await axios.post(route("trips.create"), formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -396,12 +397,13 @@ export default function Trip({
             setTimeout(() => {
                 router.visit(route("trips.show", response.data.trip.code_trip));
             }, 2000);
-        } catch (errors) {
-            console.error("Error response:", errors);
+        } catch (error) {
+            console.error("Error details:", error.response?.data);
+            console.error("Error response:", error);
             toast.error(
-                errors.response?.data?.message ||
+                error.response?.data?.message ||
                     "Gagal menambahkan trip: " +
-                        (errors.response?.data?.foto_berangkat ||
+                        (error.response?.data?.foto_berangkat ||
                             "Terjadi kesalahan"),
                 toastConfig
             );
@@ -481,7 +483,7 @@ export default function Trip({
         // Tambahkan foto kembali jika ada
         if (photos.length > 0) {
             photos.forEach((photo) => {
-                formData.append("foto_kembali[]", photo);
+                formData.append("foto_kembali", photo);
             });
         }
 
@@ -530,8 +532,14 @@ export default function Trip({
 
         // Validasi setiap file
         const validFiles = files.filter((file) => {
-            // Cek apakah file adalah gambar
-            if (!file.type.startsWith("image/")) {
+            // Cek tipe file dengan lebih spesifik
+            const validTypes = [
+                "image/jpeg",
+                "image/jpg",
+                "image/png",
+                "image/webp",
+            ];
+            if (!validTypes.includes(file.type)) {
                 toast.error(
                     `File "${file.name}" bukan gambar yang valid!`,
                     toastConfig
