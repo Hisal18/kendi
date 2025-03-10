@@ -500,6 +500,7 @@ export default function Trip({
 
         // Tambahkan foto kembali jika ada (tanpa indeks)
         if (photos.length > 0) {
+            // Gunakan nama field yang konsisten
             photos.forEach((photo) => {
                 formData.append("foto_kembali[]", photo);
             });
@@ -522,6 +523,8 @@ export default function Trip({
             .post(route("trips.close", selectedTrip.id), formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
                 },
             })
             .then((response) => {
@@ -583,9 +586,11 @@ export default function Trip({
 
                     // Gambar ke canvas
                     const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#FFFFFF"; // Tambahkan background putih untuk gambar transparan
+                    ctx.fillRect(0, 0, width, height);
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Konversi ke JPEG dengan kualitas 80%
+                    // Konversi ke JPEG dengan kualitas 75% (lebih rendah untuk mengurangi ukuran)
                     canvas.toBlob(
                         (blob) => {
                             // Buat file baru dengan tipe JPEG
@@ -600,7 +605,7 @@ export default function Trip({
                             resolve(newFile);
                         },
                         "image/jpeg",
-                        0.8
+                        0.75
                     );
                 };
 
@@ -774,8 +779,13 @@ export default function Trip({
     // Fungsi untuk mengambil foto dari kamera untuk close trip
     const handleCameraCaptureClose = () => {
         if (fileInputRefClose.current) {
-            fileInputRefClose.current.setAttribute("capture", "environment");
-            fileInputRefClose.current.setAttribute("accept", "image/*");
+            // Hapus atribut capture yang mungkin menyebabkan masalah pada beberapa perangkat
+            fileInputRefClose.current.removeAttribute("capture");
+            // Gunakan accept yang lebih spesifik untuk memastikan kompatibilitas
+            fileInputRefClose.current.setAttribute(
+                "accept",
+                "image/jpeg,image/png,image/jpg"
+            );
             fileInputRefClose.current.click();
         }
     };
@@ -801,9 +811,23 @@ export default function Trip({
 
             for (const file of files) {
                 try {
+                    // Log informasi file untuk debugging
+                    console.log("File original:", {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                    });
+
                     // Kompresi dan konversi gambar
                     const processedFile = await compressAndConvertImage(file);
                     processedFiles.push(processedFile);
+
+                    // Log file yang sudah diproses
+                    console.log("File processed:", {
+                        name: processedFile.name,
+                        type: processedFile.type,
+                        size: processedFile.size,
+                    });
                 } catch (error) {
                     console.error("Error processing file:", error);
                     toast.error(
@@ -1846,109 +1870,136 @@ export default function Trip({
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Foto Kendaraan Kembali
                                 </label>
-                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                                    <div className="space-y-2 text-center">
-                                        {previewPhotos.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center space-y-3 py-5">
-                                                <svg
-                                                    className="mx-auto h-12 w-12 text-gray-400"
-                                                    stroke="currentColor"
-                                                    fill="none"
-                                                    viewBox="0 0 48 48"
-                                                    aria-hidden="true"
+                                <div className="mt-1 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                                    {previewPhotos.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center space-y-4 py-5">
+                                            <svg
+                                                className="mx-auto h-12 w-12 text-gray-400"
+                                                stroke="currentColor"
+                                                fill="none"
+                                                viewBox="0 0 48 48"
+                                                aria-hidden="true"
+                                            >
+                                                <path
+                                                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                    strokeWidth={2}
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                            </svg>
+
+                                            {/* Tombol untuk memilih metode upload */}
+                                            <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handleGalleryUploadClose
+                                                    }
+                                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
                                                 >
-                                                    <path
-                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                                        strokeWidth={2}
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                    />
-                                                </svg>
-                                                <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                                                    <label
-                                                        htmlFor="file-upload-close"
-                                                        className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                                                    <FaImage className="w-4 h-4" />
+                                                    <span>
+                                                        Pilih dari Galeri
+                                                    </span>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handleCameraCaptureClose
+                                                    }
+                                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-800/50 transition-colors"
+                                                >
+                                                    <FaCamera className="w-4 h-4" />
+                                                    <span>Ambil Foto</span>
+                                                </button>
+                                            </div>
+
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                PNG atau JPG hingga 5MB
+                                                (Maksimal 5 foto)
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                            {previewPhotos.map(
+                                                (preview, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative group"
                                                     >
-                                                        <span className="px-2">
-                                                            Upload file
-                                                        </span>
-                                                        <input
-                                                            id="file-upload-close"
-                                                            name="file-upload-close"
-                                                            type="file"
-                                                            className="sr-only"
-                                                            accept="image/*"
-                                                            multiple
-                                                            onChange={
-                                                                handleFileUploadClose
-                                                            }
-                                                            ref={
-                                                                fileInputRefClose
-                                                            }
+                                                        <img
+                                                            src={preview}
+                                                            alt={`Preview ${
+                                                                index + 1
+                                                            }`}
+                                                            className="w-full h-32 object-cover rounded-lg"
                                                         />
-                                                    </label>
-                                                    <p className="pl-1">
-                                                        atau drag and drop
-                                                    </p>
-                                                </div>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    PNG atau JPG hingga 5MB
-                                                    (Maksimal 5 foto)
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                {previewPhotos.map(
-                                                    (preview, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="relative group"
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removePhoto(
+                                                                    index
+                                                                )
+                                                            }
+                                                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                                         >
-                                                            <img
-                                                                src={preview}
-                                                                alt={`Preview ${
-                                                                    index + 1
-                                                                }`}
-                                                                className="w-full h-32 object-cover rounded-lg"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    removePhoto(
-                                                                        index
-                                                                    )
-                                                                }
-                                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                                            >
-                                                                <FaTimes className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    )
-                                                )}
-                                                {previewPhotos.length < 5 && (
-                                                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
-                                                        <input
-                                                            type="file"
-                                                            className="hidden"
-                                                            accept="image/*"
-                                                            multiple
-                                                            onChange={
-                                                                handleFileUploadClose
+                                                            <FaTimes className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                )
+                                            )}
+                                            {previewPhotos.length < 5 && (
+                                                <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                                                    <div className="flex flex-col gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={
+                                                                handleGalleryUploadClose
                                                             }
-                                                            ref={
-                                                                fileInputRefClose
+                                                            className="flex items-center justify-center gap-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors text-sm"
+                                                        >
+                                                            <FaImage className="w-3 h-3" />
+                                                            <span>Galeri</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={
+                                                                handleCameraCaptureClose
                                                             }
-                                                        />
-                                                        <FaPlus className="w-6 h-6 text-gray-400" />
-                                                        <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                                            Tambah Foto
-                                                        </span>
-                                                    </label>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                                                            className="flex items-center justify-center gap-1 px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-800/50 transition-colors text-sm"
+                                                        >
+                                                            <FaCamera className="w-3 h-3" />
+                                                            <span>Kamera</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
+                                {photos.length > 0 && (
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {photos.length} foto terpilih (
+                                            {photos.length}/5)
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPhotos([]);
+                                                setPreviewPhotos([]);
+                                                if (fileInputRefClose.current) {
+                                                    fileInputRefClose.current.value =
+                                                        "";
+                                                }
+                                            }}
+                                            className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                        >
+                                            Hapus Semua
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Input file tersembunyi */}
@@ -1958,7 +2009,7 @@ export default function Trip({
                                 className="hidden"
                                 onChange={handleFileUploadClose}
                                 multiple
-                                accept="image/*"
+                                accept="image/jpeg,image/png,image/jpg"
                             />
                         </div>
 
