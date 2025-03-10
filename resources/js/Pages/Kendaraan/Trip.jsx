@@ -177,68 +177,83 @@ export default function Trip({
 
             if (exportType === "month") {
                 // Validasi bulan yang dipilih
-                if (!exportMonth) {
-                    toast.error("Silakan pilih bulan terlebih dahulu!");
+                const selectedMonth = exportDate
+                    ? `${exportDate.getFullYear()}-${String(
+                          exportDate.getMonth() + 1
+                      ).padStart(2, "0")}`
+                    : "";
+
+                if (!selectedMonth) {
+                    toast.error(
+                        "Silakan pilih bulan terlebih dahulu!",
+                        toastConfig
+                    );
                     return;
                 }
 
                 // Filter data berdasarkan bulan yang dipilih
-                const [year, month] = exportMonth.split("-");
+                const year = exportDate.getFullYear();
+                const month = exportDate.getMonth(); // 0-indexed
+
                 dataToExport = Array.isArray(trips)
                     ? trips.filter((trip) => {
                           const tripDate = new Date(trip.waktu_keberangkatan);
                           return (
-                              tripDate.getFullYear() === parseInt(year) &&
-                              tripDate.getMonth() === parseInt(month) - 1
-                          ); // Month is 0-indexed in JS
+                              tripDate.getFullYear() === year &&
+                              tripDate.getMonth() === month
+                          );
                       })
                     : [];
 
                 if (dataToExport.length === 0) {
+                    const monthName = exportDate.toLocaleString("id-ID", {
+                        month: "long",
+                    });
                     toast.warning(
-                        `Tidak ada data untuk bulan ${month}/${year}`
+                        `Tidak ada data untuk bulan ${monthName} ${year}`,
+                        toastConfig
                     );
                     return;
                 }
 
                 // Set nama file dengan bulan dan tahun
-                const monthName = new Date(exportMonth + "-01").toLocaleString(
-                    "id-ID",
-                    { month: "long" }
-                );
-                fileName = `Data_Kendaraan_Dinas_${monthName}_${year}.xlsx`;
+                const monthName = exportDate.toLocaleString("id-ID", {
+                    month: "long",
+                });
+                fileName = `Data Kendaraan Dinas ${monthName} ${year}.xlsx`;
             } else {
                 // Export semua data
                 dataToExport = trips || [];
 
                 if (dataToExport.length === 0) {
-                    toast.warning("Tidak ada data untuk diexport");
+                    toast.warning("Tidak ada data untuk diexport", toastConfig);
                     return;
                 }
 
                 // Set nama file dengan tanggal hari ini
-                fileName = `Data_Kendaraan_Trip_All_${dateFormat(
+                fileName = `Data Kendaraan Dinas All ${dateFormat(
                     new Date(),
                     "dd-mm-yyyy"
                 )}.xlsx`;
             }
 
-            // Format data untuk Excel
+            // Format data untuk Excel dengan penanganan nilai null/undefined
             const formattedData = dataToExport.map((trip, index) => ({
                 No: index + 1,
-                "Code trip": trip.code_trip,
-                "Plat kendaraan": trip.kendaraan.plat_kendaraan,
-                Driver: trip.driver.name,
-                "Waktu Keberangkatan": formatDate(trip.waktu_keberangkatan),
-                "Waktu Kembali": formatDate(trip.waktu_kembali),
-                "Km Awal": trip.km_awal,
-                "Km Akhir": trip.km_akhir,
-                Tujuan: trip.tujuan,
-                Jarak: trip.jarak + " km",
-                Catatan: trip.catatan,
-                merek: trip.kendaraan.merek,
-                status: trip.status,
-                penumpang: trip.penumpang,
+                "Kode Trip": trip.code_trip || "-",
+                "Plat Kendaraan": trip.kendaraan?.plat_kendaraan || "-",
+                "Merek Kendaraan": trip.kendaraan?.merek || "-",
+                Driver: trip.driver?.name || "-",
+                "Waktu Keberangkatan":
+                    formatDate(trip.waktu_keberangkatan) || "-",
+                "Waktu Kembali": formatDate(trip.waktu_kembali) || "-",
+                "Km Awal": trip.km_awal || 0,
+                "Km Akhir": trip.km_akhir || "-",
+                Tujuan: trip.tujuan || "-",
+                Jarak: trip.jarak ? trip.jarak + " KM" : "-",
+                Penumpang: trip.penumpang || "-",
+                Catatan: trip.catatan || "-",
+                Status: trip.status || "-",
             }));
 
             // Buat workbook dan worksheet
@@ -247,25 +262,25 @@ export default function Trip({
             XLSX.utils.book_append_sheet(
                 workbook,
                 worksheet,
-                "Kendaraan Dinas"
+                "Data Trip Kendaraan"
             );
 
             // Atur lebar kolom
             const colWidths = [
-                { wch: 10 }, //A
-                { wch: 15 }, //B
-                { wch: 15 }, //C
-                { wch: 20 }, //D
-                { wch: 30 }, //E
-                { wch: 30 }, //F
-                { wch: 10 }, //G
-                { wch: 10 }, //H
-                { wch: 15 }, //I
-                { wch: 10 }, //J
-                { wch: 20 }, //K
-                { wch: 20 }, //L
-                { wch: 10 }, //M
-                { wch: 10 }, //N
+                { wch: 5 }, // A - No
+                { wch: 15 }, // B - Kode Trip
+                { wch: 15 }, // C - Plat Kendaraan
+                { wch: 20 }, // D - Merek Kendaraan
+                { wch: 20 }, // E - Driver
+                { wch: 25 }, // F - Waktu Keberangkatan
+                { wch: 25 }, // G - Waktu Kembali
+                { wch: 10 }, // H - Km Awal
+                { wch: 10 }, // I - Km Akhir
+                { wch: 25 }, // J - Tujuan
+                { wch: 10 }, // K - Jarak
+                { wch: 25 }, // L - Penumpang
+                { wch: 30 }, // M - Catatan
+                { wch: 15 }, // N - Status
             ];
             worksheet["!cols"] = colWidths;
 
@@ -274,22 +289,24 @@ export default function Trip({
 
             // Tampilkan pesan sukses
             if (exportType === "month") {
-                const [year, month] = exportMonth.split("-");
-                const monthName = new Date(exportMonth + "-01").toLocaleString(
-                    "id-ID",
-                    { month: "long" }
-                );
+                const monthName = exportDate.toLocaleString("id-ID", {
+                    month: "long",
+                });
                 toast.success(
-                    `Data berhasil diexport ke Excel untuk bulan ${monthName} ${year}`
+                    `Data berhasil diexport ke Excel untuk bulan ${monthName} ${exportDate.getFullYear()}`,
+                    toastConfig
                 );
             } else {
-                toast.success("Semua data berhasil diexport ke Excel");
+                toast.success(
+                    "Semua data berhasil diexport ke Excel",
+                    toastConfig
+                );
             }
 
             setShowExportModal(false);
         } catch (error) {
             console.error("Error exporting to Excel:", error);
-            toast.error("Terjadi kesalahan saat mengexport data");
+            toast.error("Terjadi kesalahan saat mengexport data", toastConfig);
         }
     };
 
@@ -1893,19 +1910,6 @@ export default function Trip({
                                                 <button
                                                     type="button"
                                                     onClick={
-                                                        handleGalleryUploadClose
-                                                    }
-                                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                                                >
-                                                    <FaImage className="w-4 h-4" />
-                                                    <span>
-                                                        Pilih dari Galeri
-                                                    </span>
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={
                                                         handleCameraCaptureClose
                                                     }
                                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-800/50 transition-colors"
@@ -1950,30 +1954,22 @@ export default function Trip({
                                                 )
                                             )}
                                             {previewPhotos.length < 5 && (
-                                                <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                                                    <div className="flex flex-col gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={
-                                                                handleGalleryUploadClose
-                                                            }
-                                                            className="flex items-center justify-center gap-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors text-sm"
-                                                        >
-                                                            <FaImage className="w-3 h-3" />
-                                                            <span>Galeri</span>
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={
-                                                                handleCameraCaptureClose
-                                                            }
-                                                            className="flex items-center justify-center gap-1 px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-800/50 transition-colors text-sm"
-                                                        >
-                                                            <FaCamera className="w-3 h-3" />
-                                                            <span>Kamera</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                                <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        accept="image/*"
+                                                        multiple
+                                                        onChange={
+                                                            handleFileUploadClose
+                                                        }
+                                                        ref={fileInputRefClose}
+                                                    />
+                                                    <FaPlus className="w-6 h-6 text-gray-400" />
+                                                    <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                                        Tambah Foto
+                                                    </span>
+                                                </label>
                                             )}
                                         </div>
                                     )}
@@ -2076,109 +2072,260 @@ export default function Trip({
             >
                 <div className="p-4">
                     <div className="mb-6">
-                        <div className="flex flex-col space-y-4">
+                        <div className="flex flex-col space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                     Pilih Jenis Export
                                 </label>
-                                <div className="flex space-x-4">
-                                    <div className="flex items-center">
-                                        <input
-                                            id="export-month"
-                                            type="radio"
-                                            name="export-type"
-                                            value="month"
-                                            checked={exportType === "month"}
-                                            onChange={() =>
-                                                setExportType("month")
-                                            }
-                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                        />
-                                        <label
-                                            htmlFor="export-month"
-                                            className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
-                                        >
-                                            Berdasarkan Bulan
-                                        </label>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <input
-                                            id="export-all"
-                                            type="radio"
-                                            name="export-type"
-                                            value="all"
-                                            checked={exportType === "all"}
-                                            onChange={() =>
-                                                setExportType("all")
-                                            }
-                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                        />
-                                        <label
-                                            htmlFor="export-all"
-                                            className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
-                                        >
-                                            Semua Data
-                                        </label>
-                                    </div>
-                                </div>
+                                <RadioGroup
+                                    value={exportType}
+                                    onChange={setExportType}
+                                    className="space-y-3"
+                                >
+                                    <RadioGroup.Option value="month">
+                                        {({ checked }) => (
+                                            <div
+                                                className={`
+                                                relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
+                                                ${
+                                                    checked
+                                                        ? "bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102"
+                                                        : "border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400"
+                                                }
+                                            `}
+                                            >
+                                                <div className="flex items-center justify-between w-full">
+                                                    <div className="flex items-center">
+                                                        <div
+                                                            className={`
+                                                            rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
+                                                            ${
+                                                                checked
+                                                                    ? "border-blue-500 bg-blue-500 transform scale-110"
+                                                                    : "border-gray-400 dark:border-gray-500"
+                                                            }
+                                                        `}
+                                                        >
+                                                            {checked && (
+                                                                <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm transition-all duration-300">
+                                                            <RadioGroup.Label
+                                                                as="p"
+                                                                className={`font-medium transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-600 dark:text-blue-400"
+                                                                        : "text-gray-700 dark:text-gray-300"
+                                                                }`}
+                                                            >
+                                                                Berdasarkan
+                                                                Bulan
+                                                            </RadioGroup.Label>
+                                                            <RadioGroup.Description
+                                                                as="span"
+                                                                className={`inline transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-500 dark:text-blue-400"
+                                                                        : "text-gray-500 dark:text-gray-400"
+                                                                }`}
+                                                            >
+                                                                Export data
+                                                                untuk bulan
+                                                                tertentu
+                                                            </RadioGroup.Description>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className={`p-2 rounded-full transform transition-all duration-300 ${
+                                                            checked
+                                                                ? "bg-blue-100 dark:bg-blue-800 rotate-0 scale-110"
+                                                                : "bg-gray-100 dark:bg-gray-700 rotate-0"
+                                                        }`}
+                                                    >
+                                                        <FaCalendarAlt
+                                                            className={`w-5 h-5 transition-colors duration-300 ${
+                                                                checked
+                                                                    ? "text-blue-500"
+                                                                    : "text-gray-400"
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </RadioGroup.Option>
+
+                                    <RadioGroup.Option value="all">
+                                        {({ checked }) => (
+                                            <div
+                                                className={`
+                                                relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
+                                                ${
+                                                    checked
+                                                        ? "bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102"
+                                                        : "border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400"
+                                                }
+                                            `}
+                                            >
+                                                <div className="flex items-center justify-between w-full">
+                                                    <div className="flex items-center">
+                                                        <div
+                                                            className={`
+                                                            rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
+                                                            ${
+                                                                checked
+                                                                    ? "border-blue-500 bg-blue-500 transform scale-110"
+                                                                    : "border-gray-400 dark:border-gray-500"
+                                                            }
+                                                        `}
+                                                        >
+                                                            {checked && (
+                                                                <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm transition-all duration-300">
+                                                            <RadioGroup.Label
+                                                                as="p"
+                                                                className={`font-medium transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-600 dark:text-blue-400"
+                                                                        : "text-gray-700 dark:text-gray-300"
+                                                                }`}
+                                                            >
+                                                                Semua Data
+                                                            </RadioGroup.Label>
+                                                            <RadioGroup.Description
+                                                                as="span"
+                                                                className={`inline transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-500 dark:text-blue-400"
+                                                                        : "text-gray-500 dark:text-gray-400"
+                                                                }`}
+                                                            >
+                                                                Export seluruh
+                                                                data kendaraan
+                                                                tamu
+                                                            </RadioGroup.Description>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className={`p-2 rounded-full transform transition-all duration-300 ${
+                                                            checked
+                                                                ? "bg-blue-100 dark:bg-blue-800 rotate-0 scale-110"
+                                                                : "bg-gray-100 dark:bg-gray-700 rotate-0"
+                                                        }`}
+                                                    >
+                                                        <FaGlobe
+                                                            className={`w-5 h-5 transition-colors duration-300 ${
+                                                                checked
+                                                                    ? "text-blue-500"
+                                                                    : "text-gray-400"
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </RadioGroup.Option>
+                                </RadioGroup>
                             </div>
 
-                            {exportType === "month" && (
-                                <div>
+                            <div
+                                className="overflow-hidden transition-all duration-500 ease-in-out"
+                                style={{
+                                    maxHeight:
+                                        exportType === "month" ? "200px" : "0",
+                                    opacity: exportType === "month" ? 1 : 0,
+                                    marginTop:
+                                        exportType === "month" ? "1.5rem" : "0",
+                                }}
+                            >
+                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Pilih Bulan
                                     </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                            <FaCalendarAlt className="text-gray-400" />
+                                            <FaCalendarAlt className="h-4 w-4 text-gray-400" />
                                         </div>
                                         <input
                                             type="month"
-                                            value={exportMonth}
-                                            onChange={(e) =>
-                                                setExportMonth(e.target.value)
-                                            }
-                                            className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            value={`${exportDate.getFullYear()}-${String(
+                                                exportDate.getMonth() + 1
+                                            ).padStart(2, "0")}`}
+                                            onChange={(e) => {
+                                                const [year, month] =
+                                                    e.target.value.split("-");
+                                                const newDate = new Date(
+                                                    year,
+                                                    month - 1
+                                                );
+                                                setExportDate(newDate);
+                                            }}
+                                            className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                         />
                                     </div>
-                                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                        Data akan difilter berdasarkan bulan
-                                        yang dipilih
-                                    </p>
+                                    <div className="mt-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                        <FaInfo className="w-4 h-4 mr-2 text-blue-500" />
+                                        <p>
+                                            Data akan difilter berdasarkan bulan
+                                            yang dipilih
+                                        </p>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
 
-                            {exportType === "all" && (
-                                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
-                                    <FaGlobe className="text-blue-500 flex-shrink-0" />
-                                    <p className="text-sm">
-                                        Semua data kendaraan dinas akan diexport
-                                        ke file Excel
-                                    </p>
+                            <div
+                                className="overflow-hidden transition-all duration-500 ease-in-out"
+                                style={{
+                                    maxHeight:
+                                        exportType === "all" ? "200px" : "0",
+                                    opacity: exportType === "all" ? 1 : 0,
+                                    marginTop:
+                                        exportType === "all" ? "1.5rem" : "0",
+                                }}
+                            >
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <div className="flex items-center">
+                                        <div className="bg-blue-100 dark:bg-blue-800 p-3 rounded-full mr-3">
+                                            <FaFileExcel className="text-blue-500 w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                                                Export Semua Data
+                                            </h3>
+                                            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                                                Semua data kendaraan tamu akan
+                                                diexport ke file Excel
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-end space-x-3">
+                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                             type="button"
                             onClick={() => setShowExportModal(false)}
-                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                         >
                             Batal
                         </button>
                         <button
                             type="button"
                             onClick={exportToExcel}
-                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
+                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2 shadow-sm hover:shadow-md"
                         >
-                            <FaFileExcel />
+                            <FaFileExcel className="w-4 h-4" />
                             <span>Export Excel</span>
                         </button>
                     </div>
                 </div>
             </Modal>
+
             <ToastContainer
                 position="top-right"
                 autoClose={5000}

@@ -126,12 +126,12 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
 
         // Validasi form
         if (!formData.plat_kendaraan) {
-            toast.error("No Polisi wajib diisi!");
+            toast.error("No Polisi wajib diisi!", toastConfig);
             return;
         }
 
         if (photos.length === 0) {
-            toast.error("Foto kendaraan wajib diupload!");
+            toast.error("Foto kendaraan wajib diupload!", toastConfig);
             return;
         }
 
@@ -146,9 +146,20 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                 formData.waktu_kedatangan
             );
 
-            // Append setiap foto
-            photos.forEach((photo, index) => {
-                submitFormData.append(`foto_kendaraan[${index}]`, photo);
+            // Append setiap foto dengan nama field yang konsisten
+            photos.forEach((photo) => {
+                submitFormData.append("foto_kendaraan[]", photo);
+            });
+
+            // Log untuk debugging
+            console.log("Submitting form data:", {
+                plat_kendaraan: formData.plat_kendaraan,
+                waktu_kedatangan: formData.waktu_kedatangan,
+                photos: photos.map((p) => ({
+                    name: p.name,
+                    type: p.type,
+                    size: p.size,
+                })),
             });
 
             // Kirim data menggunakan Inertia
@@ -156,7 +167,10 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                 forceFormData: true,
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    toast.success("Data kendaraan berhasil ditambahkan!");
+                    toast.success(
+                        "Data kendaraan berhasil ditambahkan!",
+                        toastConfig
+                    );
 
                     // Update state tamus dengan data terbaru
                     if (page.props.tamus) {
@@ -182,7 +196,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                 },
                 onError: (errors) => {
                     Object.keys(errors).forEach((key) => {
-                        toast.error(errors[key]);
+                        toast.error(errors[key], toastConfig);
                     });
                 },
                 onFinish: () => {
@@ -191,7 +205,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
             });
         } catch (error) {
             console.error("Error submitting form:", error);
-            toast.error("Terjadi kesalahan saat mengirim data");
+            toast.error("Terjadi kesalahan saat mengirim data", toastConfig);
             setIsSubmitting(false);
         }
     };
@@ -206,7 +220,79 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
         );
     };
 
-    const handleFileUpload = (e) => {
+    // Tambahkan fungsi untuk mengompres dan mengkonversi gambar
+    const compressAndConvertImage = (file) => {
+        return new Promise((resolve, reject) => {
+            // Cek apakah file adalah gambar
+            if (!file.type.startsWith("image/")) {
+                reject(new Error("File bukan gambar"));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Hitung dimensi baru (maksimal 1200px)
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_SIZE = 1200;
+
+                    if (width > height && width > MAX_SIZE) {
+                        height = Math.round((height * MAX_SIZE) / width);
+                        width = MAX_SIZE;
+                    } else if (height > MAX_SIZE) {
+                        width = Math.round((width * MAX_SIZE) / height);
+                        height = MAX_SIZE;
+                    }
+
+                    // Buat canvas untuk kompresi
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Gambar ke canvas
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#FFFFFF"; // Tambahkan background putih untuk gambar transparan
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Konversi ke JPEG dengan kualitas 75% (lebih rendah untuk mengurangi ukuran)
+                    canvas.toBlob(
+                        (blob) => {
+                            // Buat file baru dengan tipe JPEG
+                            const newFile = new File(
+                                [blob],
+                                `photo_${Date.now()}.jpg`,
+                                {
+                                    type: "image/jpeg",
+                                    lastModified: Date.now(),
+                                }
+                            );
+                            resolve(newFile);
+                        },
+                        "image/jpeg",
+                        0.75
+                    );
+                };
+
+                img.onerror = () => {
+                    reject(new Error("Gagal memuat gambar"));
+                };
+
+                img.src = event.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error("Gagal membaca file"));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // Perbaikan fungsi handleFileUpload
+    const handleFileUpload = async (e) => {
         const files = Array.from(e.target.files || e.dataTransfer?.files || []);
 
         if (files.length === 0) return;
@@ -217,71 +303,95 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
             return;
         }
 
-        // Validasi setiap file
-        const validFiles = files.filter((file) => {
-            // Cek apakah file sudah ada
-            if (isFileExists(file)) {
-                toast.warning(
-                    `File "${file.name}" sudah dipilih!`,
-                    toastConfig
-                );
-                return false;
+        // Tampilkan loading toast
+        const loadingToastId = toast.loading("Memproses foto...", toastConfig);
+
+        try {
+            // Proses setiap file
+            const processedFiles = [];
+
+            for (const file of files) {
+                try {
+                    // Log informasi file untuk debugging
+                    console.log("File original:", {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                    });
+
+                    // Cek apakah file sudah ada
+                    if (isFileExists(file)) {
+                        toast.warning(
+                            `File "${file.name}" sudah dipilih!`,
+                            toastConfig
+                        );
+                        continue;
+                    }
+
+                    // Kompresi dan konversi gambar
+                    const processedFile = await compressAndConvertImage(file);
+                    processedFiles.push(processedFile);
+
+                    // Log file yang sudah diproses
+                    console.log("File processed:", {
+                        name: processedFile.name,
+                        type: processedFile.type,
+                        size: processedFile.size,
+                    });
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    toast.error(
+                        `Gagal memproses file "${file.name}": ${error.message}`,
+                        toastConfig
+                    );
+                }
             }
 
-            // Cek apakah file adalah gambar
-            if (!file.type.startsWith("image/")) {
-                toast.error(
-                    `File "${file.name}" bukan gambar yang valid!`,
-                    toastConfig
-                );
-                return false;
+            if (processedFiles.length === 0) {
+                toast.update(loadingToastId, {
+                    render: "Tidak ada file valid untuk diunggah",
+                    type: "error",
+                    isLoading: false,
+                    autoClose: 3000,
+                });
+                return;
             }
 
-            // Cek ukuran file (max 10MB)
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error(
-                    `File "${file.name}" terlalu besar (maksimal 5MB)!`,
-                    toastConfig
-                );
-                return false;
-            }
+            // Update state dengan file yang valid
+            setPhotos((prevPhotos) => [...prevPhotos, ...processedFiles]);
 
-            return true;
-        });
+            // Generate preview untuk setiap file
+            processedFiles.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setPreviewPhotos((prevPreviews) => [
+                        ...prevPreviews,
+                        e.target.result,
+                    ]);
+                };
+                reader.readAsDataURL(file);
+            });
 
-        if (validFiles.length === 0) {
+            // Reset input file
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
-            return;
-        }
 
-        // Update state dengan file yang valid
-        setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
-
-        // Generate preview untuk setiap file
-        validFiles.forEach((file) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreviewPhotos((prevPreviews) => [
-                    ...prevPreviews,
-                    e.target.result,
-                ]);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Reset input file
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-
-        // Tampilkan toast sukses
-        if (validFiles.length > 0) {
-            toast.success(
-                `${validFiles.length} foto berhasil ditambahkan!`,
-                toastConfig
-            );
+            // Update loading toast
+            toast.update(loadingToastId, {
+                render: `${processedFiles.length} foto berhasil diproses!`,
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+            });
+        } catch (error) {
+            console.error("Error in handleFileUpload:", error);
+            toast.update(loadingToastId, {
+                render: "Terjadi kesalahan saat memproses foto",
+                type: "error",
+                isLoading: false,
+                autoClose: 3000,
+            });
         }
     };
 
@@ -424,7 +534,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
         setShowDetailModal(true);
     };
 
-    // Fungsi untuk menangani tutup tamu
+    // Perbaikan fungsi handleCloseTamu
     const handleCloseTamu = async (e) => {
         e.preventDefault();
 
@@ -446,15 +556,33 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                 dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM:ss")
             );
 
-            // Append setiap foto
-            photos.forEach((photo, index) => {
-                formData.append(`foto_kepergian[${index}]`, photo);
+            // Append setiap foto dengan nama field yang konsisten
+            photos.forEach((photo) => {
+                formData.append("foto_kepergian[]", photo);
+            });
+
+            // Log untuk debugging
+            console.log("Closing tamu data:", {
+                waktu_kepergian: dateFormat(
+                    new Date(),
+                    "yyyy-mm-dd'T'HH:MM:ss"
+                ),
+                photos: photos.map((p) => ({
+                    name: p.name,
+                    type: p.type,
+                    size: p.size,
+                })),
             });
 
             // Kirim data menggunakan Inertia
             router.post(route("tamu.close", selectedTamu.id), formData, {
                 forceFormData: true,
                 preserveScroll: true,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                },
                 onSuccess: (page) => {
                     toast.success(
                         "Kendaraan tamu berhasil ditutup!",
@@ -496,27 +624,39 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
         }
     };
 
-    // Fungsi untuk upload file dari galeri untuk close tamu
+    // Perbaikan fungsi handleGalleryUploadClose
     const handleGalleryUploadClose = () => {
         if (fileInputRefClose.current) {
+            // Hapus atribut capture yang mungkin menyebabkan masalah pada beberapa perangkat
             fileInputRefClose.current.removeAttribute("capture");
-            fileInputRefClose.current.setAttribute("accept", "image/*");
+            // Gunakan accept yang lebih spesifik untuk memastikan kompatibilitas
+            fileInputRefClose.current.setAttribute(
+                "accept",
+                "image/jpeg,image/png,image/jpg"
+            );
             fileInputRefClose.current.click();
         }
     };
 
-    // Fungsi untuk mengambil foto dari kamera untuk close tamu
+    // Perbaikan fungsi handleCameraCaptureClose
     const handleCameraCaptureClose = () => {
         if (fileInputRefClose.current) {
-            fileInputRefClose.current.setAttribute("capture", "environment");
-            fileInputRefClose.current.setAttribute("accept", "image/*");
+            // Hapus atribut capture yang mungkin menyebabkan masalah pada beberapa perangkat
+            fileInputRefClose.current.removeAttribute("capture");
+            // Gunakan accept yang lebih spesifik untuk memastikan kompatibilitas
+            fileInputRefClose.current.setAttribute(
+                "accept",
+                "image/jpeg,image/png,image/jpg"
+            );
             fileInputRefClose.current.click();
         }
     };
 
-    // Fungsi untuk menangani file yang diupload
-    const handleFileUploadClose = (e) => {
-        const files = Array.from(e.target.files);
+    // Perbaikan fungsi handleFileUploadClose
+    const handleFileUploadClose = async (e) => {
+        const files = Array.from(e.target.files || []);
+
+        if (files.length === 0) return;
 
         // Validasi jumlah foto
         if (photos.length + files.length > 5) {
@@ -524,71 +664,96 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
             return;
         }
 
-        // Validasi setiap file
-        const validFiles = files.filter((file) => {
-            // Cek apakah file sudah ada
-            if (isFileExists(file)) {
-                toast.warning(
-                    `File "${file.name}" sudah dipilih!`,
-                    toastConfig
-                );
-                return false;
+        // Tampilkan loading toast
+        const loadingToastId = toast.loading("Memproses foto...", toastConfig);
+
+        try {
+            // Proses setiap file
+            const processedFiles = [];
+
+            for (const file of files) {
+                try {
+                    // Log informasi file untuk debugging
+                    console.log("File original:", {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                    });
+
+                    // Cek apakah file sudah ada
+                    if (isFileExists(file)) {
+                        toast.warning(
+                            `File "${file.name}" sudah dipilih!`,
+                            toastConfig
+                        );
+                        continue;
+                    }
+
+                    // Kompresi dan konversi gambar
+                    const processedFile = await compressAndConvertImage(file);
+                    processedFiles.push(processedFile);
+
+                    // Log file yang sudah diproses
+                    console.log("File processed:", {
+                        name: processedFile.name,
+                        type: processedFile.type,
+                        size: processedFile.size,
+                    });
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    toast.error(
+                        `Gagal memproses file "${file.name}": ${error.message}`,
+                        toastConfig
+                    );
+                }
             }
 
-            // Cek apakah file adalah gambar
-            if (!file.type.startsWith("image/")) {
-                toast.error(
-                    `File "${file.name}" bukan gambar yang valid!`,
-                    toastConfig
-                );
-                return false;
+            if (processedFiles.length === 0) {
+                toast.update(loadingToastId, {
+                    render: "Tidak ada file valid untuk diunggah",
+                    type: "error",
+                    isLoading: false,
+                    autoClose: 3000,
+                });
+                return;
             }
 
-            // Cek ukuran file (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error(
-                    `File "${file.name}" terlalu besar (maksimal 5MB)!`,
-                    toastConfig
-                );
-                return false;
-            }
+            // Update state dengan file yang valid
+            setPhotos((prevPhotos) => [...prevPhotos, ...processedFiles]);
 
-            return true;
-        });
+            // Generate preview untuk setiap file
+            processedFiles.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setPreviewPhotos((prevPreviews) => [
+                        ...prevPreviews,
+                        e.target.result,
+                    ]);
+                };
+                reader.readAsDataURL(file);
+            });
 
-        if (validFiles.length === 0) {
+            // Reset input file
             if (fileInputRefClose.current) {
                 fileInputRefClose.current.value = "";
+                fileInputRefClose.current.removeAttribute("capture");
             }
-            return;
-        }
 
-        // Update state dengan file yang valid
-        setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
-
-        // Generate preview untuk setiap file
-        validFiles.forEach((file) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreviewPhotos((prevPreviews) => [
-                    ...prevPreviews,
-                    e.target.result,
-                ]);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Reset input file
-        if (fileInputRefClose.current) {
-            fileInputRefClose.current.value = "";
-        }
-
-        // Tampilkan toast sukses
-        if (validFiles.length > 0) {
-            toast.success(
-                `${validFiles.length} foto berhasil ditambahkan!`,
-                toastConfig
-            );
+            // Update loading toast
+            toast.update(loadingToastId, {
+                render: `${processedFiles.length} foto berhasil diproses!`,
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+            });
+        } catch (error) {
+            console.error("Error in handleFileUploadClose:", error);
+            toast.update(loadingToastId, {
+                render: "Terjadi kesalahan saat memproses foto",
+                type: "error",
+                isLoading: false,
+                autoClose: 3000,
+            });
         }
     };
 

@@ -55,9 +55,9 @@ export default function Driver({ drivers: initialDrivers }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         if (isSubmitting) return;
-        
+
         setIsSubmitting(true);
         let isMounted = true;
 
@@ -65,7 +65,7 @@ export default function Driver({ drivers: initialDrivers }) {
             router.put(`/driver/${data.id}`, data, {
                 onSuccess: () => {
                     if (!isMounted) return;
-                    
+
                     // Update data lokal setelah berhasil edit
                     setDrivers((prevDrivers) =>
                         prevDrivers.map((driver) =>
@@ -93,13 +93,13 @@ export default function Driver({ drivers: initialDrivers }) {
                 onFinish: () => {
                     if (!isMounted) return;
                     setIsSubmitting(false);
-                }
+                },
             });
         } else {
             router.post("/driver", data, {
                 onSuccess: (response) => {
                     if (!isMounted) return;
-                    
+
                     // Gunakan callback untuk update state
                     router.reload();
                     setShowModal(false);
@@ -119,10 +119,10 @@ export default function Driver({ drivers: initialDrivers }) {
                 onFinish: () => {
                     if (!isMounted) return;
                     setIsSubmitting(false);
-                }
+                },
             });
         }
-        
+
         // Cleanup function
         return () => {
             isMounted = false;
@@ -147,14 +147,14 @@ export default function Driver({ drivers: initialDrivers }) {
 
     const handleDelete = () => {
         if (!driverToDelete) return;
-        
+
         setIsDeleting(true);
         let isMounted = true;
-        
+
         router.delete(`/driver/${driverToDelete.id}`, {
             onSuccess: () => {
                 if (!isMounted) return;
-                
+
                 // Gunakan callback untuk update state
                 router.reload();
                 setShowDeleteModal(false);
@@ -168,9 +168,9 @@ export default function Driver({ drivers: initialDrivers }) {
             onFinish: () => {
                 if (!isMounted) return;
                 setIsDeleting(false);
-            }
+            },
         });
-        
+
         // Cleanup function
         return () => {
             isMounted = false;
@@ -203,7 +203,7 @@ export default function Driver({ drivers: initialDrivers }) {
 
     // Reset halaman saat pencarian
     useEffect(() => {
-        if (searchTerm !== '') {
+        if (searchTerm !== "") {
             setCurrentPage(1);
         }
     }, [searchTerm]);
@@ -363,7 +363,8 @@ export default function Driver({ drivers: initialDrivers }) {
                                 {currentItems.length === 0 ? (
                                     <div className="text-center py-10">
                                         <div className="text-gray-500 dark:text-gray-400">
-                                            Tidak ada data yang sesuai dengan pencarian
+                                            Tidak ada data yang sesuai dengan
+                                            pencarian
                                         </div>
                                     </div>
                                 ) : (
@@ -388,91 +389,118 @@ export default function Driver({ drivers: initialDrivers }) {
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white dark:bg-[#313131] divide-y divide-gray-200 dark:divide-gray-700">
-                                            {currentItems.map((driver, index) => (
-                                                <tr
-                                                    key={driver.id}
-                                                    className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
-                                                >
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                        {indexOfFirstItem +
-                                                            index +
-                                                            1}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                        {driver.name}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                        {driver.phone_number}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span
-                                                            className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
-                                                                driver.status ===
-                                                                "Tersedia"
-                                                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                                                    : driver.status ===
-                                                                      "Sedang Bertugas"
-                                                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                                                    : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
-                                                            }`}
-                                                        >
-                                                            {driver.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <Menu as="div" className="relative inline-block text-left">
-                                                            <Menu.Button className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md">
-                                                                <FaEllipsisV className="w-4 h-4" />
-                                                            </Menu.Button>
-
-                                                            <Transition
-                                                                as={Fragment}
-                                                                enter="transition ease-out duration-100"
-                                                                enterFrom="transform opacity-0 scale-95"
-                                                                enterTo="transform opacity-100 scale-100"
-                                                                leave="transition ease-in duration-75"
-                                                                leaveFrom="transform opacity-100 scale-100"
-                                                                leaveTo="transform opacity-0 scale-95"
+                                            {currentItems.map(
+                                                (driver, index) => (
+                                                    <tr
+                                                        key={driver.id}
+                                                        className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
+                                                    >
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                            {indexOfFirstItem +
+                                                                index +
+                                                                1}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                            {driver.name}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                            {
+                                                                driver.phone_number
+                                                            }
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span
+                                                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
+                                                                    driver.status ===
+                                                                    "Tersedia"
+                                                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                                                        : driver.status ===
+                                                                          "Sedang Bertugas"
+                                                                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                                                        : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
+                                                                }`}
                                                             >
-                                                                <Menu.Items className="absolute z-[9999] right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none">
-                                                                    <div className="py-1">
-                                                                        <Menu.Item>
-                                                                            {({ active }) => (
-                                                                                <button
-                                                                                    onClick={() => handleEdit(driver)}
-                                                                                    className={`${
-                                                                                        active 
-                                                                                            ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' 
-                                                                                            : 'text-gray-700 dark:text-gray-200'
-                                                                                    } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
-                                                                                >
-                                                                                    <FaEdit className="text-blue-500" />
-                                                                                    <span>Edit Driver</span>
-                                                                                </button>
-                                                                            )}
-                                                                        </Menu.Item>
-                                                                        <Menu.Item>
-                                                                            {({ active }) => (
-                                                                                <button
-                                                                                    onClick={() => confirmDelete(driver)}
-                                                                                    className={`${
-                                                                                        active 
-                                                                                            ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' 
-                                                                                            : 'text-gray-700 dark:text-gray-200'
-                                                                                    } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
-                                                                                >
-                                                                                    <FaTrash className="text-red-500" />
-                                                                                    <span>Hapus Driver</span>
-                                                                                </button>
-                                                                            )}
-                                                                        </Menu.Item>
-                                                                    </div>
-                                                                </Menu.Items>
-                                                            </Transition>
-                                                        </Menu>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                                {driver.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <Menu
+                                                                as="div"
+                                                                className="relative inline-block text-left"
+                                                            >
+                                                                <Menu.Button className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md">
+                                                                    <FaEllipsisV className="w-4 h-4" />
+                                                                </Menu.Button>
+
+                                                                <Transition
+                                                                    as={
+                                                                        Fragment
+                                                                    }
+                                                                    enter="transition ease-out duration-100"
+                                                                    enterFrom="transform opacity-0 scale-95"
+                                                                    enterTo="transform opacity-100 scale-100"
+                                                                    leave="transition ease-in duration-75"
+                                                                    leaveFrom="transform opacity-100 scale-100"
+                                                                    leaveTo="transform opacity-0 scale-95"
+                                                                >
+                                                                    <Menu.Items className="absolute z-[9999] right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none">
+                                                                        <div className="py-1">
+                                                                            <Menu.Item>
+                                                                                {({
+                                                                                    active,
+                                                                                }) => (
+                                                                                    <button
+                                                                                        onClick={() =>
+                                                                                            handleEdit(
+                                                                                                driver
+                                                                                            )
+                                                                                        }
+                                                                                        className={`${
+                                                                                            active
+                                                                                                ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                                                                                                : "text-gray-700 dark:text-gray-200"
+                                                                                        } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
+                                                                                    >
+                                                                                        <FaEdit className="text-blue-500" />
+                                                                                        <span>
+                                                                                            Edit
+                                                                                            Driver
+                                                                                        </span>
+                                                                                    </button>
+                                                                                )}
+                                                                            </Menu.Item>
+                                                                            <Menu.Item>
+                                                                                {({
+                                                                                    active,
+                                                                                }) => (
+                                                                                    <button
+                                                                                        onClick={() =>
+                                                                                            confirmDelete(
+                                                                                                driver
+                                                                                            )
+                                                                                        }
+                                                                                        className={`${
+                                                                                            active
+                                                                                                ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                                                                                                : "text-gray-700 dark:text-gray-200"
+                                                                                        } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
+                                                                                    >
+                                                                                        <FaTrash className="text-red-500" />
+                                                                                        <span>
+                                                                                            Hapus
+                                                                                            Driver
+                                                                                        </span>
+                                                                                    </button>
+                                                                                )}
+                                                                            </Menu.Item>
+                                                                        </div>
+                                                                    </Menu.Items>
+                                                                </Transition>
+                                                            </Menu>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )}
                                         </tbody>
                                     </table>
                                 )}
@@ -502,7 +530,9 @@ export default function Driver({ drivers: initialDrivers }) {
                                 <div className="flex items-center space-x-2">
                                     {/* Previous Button */}
                                     <button
-                                        onClick={() => paginate(currentPage - 1)}
+                                        onClick={() =>
+                                            paginate(currentPage - 1)
+                                        }
                                         disabled={currentPage === 1}
                                         className={`flex items-center justify-center w-10 h-10 rounded-full ${
                                             currentPage === 1
@@ -528,7 +558,8 @@ export default function Driver({ drivers: initialDrivers }) {
                                                                 paginate(page)
                                                             }
                                                             className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                                                                currentPage === page
+                                                                currentPage ===
+                                                                page
                                                                     ? "bg-blue-500 text-white"
                                                                     : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                             } transition-colors duration-200`}
@@ -543,7 +574,9 @@ export default function Driver({ drivers: initialDrivers }) {
 
                                     {/* Next Button */}
                                     <button
-                                        onClick={() => paginate(currentPage + 1)}
+                                        onClick={() =>
+                                            paginate(currentPage + 1)
+                                        }
                                         disabled={currentPage === totalPages}
                                         className={`flex items-center justify-center w-10 h-10 rounded-full ${
                                             currentPage === totalPages
@@ -595,10 +628,15 @@ export default function Driver({ drivers: initialDrivers }) {
                                             className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4 flex items-center"
                                         >
                                             <FaUserPlus className="mr-2 text-blue-500" />
-                                            {isEdit ? "Edit Driver" : "Tambah Driver Baru"}
+                                            {isEdit
+                                                ? "Edit Driver"
+                                                : "Tambah Driver Baru"}
                                         </Dialog.Title>
 
-                                        <form onSubmit={handleSubmit} className="space-y-4">
+                                        <form
+                                            onSubmit={handleSubmit}
+                                            className="space-y-4"
+                                        >
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                     Nama Driver
@@ -613,7 +651,8 @@ export default function Driver({ drivers: initialDrivers }) {
                                                         onChange={(e) =>
                                                             setData({
                                                                 ...data,
-                                                                name: e.target.value,
+                                                                name: e.target
+                                                                    .value,
                                                             })
                                                         }
                                                         className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
@@ -622,7 +661,9 @@ export default function Driver({ drivers: initialDrivers }) {
                                                     />
                                                 </div>
                                                 {errors.name && (
-                                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+                                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                                                        {errors.name}
+                                                    </p>
                                                 )}
                                             </div>
 
@@ -636,11 +677,15 @@ export default function Driver({ drivers: initialDrivers }) {
                                                     </div>
                                                     <input
                                                         type="text"
-                                                        value={data.phone_number}
+                                                        value={
+                                                            data.phone_number
+                                                        }
                                                         onChange={(e) =>
                                                             setData({
                                                                 ...data,
-                                                                phone_number: e.target.value,
+                                                                phone_number:
+                                                                    e.target
+                                                                        .value,
                                                             })
                                                         }
                                                         className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
@@ -649,7 +694,9 @@ export default function Driver({ drivers: initialDrivers }) {
                                                     />
                                                 </div>
                                                 {errors.phone_number && (
-                                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone_number}</p>
+                                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                                                        {errors.phone_number}
+                                                    </p>
                                                 )}
                                             </div>
 
@@ -662,18 +709,27 @@ export default function Driver({ drivers: initialDrivers }) {
                                                     onChange={(e) =>
                                                         setData({
                                                             ...data,
-                                                            status: e.target.value,
+                                                            status: e.target
+                                                                .value,
                                                         })
                                                     }
                                                     className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
                                                     required
                                                 >
-                                                    <option value="Tersedia">Tersedia</option>
-                                                    <option value="Sedang Bertugas">Sedang Bertugas</option>
-                                                    <option value="Cuti">Cuti</option>
+                                                    <option value="Tersedia">
+                                                        Tersedia
+                                                    </option>
+                                                    <option value="Sedang Bertugas">
+                                                        Sedang Bertugas
+                                                    </option>
+                                                    <option value="Cuti">
+                                                        Cuti
+                                                    </option>
                                                 </select>
                                                 {errors.status && (
-                                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.status}</p>
+                                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                                                        {errors.status}
+                                                    </p>
                                                 )}
                                             </div>
 
@@ -702,16 +758,38 @@ export default function Driver({ drivers: initialDrivers }) {
                                                 >
                                                     {isSubmitting ? (
                                                         <>
-                                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            <svg
+                                                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <circle
+                                                                    className="opacity-25"
+                                                                    cx="12"
+                                                                    cy="12"
+                                                                    r="10"
+                                                                    stroke="currentColor"
+                                                                    strokeWidth="4"
+                                                                ></circle>
+                                                                <path
+                                                                    className="opacity-75"
+                                                                    fill="currentColor"
+                                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                                ></path>
                                                             </svg>
-                                                            <span>Menyimpan...</span>
+                                                            <span>
+                                                                Menyimpan...
+                                                            </span>
                                                         </>
                                                     ) : (
                                                         <>
                                                             <FaCheck className="mr-2" />
-                                                            <span>{isEdit ? "Simpan Perubahan" : "Simpan"}</span>
+                                                            <span>
+                                                                {isEdit
+                                                                    ? "Simpan Perubahan"
+                                                                    : "Simpan"}
+                                                            </span>
                                                         </>
                                                     )}
                                                 </button>
@@ -760,25 +838,34 @@ export default function Driver({ drivers: initialDrivers }) {
                                                 <FaExclamationTriangle className="text-red-500 dark:text-red-400 text-xl" />
                                             </div>
                                         </div>
-                                        
+
                                         <Dialog.Title
                                             as="h3"
                                             className="text-lg font-medium leading-6 text-center text-gray-900 dark:text-white mb-2"
                                         >
                                             Konfirmasi Hapus
                                         </Dialog.Title>
-                                        
+
                                         <div className="mt-2">
                                             <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                                                Apakah Anda yakin ingin menghapus driver <span className="font-semibold text-gray-700 dark:text-gray-300">{driverToDelete?.name}</span>? 
-                                                <br />Tindakan ini tidak dapat dibatalkan.
+                                                Apakah Anda yakin ingin
+                                                menghapus driver{" "}
+                                                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                    {driverToDelete?.name}
+                                                </span>
+                                                ?
+                                                <br />
+                                                Tindakan ini tidak dapat
+                                                dibatalkan.
                                             </p>
                                         </div>
 
                                         <div className="mt-6 flex justify-center space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                             <button
                                                 type="button"
-                                                onClick={() => setShowDeleteModal(false)}
+                                                onClick={() =>
+                                                    setShowDeleteModal(false)
+                                                }
                                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
                                             >
                                                 Batal
@@ -791,11 +878,29 @@ export default function Driver({ drivers: initialDrivers }) {
                                             >
                                                 {isDeleting ? (
                                                     <>
-                                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        <svg
+                                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <circle
+                                                                className="opacity-25"
+                                                                cx="12"
+                                                                cy="12"
+                                                                r="10"
+                                                                stroke="currentColor"
+                                                                strokeWidth="4"
+                                                            ></circle>
+                                                            <path
+                                                                className="opacity-75"
+                                                                fill="currentColor"
+                                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                            ></path>
                                                         </svg>
-                                                        <span>Menghapus...</span>
+                                                        <span>
+                                                            Menghapus...
+                                                        </span>
                                                     </>
                                                 ) : (
                                                     <>
