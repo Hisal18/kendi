@@ -372,7 +372,8 @@ export default function Trip({
         formData.append("penumpang", data.penumpang || "");
 
         // Append each photo with the correct field name
-        photos.forEach((photo) => {
+        photos.forEach((photo, index) => {
+            // Gunakan nama field yang konsisten tanpa indeks array
             formData.append("foto_berangkat", photo);
         });
 
@@ -518,8 +519,77 @@ export default function Trip({
             });
     };
 
-    // Fungsi untuk menangani file yang diupload
-    const handleFileUpload = (e) => {
+    // Tambahkan fungsi untuk mengompres dan mengkonversi gambar
+    const compressAndConvertImage = (file) => {
+        return new Promise((resolve, reject) => {
+            // Cek apakah file adalah gambar
+            if (!file.type.startsWith("image/")) {
+                reject(new Error("File bukan gambar"));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Hitung dimensi baru (maksimal 1200px)
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_SIZE = 1200;
+
+                    if (width > height && width > MAX_SIZE) {
+                        height = Math.round((height * MAX_SIZE) / width);
+                        width = MAX_SIZE;
+                    } else if (height > MAX_SIZE) {
+                        width = Math.round((width * MAX_SIZE) / height);
+                        height = MAX_SIZE;
+                    }
+
+                    // Buat canvas untuk kompresi
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Gambar ke canvas
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Konversi ke JPEG dengan kualitas 80%
+                    canvas.toBlob(
+                        (blob) => {
+                            // Buat file baru dengan tipe JPEG
+                            const newFile = new File(
+                                [blob],
+                                file.name.replace(/\.[^/.]+$/, ".jpg"),
+                                {
+                                    type: "image/jpeg",
+                                    lastModified: Date.now(),
+                                }
+                            );
+                            resolve(newFile);
+                        },
+                        "image/jpeg",
+                        0.8
+                    );
+                };
+
+                img.onerror = () => {
+                    reject(new Error("Gagal memuat gambar"));
+                };
+
+                img.src = event.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error("Gagal membaca file"));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // Modifikasi handleFileUpload
+    const handleFileUpload = async (e) => {
         const files = Array.from(e.target.files || []);
 
         if (files.length === 0) return;
@@ -530,69 +600,75 @@ export default function Trip({
             return;
         }
 
-        // Validasi setiap file
-        const validFiles = files.filter((file) => {
-            // Cek tipe file dengan lebih spesifik
-            const validTypes = [
-                "image/jpeg",
-                "image/jpg",
-                "image/png",
-                "image/webp",
-            ];
-            if (!validTypes.includes(file.type)) {
-                toast.error(
-                    `File "${file.name}" bukan gambar yang valid!`,
-                    toastConfig
-                );
-                return false;
+        // Tampilkan loading toast
+        const loadingToastId = toast.loading("Memproses foto...", toastConfig);
+
+        try {
+            // Proses setiap file
+            const processedFiles = [];
+            const validFiles = [];
+
+            for (const file of files) {
+                try {
+                    // Kompresi dan konversi gambar
+                    const processedFile = await compressAndConvertImage(file);
+                    processedFiles.push(processedFile);
+                    validFiles.push(processedFile);
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    toast.error(
+                        `Gagal memproses file "${file.name}": ${error.message}`,
+                        toastConfig
+                    );
+                }
             }
 
-            // Cek ukuran file (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error(
-                    `File "${file.name}" terlalu besar (maksimal 5MB)!`,
-                    toastConfig
-                );
-                return false;
+            if (validFiles.length === 0) {
+                toast.update(loadingToastId, {
+                    render: "Tidak ada file valid untuk diunggah",
+                    type: "error",
+                    isLoading: false,
+                    autoClose: 3000,
+                });
+                return;
             }
 
-            return true;
-        });
+            // Update state dengan file yang valid
+            setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
 
-        if (validFiles.length === 0) {
+            // Generate preview untuk setiap file
+            validFiles.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setPreviewPhotos((prevPreviews) => [
+                        ...prevPreviews,
+                        e.target.result,
+                    ]);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Reset input file
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
+                fileInputRef.current.removeAttribute("capture");
             }
-            return;
-        }
 
-        // Update state dengan file yang valid
-        setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
-
-        // Generate preview untuk setiap file
-        validFiles.forEach((file) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreviewPhotos((prevPreviews) => [
-                    ...prevPreviews,
-                    e.target.result,
-                ]);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Reset input file
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-            fileInputRef.current.removeAttribute("capture");
-        }
-
-        // Tampilkan toast sukses
-        if (validFiles.length > 0) {
-            toast.success(
-                `${validFiles.length} foto berhasil ditambahkan!`,
-                toastConfig
-            );
+            // Update loading toast
+            toast.update(loadingToastId, {
+                render: `${validFiles.length} foto berhasil diproses!`,
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+            });
+        } catch (error) {
+            console.error("Error in handleFileUpload:", error);
+            toast.update(loadingToastId, {
+                render: "Terjadi kesalahan saat memproses foto",
+                type: "error",
+                isLoading: false,
+                autoClose: 3000,
+            });
         }
     };
 

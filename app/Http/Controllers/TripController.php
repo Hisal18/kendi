@@ -54,9 +54,11 @@ class TripController extends Controller
 
         // Process photo uploads
         $photos = [];
-        if ($request->hasFile('foto_berangkat')) {
+        // Tangani multiple foto
+    if ($request->hasFile('foto_berangkat')) {
             foreach ($request->file('foto_berangkat') as $photo) {
-                $path = $photo->store('trip-photos', 'public');
+                $path = $photo->store('trip_photos', 'public');
+                // Simpan path ke database
                 $photos[] = $path;
             }
         }
