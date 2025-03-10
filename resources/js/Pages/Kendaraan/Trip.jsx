@@ -371,16 +371,31 @@ export default function Trip({
         formData.append("km", data.km);
         formData.append("penumpang", data.penumpang || "");
 
-        // Append each photo with the correct field name
-        photos.forEach((photo, index) => {
-            // Gunakan nama field yang konsisten tanpa indeks array
-            formData.append("foto_berangkat", photo);
+        // Append each photo with the correct field name (tanpa indeks)
+        photos.forEach((photo) => {
+            formData.append("foto_berangkat[]", photo);
+        });
+
+        // Log untuk debugging
+        console.log("Submitting form data:", {
+            code_trip: data.code_trip,
+            kendaraan_id: data.kendaraan_id,
+            driver_id: data.driver_id,
+            waktu_keberangkatan: data.waktu_keberangkatan,
+            tujuan: data.tujuan,
+            catatan: data.catatan,
+            km: data.km,
+            penumpang: data.penumpang,
+            photos: photos.map((p) => ({
+                name: p.name,
+                type: p.type,
+                size: p.size,
+            })),
         });
 
         setIsLoading(true);
 
         try {
-            console.log("Submitting form data:", Object.fromEntries(formData));
             const response = await axios.post(route("trips.create"), formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -388,6 +403,8 @@ export default function Trip({
                     Accept: "application/json",
                 },
             });
+
+            console.log("Server response:", response.data);
 
             toast.success("Trip berhasil ditambahkan", toastConfig);
             reset();
@@ -481,12 +498,24 @@ export default function Trip({
         );
         formData.append("jarak", jarak);
 
-        // Tambahkan foto kembali jika ada
+        // Tambahkan foto kembali jika ada (tanpa indeks)
         if (photos.length > 0) {
             photos.forEach((photo) => {
-                formData.append("foto_kembali", photo);
+                formData.append("foto_kembali[]", photo);
             });
         }
+
+        // Log untuk debugging
+        console.log("Closing trip data:", {
+            km_akhir: kmAkhir,
+            waktu_kembali: dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM:ss"),
+            jarak: jarak,
+            photos: photos.map((p) => ({
+                name: p.name,
+                type: p.type,
+                size: p.size,
+            })),
+        });
 
         // Gunakan axios untuk mengirim request
         axios
@@ -496,6 +525,7 @@ export default function Trip({
                 },
             })
             .then((response) => {
+                console.log("Server response:", response.data);
                 toast.success("Trip berhasil ditutup", toastConfig);
                 setCloseKendaraan(false);
                 setSelectedTrip(null);
@@ -507,6 +537,7 @@ export default function Trip({
                 router.visit(route("trips.show", selectedTrip.code_trip));
             })
             .catch((error) => {
+                console.error("Error details:", error.response?.data);
                 toast.error(
                     "Gagal menutup trip: " +
                         (error.response?.data?.message || "Terjadi kesalahan"),
@@ -560,7 +591,7 @@ export default function Trip({
                             // Buat file baru dengan tipe JPEG
                             const newFile = new File(
                                 [blob],
-                                file.name.replace(/\.[^/.]+$/, ".jpg"),
+                                `photo_${Date.now()}.jpg`,
                                 {
                                     type: "image/jpeg",
                                     lastModified: Date.now(),
@@ -588,7 +619,7 @@ export default function Trip({
         });
     };
 
-    // Modifikasi handleFileUpload
+    // Modifikasi handleFileUpload untuk menggunakan fungsi kompresi
     const handleFileUpload = async (e) => {
         const files = Array.from(e.target.files || []);
 
@@ -606,14 +637,22 @@ export default function Trip({
         try {
             // Proses setiap file
             const processedFiles = [];
-            const validFiles = [];
 
             for (const file of files) {
                 try {
                     // Kompresi dan konversi gambar
                     const processedFile = await compressAndConvertImage(file);
                     processedFiles.push(processedFile);
-                    validFiles.push(processedFile);
+
+                    // Log untuk debugging
+                    console.log("File berhasil diproses:", {
+                        originalName: file.name,
+                        originalSize: file.size,
+                        originalType: file.type,
+                        newName: processedFile.name,
+                        newSize: processedFile.size,
+                        newType: processedFile.type,
+                    });
                 } catch (error) {
                     console.error("Error processing file:", error);
                     toast.error(
@@ -623,7 +662,7 @@ export default function Trip({
                 }
             }
 
-            if (validFiles.length === 0) {
+            if (processedFiles.length === 0) {
                 toast.update(loadingToastId, {
                     render: "Tidak ada file valid untuk diunggah",
                     type: "error",
@@ -634,10 +673,10 @@ export default function Trip({
             }
 
             // Update state dengan file yang valid
-            setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
+            setPhotos((prevPhotos) => [...prevPhotos, ...processedFiles]);
 
             // Generate preview untuk setiap file
-            validFiles.forEach((file) => {
+            processedFiles.forEach((file) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     setPreviewPhotos((prevPreviews) => [
@@ -656,7 +695,7 @@ export default function Trip({
 
             // Update loading toast
             toast.update(loadingToastId, {
-                render: `${validFiles.length} foto berhasil diproses!`,
+                render: `${processedFiles.length} foto berhasil diproses!`,
                 type: "success",
                 isLoading: false,
                 autoClose: 3000,
@@ -742,41 +781,85 @@ export default function Trip({
     };
 
     // Fungsi untuk menangani file yang diupload
-    const handleFileUploadClose = (e) => {
-        const files = Array.from(e.target.files);
+    const handleFileUploadClose = async (e) => {
+        const files = Array.from(e.target.files || []);
 
-        // Validasi setiap file
-        const validFiles = files.filter((file) => {
-            // Cek tipe file
-            if (!file.type.startsWith("image/")) {
-                toast.error(
-                    `${file.name} bukan file gambar yang valid`,
-                    toastConfig
-                );
-                return false;
+        if (files.length === 0) return;
+
+        // Validasi jumlah foto
+        if (photos.length + files.length > 5) {
+            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
+            return;
+        }
+
+        // Tampilkan loading toast
+        const loadingToastId = toast.loading("Memproses foto...", toastConfig);
+
+        try {
+            // Proses setiap file
+            const processedFiles = [];
+
+            for (const file of files) {
+                try {
+                    // Kompresi dan konversi gambar
+                    const processedFile = await compressAndConvertImage(file);
+                    processedFiles.push(processedFile);
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    toast.error(
+                        `Gagal memproses file "${file.name}": ${error.message}`,
+                        toastConfig
+                    );
+                }
             }
-            // Cek ukuran file (5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error(
-                    `${file.name} melebihi batas ukuran 5MB`,
-                    toastConfig
-                );
-                return false;
+
+            if (processedFiles.length === 0) {
+                toast.update(loadingToastId, {
+                    render: "Tidak ada file valid untuk diunggah",
+                    type: "error",
+                    isLoading: false,
+                    autoClose: 3000,
+                });
+                return;
             }
-            return true;
-        });
 
-        // Update state photos
-        setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
+            // Update state dengan file yang valid
+            setPhotos((prevPhotos) => [...prevPhotos, ...processedFiles]);
 
-        // Generate preview untuk setiap file
-        validFiles.forEach((file) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewPhotos((prev) => [...prev, reader.result]);
-            };
-            reader.readAsDataURL(file);
-        });
+            // Generate preview untuk setiap file
+            processedFiles.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setPreviewPhotos((prevPreviews) => [
+                        ...prevPreviews,
+                        e.target.result,
+                    ]);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Reset input file
+            if (fileInputRefClose.current) {
+                fileInputRefClose.current.value = "";
+                fileInputRefClose.current.removeAttribute("capture");
+            }
+
+            // Update loading toast
+            toast.update(loadingToastId, {
+                render: `${processedFiles.length} foto berhasil diproses!`,
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+            });
+        } catch (error) {
+            console.error("Error in handleFileUploadClose:", error);
+            toast.update(loadingToastId, {
+                render: "Terjadi kesalahan saat memproses foto",
+                type: "error",
+                isLoading: false,
+                autoClose: 3000,
+            });
+        }
     };
 
     // Tambahkan state untuk menyimpan driver yang tersedia
@@ -2040,267 +2123,6 @@ export default function Trip({
                             className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
                         >
                             <FaFileExcel />
-                            <span>Export Excel</span>
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-
-            <Modal
-                isOpen={showExportModal}
-                onClose={() => setShowExportModal(false)}
-                title="Export Data ke Excel"
-            >
-                <div className="p-4">
-                    <div className="mb-6">
-                        <div className="flex flex-col space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                    Pilih Jenis Export
-                                </label>
-                                <RadioGroup
-                                    value={exportType}
-                                    onChange={setExportType}
-                                    className="space-y-3"
-                                >
-                                    <RadioGroup.Option value="month">
-                                        {({ checked }) => (
-                                            <div
-                                                className={`
-                                                relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
-                                                ${
-                                                    checked
-                                                        ? "bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102"
-                                                        : "border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400"
-                                                }
-                                            `}
-                                            >
-                                                <div className="flex items-center justify-between w-full">
-                                                    <div className="flex items-center">
-                                                        <div
-                                                            className={`
-                                                            rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
-                                                            ${
-                                                                checked
-                                                                    ? "border-blue-500 bg-blue-500 transform scale-110"
-                                                                    : "border-gray-400 dark:border-gray-500"
-                                                            }
-                                                        `}
-                                                        >
-                                                            {checked && (
-                                                                <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
-                                                            )}
-                                                        </div>
-                                                        <div className="text-sm transition-all duration-300">
-                                                            <RadioGroup.Label
-                                                                as="p"
-                                                                className={`font-medium transition-colors duration-300 ${
-                                                                    checked
-                                                                        ? "text-blue-600 dark:text-blue-400"
-                                                                        : "text-gray-700 dark:text-gray-300"
-                                                                }`}
-                                                            >
-                                                                Berdasarkan
-                                                                Bulan
-                                                            </RadioGroup.Label>
-                                                            <RadioGroup.Description
-                                                                as="span"
-                                                                className={`inline transition-colors duration-300 ${
-                                                                    checked
-                                                                        ? "text-blue-500 dark:text-blue-400"
-                                                                        : "text-gray-500 dark:text-gray-400"
-                                                                }`}
-                                                            >
-                                                                Export data
-                                                                untuk bulan
-                                                                tertentu
-                                                            </RadioGroup.Description>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        className={`p-2 rounded-full transform transition-all duration-300 ${
-                                                            checked
-                                                                ? "bg-blue-100 dark:bg-blue-800 rotate-0 scale-110"
-                                                                : "bg-gray-100 dark:bg-gray-700 rotate-0"
-                                                        }`}
-                                                    >
-                                                        <FaCalendarAlt
-                                                            className={`w-5 h-5 transition-colors duration-300 ${
-                                                                checked
-                                                                    ? "text-blue-500"
-                                                                    : "text-gray-400"
-                                                            }`}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </RadioGroup.Option>
-
-                                    <RadioGroup.Option value="all">
-                                        {({ checked }) => (
-                                            <div
-                                                className={`
-                                                relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
-                                                ${
-                                                    checked
-                                                        ? "bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102"
-                                                        : "border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400"
-                                                }
-                                            `}
-                                            >
-                                                <div className="flex items-center justify-between w-full">
-                                                    <div className="flex items-center">
-                                                        <div
-                                                            className={`
-                                                            rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
-                                                            ${
-                                                                checked
-                                                                    ? "border-blue-500 bg-blue-500 transform scale-110"
-                                                                    : "border-gray-400 dark:border-gray-500"
-                                                            }
-                                                        `}
-                                                        >
-                                                            {checked && (
-                                                                <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
-                                                            )}
-                                                        </div>
-                                                        <div className="text-sm transition-all duration-300">
-                                                            <RadioGroup.Label
-                                                                as="p"
-                                                                className={`font-medium transition-colors duration-300 ${
-                                                                    checked
-                                                                        ? "text-blue-600 dark:text-blue-400"
-                                                                        : "text-gray-700 dark:text-gray-300"
-                                                                }`}
-                                                            >
-                                                                Semua Data
-                                                            </RadioGroup.Label>
-                                                            <RadioGroup.Description
-                                                                as="span"
-                                                                className={`inline transition-colors duration-300 ${
-                                                                    checked
-                                                                        ? "text-blue-500 dark:text-blue-400"
-                                                                        : "text-gray-500 dark:text-gray-400"
-                                                                }`}
-                                                            >
-                                                                Export seluruh
-                                                                data kendaraan
-                                                                dinas
-                                                            </RadioGroup.Description>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        className={`p-2 rounded-full transform transition-all duration-300 ${
-                                                            checked
-                                                                ? "bg-blue-100 dark:bg-blue-800 rotate-0 scale-110"
-                                                                : "bg-gray-100 dark:bg-gray-700 rotate-0"
-                                                        }`}
-                                                    >
-                                                        <FaGlobe
-                                                            className={`w-5 h-5 transition-colors duration-300 ${
-                                                                checked
-                                                                    ? "text-blue-500"
-                                                                    : "text-gray-400"
-                                                            }`}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </RadioGroup.Option>
-                                </RadioGroup>
-                            </div>
-
-                            <div
-                                className="overflow-hidden transition-all duration-500 ease-in-out"
-                                style={{
-                                    maxHeight:
-                                        exportType === "month" ? "200px" : "0",
-                                    opacity: exportType === "month" ? 1 : 0,
-                                    marginTop:
-                                        exportType === "month" ? "1.5rem" : "0",
-                                }}
-                            >
-                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Pilih Bulan
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                            <FaCalendarAlt className="h-4 w-4 text-gray-400" />
-                                        </div>
-                                        <input
-                                            type="month"
-                                            value={`${exportDate.getFullYear()}-${String(
-                                                exportDate.getMonth() + 1
-                                            ).padStart(2, "0")}`}
-                                            onChange={(e) => {
-                                                const [year, month] =
-                                                    e.target.value.split("-");
-                                                const newDate = new Date(
-                                                    year,
-                                                    month - 1
-                                                );
-                                                setExportDate(newDate);
-                                            }}
-                                            className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                        />
-                                    </div>
-                                    <div className="mt-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                        <FaInfo className="w-4 h-4 mr-2 text-blue-500" />
-                                        <p>
-                                            Data akan difilter berdasarkan bulan
-                                            yang dipilih
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                className="overflow-hidden transition-all duration-500 ease-in-out"
-                                style={{
-                                    maxHeight:
-                                        exportType === "all" ? "200px" : "0",
-                                    opacity: exportType === "all" ? 1 : 0,
-                                    marginTop:
-                                        exportType === "all" ? "1.5rem" : "0",
-                                }}
-                            >
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                                    <div className="flex items-center">
-                                        <div className="bg-blue-100 dark:bg-blue-800 p-3 rounded-full mr-3">
-                                            <FaFileExcel className="text-blue-500 w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                                                Export Semua Data
-                                            </h3>
-                                            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                                                Semua data kendaraan dinas akan
-                                                diexport ke file Excel
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <button
-                            type="button"
-                            onClick={() => setShowExportModal(false)}
-                            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            type="button"
-                            onClick={exportToExcel}
-                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2 shadow-sm hover:shadow-md"
-                        >
-                            <FaFileExcel className="w-4 h-4" />
                             <span>Export Excel</span>
                         </button>
                     </div>
