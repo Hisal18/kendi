@@ -39,7 +39,7 @@ import {
 import * as XLSX from "xlsx";
 import Modal from "@/Components/ModalNew";
 import DatePicker from "react-datepicker";
-import { Menu, Transition, RadioGroup } from '@headlessui/react';
+import { Menu, Transition, RadioGroup } from "@headlessui/react";
 import { ToastContainer, toast, Flip } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -61,11 +61,10 @@ export default function Trip({
     const [selectedTrip, setSelectedTrip] = useState(null);
     const [isClosingTrip, setIsClosingTrip] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
-    const [exportMonth, setExportMonth] = useState('');
-    const [exportType, setExportType] = useState('all');
+    const [exportMonth, setExportMonth] = useState("");
+    const [exportType, setExportType] = useState("all");
     const [exportDate, setExportDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
-    
 
     // Tambahkan state untuk mengelola dropdown
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -79,19 +78,17 @@ export default function Trip({
         }
     };
 
-    
-
     // Tambahkan useEffect untuk menutup dropdown ketika user mengklik di luar
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (openDropdown && !event.target.closest('.dropdown-container')) {
+            if (openDropdown && !event.target.closest(".dropdown-container")) {
                 setOpenDropdown(null);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [openDropdown]);
 
@@ -131,7 +128,6 @@ export default function Trip({
         status: "",
         penumpang: "",
     });
-
 
     const fileInputRef = useRef(null);
     const fileInputRefClose = useRef(null);
@@ -177,9 +173,9 @@ export default function Trip({
     const exportToExcel = () => {
         try {
             let dataToExport = [];
-            let fileName = '';
-            
-            if (exportType === 'month') {
+            let fileName = "";
+
+            if (exportType === "month") {
                 // Validasi bulan yang dipilih
                 if (!exportMonth) {
                     toast.error("Silakan pilih bulan terlebih dahulu!");
@@ -187,67 +183,81 @@ export default function Trip({
                 }
 
                 // Filter data berdasarkan bulan yang dipilih
-                const [year, month] = exportMonth.split('-');
-                dataToExport = Array.isArray(trips) 
-                    ? trips.filter(trip => {
-                        const tripDate = new Date(trip.waktu_keberangkatan);
-                        return tripDate.getFullYear() === parseInt(year) && 
-                               tripDate.getMonth() === parseInt(month) - 1; // Month is 0-indexed in JS
-                    })
+                const [year, month] = exportMonth.split("-");
+                dataToExport = Array.isArray(trips)
+                    ? trips.filter((trip) => {
+                          const tripDate = new Date(trip.waktu_keberangkatan);
+                          return (
+                              tripDate.getFullYear() === parseInt(year) &&
+                              tripDate.getMonth() === parseInt(month) - 1
+                          ); // Month is 0-indexed in JS
+                      })
                     : [];
 
                 if (dataToExport.length === 0) {
-                    toast.warning(`Tidak ada data untuk bulan ${month}/${year}`);
+                    toast.warning(
+                        `Tidak ada data untuk bulan ${month}/${year}`
+                    );
                     return;
                 }
 
                 // Set nama file dengan bulan dan tahun
-                const monthName = new Date(exportMonth + '-01').toLocaleString('id-ID', { month: 'long' });
+                const monthName = new Date(exportMonth + "-01").toLocaleString(
+                    "id-ID",
+                    { month: "long" }
+                );
                 fileName = `Data_Kendaraan_Dinas_${monthName}_${year}.xlsx`;
             } else {
                 // Export semua data
                 dataToExport = trips || [];
-                
+
                 if (dataToExport.length === 0) {
                     toast.warning("Tidak ada data untuk diexport");
                     return;
                 }
-                
+
                 // Set nama file dengan tanggal hari ini
-                fileName = `Data_Kendaraan_Trip_All_${dateFormat(new Date(), "dd-mm-yyyy")}.xlsx`;
+                fileName = `Data_Kendaraan_Trip_All_${dateFormat(
+                    new Date(),
+                    "dd-mm-yyyy"
+                )}.xlsx`;
             }
 
             // Format data untuk Excel
             const formattedData = dataToExport.map((trip, index) => ({
-                'No': index + 1,
-                'Code trip': trip.code_trip,
-                'Plat kendaraan': trip.kendaraan.plat_kendaraan,
-                'Driver': trip.driver.name,
-                'Waktu Keberangkatan':  formatDate(trip.waktu_keberangkatan),
-                'Waktu Kembali': formatDate(trip.waktu_kembali),
-                'Km Awal': trip.km_awal,
-                'Km Akhir': trip.km_akhir,
-                'Tujuan': trip.tujuan,
-                'Jarak': trip.jarak + ' km',
-                'Catatan': trip.catatan,
-                'merek': trip.kendaraan.merek,
-                'status': trip.status,
-                'penumpang': trip.penumpang,
+                No: index + 1,
+                "Code trip": trip.code_trip,
+                "Plat kendaraan": trip.kendaraan.plat_kendaraan,
+                Driver: trip.driver.name,
+                "Waktu Keberangkatan": formatDate(trip.waktu_keberangkatan),
+                "Waktu Kembali": formatDate(trip.waktu_kembali),
+                "Km Awal": trip.km_awal,
+                "Km Akhir": trip.km_akhir,
+                Tujuan: trip.tujuan,
+                Jarak: trip.jarak + " km",
+                Catatan: trip.catatan,
+                merek: trip.kendaraan.merek,
+                status: trip.status,
+                penumpang: trip.penumpang,
             }));
 
             // Buat workbook dan worksheet
             const worksheet = XLSX.utils.json_to_sheet(formattedData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Kendaraan Dinas");
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "Kendaraan Dinas"
+            );
 
             // Atur lebar kolom
-        const colWidths = [
+            const colWidths = [
                 { wch: 10 }, //A
-            { wch: 15 }, //B
-            { wch: 15 }, //C
-            { wch: 20 }, //D
-            { wch: 30 }, //E
-            { wch: 30 }, //F
+                { wch: 15 }, //B
+                { wch: 15 }, //C
+                { wch: 20 }, //D
+                { wch: 30 }, //E
+                { wch: 30 }, //F
                 { wch: 10 }, //G
                 { wch: 10 }, //H
                 { wch: 15 }, //I
@@ -256,29 +266,32 @@ export default function Trip({
                 { wch: 20 }, //L
                 { wch: 10 }, //M
                 { wch: 10 }, //N
-
             ];
-            worksheet['!cols'] = colWidths;
+            worksheet["!cols"] = colWidths;
 
             // Generate file Excel
             XLSX.writeFile(workbook, fileName);
 
             // Tampilkan pesan sukses
-            if (exportType === 'month') {
-                const [year, month] = exportMonth.split('-');
-                const monthName = new Date(exportMonth + '-01').toLocaleString('id-ID', { month: 'long' });
-                toast.success(`Data berhasil diexport ke Excel untuk bulan ${monthName} ${year}`);
+            if (exportType === "month") {
+                const [year, month] = exportMonth.split("-");
+                const monthName = new Date(exportMonth + "-01").toLocaleString(
+                    "id-ID",
+                    { month: "long" }
+                );
+                toast.success(
+                    `Data berhasil diexport ke Excel untuk bulan ${monthName} ${year}`
+                );
             } else {
                 toast.success("Semua data berhasil diexport ke Excel");
             }
-            
+
             setShowExportModal(false);
         } catch (error) {
-            console.error('Error exporting to Excel:', error);
-            toast.error('Terjadi kesalahan saat mengexport data');
+            console.error("Error exporting to Excel:", error);
+            toast.error("Terjadi kesalahan saat mengexport data");
         }
     };
-
 
     const getPaginationNumbers = () => {
         const pages = [];
@@ -317,13 +330,34 @@ export default function Trip({
         progress: undefined,
     };
 
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
 
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleFileUpload(e);
+    };
+
+    // Tambahkan state manual untuk loading
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Modifikasi handleSubmit
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Set loading state manual
+        setIsSubmitting(true);
+
         // Validate that photos exist
         if (photos.length === 0) {
-            toast.error("Harap tambahkan minimal 1 foto kendaraan", toastConfig);
+            toast.error(
+                "Harap tambahkan minimal 1 foto kendaraan",
+                toastConfig
+            );
+            setIsSubmitting(false); // Reset loading state
             return;
         }
 
@@ -333,9 +367,9 @@ export default function Trip({
         formData.append("driver_id", data.driver_id);
         formData.append("waktu_keberangkatan", data.waktu_keberangkatan);
         formData.append("tujuan", data.tujuan);
-        formData.append("catatan", data.catatan || '');
+        formData.append("catatan", data.catatan || "");
         formData.append("km", data.km);
-        formData.append("penumpang", data.penumpang || '');
+        formData.append("penumpang", data.penumpang || "");
 
         // Append each photo with the correct field name
         photos.forEach((photo, index) => {
@@ -343,34 +377,38 @@ export default function Trip({
         });
 
         setIsLoading(true);
-        
+
         try {
             const response = await axios.post(route("trips.create"), formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    "Content-Type": "multipart/form-data",
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
                 },
             });
 
-                toast.success("Trip berhasil ditambahkan", toastConfig);
-                reset();
-                setPhotos([]);
-                setPreviewPhotos([]);
-                setShowPopup(false);
-                
-                setTimeout(() => {
+            toast.success("Trip berhasil ditambahkan", toastConfig);
+            reset();
+            setPhotos([]);
+            setPreviewPhotos([]);
+            setShowPopup(false);
+
+            setTimeout(() => {
                 router.visit(route("trips.show", response.data.trip.code_trip));
-                }, 2000);
+            }, 2000);
         } catch (errors) {
             console.error("Error response:", errors);
-                toast.error(
-                errors.response?.data?.message || "Gagal menambahkan trip: " + (errors.response?.data?.foto_berangkat || "Terjadi kesalahan"),
-                    toastConfig
-                );
+            toast.error(
+                errors.response?.data?.message ||
+                    "Gagal menambahkan trip: " +
+                        (errors.response?.data?.foto_berangkat ||
+                            "Terjadi kesalahan"),
+                toastConfig
+            );
         } finally {
-                setIsLoading(false);
-            }
+            setIsSubmitting(false); // Reset loading state
+            setIsLoading(false);
+        }
     };
 
     // Tambahkan fungsi untuk mengupdate data kendaraan saat dipilih
@@ -405,7 +443,6 @@ export default function Trip({
         (k) => k.status === "Tersedia"
     );
 
-
     // Tambahkan state untuk close trip
     const [kmAkhir, setKmAkhir] = useState("");
     const { processing: processingCloseTrip } = useForm();
@@ -413,21 +450,22 @@ export default function Trip({
     const handleCloseTrip = (e) => {
         e.preventDefault();
 
+        // Set state loading menjadi true
+        setIsClosingTrip(true);
+
         if (!selectedTrip) return;
 
         // Make sure we're using the correct property for km_awal
         const kmAwal = selectedTrip.km_awal || selectedTrip.kendaraan?.km || 0;
-        
+
         if (parseInt(kmAkhir) <= parseInt(kmAwal)) {
             toast.error(
                 "Kilometer akhir harus lebih besar dari kilometer awal",
                 toastConfig
             );
+            setIsClosingTrip(false); // Reset state loading
             return;
         }
-
-        // Set closing state to true to show loading indicator
-        setIsClosingTrip(true);
 
         // Hitung jarak yang ditempuh
         const jarak = parseInt(kmAkhir) - parseInt(kmAwal);
@@ -461,7 +499,7 @@ export default function Trip({
                 setKmAkhir("");
                 setPhotos([]);
                 setPreviewPhotos([]);
-                
+
                 // Refresh the page or navigate to show the updated trip
                 router.visit(route("trips.show", selectedTrip.code_trip));
             })
@@ -473,99 +511,90 @@ export default function Trip({
                 );
             })
             .finally(() => {
-                // Reset closing state when done (success or error)
+                // Reset state loading
                 setIsClosingTrip(false);
             });
     };
 
-    // Perbaiki fungsi handleGalleryUpload
-    const handleGalleryUpload = () => {
-        if (previewPhotos.length >= 5) {
-            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
-            return;
-        }
-
-        // Create a new file input element
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.accept = 'image/*';
-        
-        input.onchange = (e) => {
-            const files = Array.from(e.target.files);
-            
-            if (files.length + previewPhotos.length > 5) {
-                toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
-                return;
-            }
-
-            // Validate each file
-            const validFiles = files.filter(file => {
-                if (!file.type.startsWith('image/')) {
-                    toast.error(`${file.name} bukan file gambar yang valid`, toastConfig);
-                    return false;
-                }
-                if (file.size > 5 * 1024 * 1024) {
-                    toast.error(`${file.name} melebihi batas ukuran 5MB`, toastConfig);
-                    return false;
-                }
-                return true;
-            });
-
-            // Update photos state with actual File objects
-            setPhotos(prevPhotos => [...prevPhotos, ...validFiles]);
-
-            // Generate previews
-            validFiles.forEach(file => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setPreviewPhotos(prev => [...prev, reader.result]);
-                };
-                reader.readAsDataURL(file);
-            });
-        };
-
-        input.click();
-    };
-
-    // Make sure the handleFileUpload function properly stores File objects
+    // Fungsi untuk menangani file yang diupload
     const handleFileUpload = (e) => {
-        const files = Array.from(e.target.files);
+        const files = Array.from(e.target.files || []);
 
-        // Validate total number of photos
+        if (files.length === 0) return;
+
+        // Validasi jumlah foto
         if (photos.length + files.length > 5) {
             toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
             return;
         }
 
-        // Validate each file
-        const validFiles = files.filter(file => {
-            // Check if it's an image
-            if (!file.type.startsWith('image/')) {
-                toast.error(`File ${file.name} bukan gambar yang valid`, toastConfig);
+        // Validasi setiap file
+        const validFiles = files.filter((file) => {
+            // Cek apakah file adalah gambar
+            if (!file.type.startsWith("image/")) {
+                toast.error(
+                    `File "${file.name}" bukan gambar yang valid!`,
+                    toastConfig
+                );
                 return false;
             }
-            
-            // Check file size (max 5MB)
+
+            // Cek ukuran file (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
-                toast.error(`File ${file.name} terlalu besar (maks 5MB)`, toastConfig);
+                toast.error(
+                    `File "${file.name}" terlalu besar (maksimal 5MB)!`,
+                    toastConfig
+                );
                 return false;
             }
-            
+
             return true;
         });
 
-        // Update state with valid files
-        setPhotos(prevPhotos => [...prevPhotos, ...validFiles]);
+        if (validFiles.length === 0) {
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+            return;
+        }
 
-        // Generate previews
-        validFiles.forEach(file => {
+        // Update state dengan file yang valid
+        setPhotos((prevPhotos) => [...prevPhotos, ...validFiles]);
+
+        // Generate preview untuk setiap file
+        validFiles.forEach((file) => {
             const reader = new FileReader();
             reader.onload = (e) => {
-                setPreviewPhotos(prevPreviews => [...prevPreviews, e.target.result]);
+                setPreviewPhotos((prevPreviews) => [
+                    ...prevPreviews,
+                    e.target.result,
+                ]);
             };
             reader.readAsDataURL(file);
         });
+
+        // Reset input file
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+            fileInputRef.current.removeAttribute("capture");
+        }
+
+        // Tampilkan toast sukses
+        if (validFiles.length > 0) {
+            toast.success(
+                `${validFiles.length} foto berhasil ditambahkan!`,
+                toastConfig
+            );
+        }
+    };
+
+    // Fungsi untuk menghapus foto
+    const removePhoto = (index) => {
+        setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
+        setPreviewPhotos((prevPreviews) =>
+            prevPreviews.filter((_, i) => i !== index)
+        );
+        toast.info("Foto berhasil dihapus!", toastConfig);
     };
 
     // Modifikasi useEffect untuk menambahkan loading state
@@ -666,83 +695,22 @@ export default function Trip({
         });
     };
 
-    // Fungsi untuk menghapus foto
-    const removePhoto = (index) => {
-        setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
-        setPreviewPhotos((prevPreviews) =>
-            prevPreviews.filter((_, i) => i !== index)
-        );
-    };
-
-    // Perbaiki fungsi handleCameraCapture
-    const handleCameraCapture = () => {
-        // Buat elemen input baru untuk menghindari masalah dengan event change
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.capture = 'environment'; // Gunakan kamera belakang
-        
-        // Tambahkan event listener untuk menangani file yang dipilih
-        input.onchange = (e) => {
-            const files = Array.from(e.target.files);
-            
-            // Validasi jumlah foto
-            if (photos.length + files.length > 5) {
-            toast.error("Maksimal 5 foto yang dapat diunggah", toastConfig);
-            return;
-        }
-
-            // Validasi setiap file
-            const validFiles = files.filter(file => {
-                // Cek apakah file adalah gambar
-                if (!file.type.startsWith('image/')) {
-                    toast.error(`File ${file.name} bukan gambar yang valid`, toastConfig);
-                    return false;
-                }
-                
-                // Cek ukuran file (max 5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    toast.error(`File ${file.name} terlalu besar (maks 5MB)`, toastConfig);
-                    return false;
-                }
-                
-                return true;
-            });
-            
-            // Update state dengan file yang valid
-            setPhotos(prevPhotos => [...prevPhotos, ...validFiles]);
-            
-            // Generate preview untuk setiap file
-            validFiles.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    setPreviewPhotos(prevPreviews => [...prevPreviews, e.target.result]);
-                };
-                reader.readAsDataURL(file);
-            });
-        };
-        
-        // Klik input untuk membuka kamera
-        input.click();
-    };
-
     // Tambahkan state untuk menyimpan driver yang tersedia
     const driversAvailable = Array.isArray(drivers)
         ? drivers.filter((driver) => driver.status === "Tersedia")
         : [];
 
-        const formatDate = (dateString) => {
-            if (!dateString) return "-";
-            const date = new Date(dateString);
-            return date.toLocaleString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        };
-
+    const formatDate = (dateString) => {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
+        return date.toLocaleString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
 
     return (
         <>
@@ -852,13 +820,15 @@ export default function Trip({
 
                                     {/* Dropdown Export */}
                                     {auth.user.role === "admin" && (
-                                            <button
-                                            onClick={() => setShowExportModal(true)}
+                                        <button
+                                            onClick={() =>
+                                                setShowExportModal(true)
+                                            }
                                             className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
                                         >
                                             <FaFileExcel className="text-lg" />
                                             <span>Export Excel</span>
-                                            </button>
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -885,7 +855,7 @@ export default function Trip({
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Tujuan
                                             </th>
-                                            
+
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 KM Awal
                                             </th>
@@ -940,9 +910,7 @@ export default function Trip({
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                                                     {new Intl.NumberFormat(
                                                         "id-ID"
-                                                    ).format(
-                                                        item.km_awal
-                                                    )}
+                                                    ).format(item.km_awal)}
                                                     {" KM"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
@@ -973,48 +941,89 @@ export default function Trip({
                                                 <td className="px-4 py-3 text-sm">
                                                     <div className="dropdown-container relative">
                                                         <button
-                                                            onClick={() => toggleDropdown(item.id)}
+                                                            onClick={() =>
+                                                                toggleDropdown(
+                                                                    item.id
+                                                                )
+                                                            }
                                                             type="button"
                                                             className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md"
                                                         >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-4 w-4"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={
+                                                                        2
+                                                                    }
+                                                                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                                                />
                                                             </svg>
                                                         </button>
-                                                        
-                                                        {openDropdown === item.id && (
+
+                                                        {openDropdown ===
+                                                            item.id && (
                                                             <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-20 border border-gray-200 dark:border-gray-700 overflow-hidden">
                                                                 <div className="py-1 divide-y divide-gray-200 dark:divide-gray-700">
-                                                                    {item.status === "Sedang Berjalan" ? (
-                                                        <button
-                                                            onClick={() => {
-                                                                                setSelectedTrip(item);
-                                                                                setCloseKendaraan(true);
-                                                                                setOpenDropdown(null);
-                                                            }}
-                                                            type="button"
+                                                                    {item.status ===
+                                                                    "Sedang Berjalan" ? (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedTrip(
+                                                                                    item
+                                                                                );
+                                                                                setCloseKendaraan(
+                                                                                    true
+                                                                                );
+                                                                                setOpenDropdown(
+                                                                                    null
+                                                                                );
+                                                                            }}
+                                                                            type="button"
                                                                             className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors duration-200"
-                                                        >
+                                                                        >
                                                                             <FaCarSide className="text-teal-500 text-lg flex-shrink-0" />
-                                                                            <span className="font-medium">Tutup Trip</span>
-                                                        </button>
-                                                    ) : (
+                                                                            <span className="font-medium">
+                                                                                Tutup
+                                                                                Trip
+                                                                            </span>
+                                                                        </button>
+                                                                    ) : (
                                                                         <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3 bg-gray-50 dark:bg-gray-900">
                                                                             <FaCheck className="text-green-500 text-lg flex-shrink-0" />
-                                                                            <span className="font-medium">Trip Selesai</span>
+                                                                            <span className="font-medium">
+                                                                                Trip
+                                                                                Selesai
+                                                                            </span>
                                                                         </div>
                                                                     )}
-                                                                    
+
                                                                     <button
                                                                         onClick={() => {
-                                                                            router.visit(route("trips.show", item.code_trip));
-                                                                            setOpenDropdown(null);
+                                                                            router.visit(
+                                                                                route(
+                                                                                    "trips.show",
+                                                                                    item.code_trip
+                                                                                )
+                                                                            );
+                                                                            setOpenDropdown(
+                                                                                null
+                                                                            );
                                                                         }}
                                                                         type="button"
                                                                         className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors duration-200"
                                                                     >
                                                                         <FaEye className="text-blue-500 text-lg flex-shrink-0" />
-                                                                        <span className="font-medium">Lihat Detail</span>
+                                                                        <span className="font-medium">
+                                                                            Lihat
+                                                                            Detail
+                                                                        </span>
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -1183,8 +1192,10 @@ export default function Trip({
                                                     kendaraanTersediaStatus
                                                 ) &&
                                                     kendaraanTersediaStatus
-                                                        .toSorted((a, b) => 
-                                                            a.merek.localeCompare(b.merek)
+                                                        .toSorted((a, b) =>
+                                                            a.merek.localeCompare(
+                                                                b.merek
+                                                            )
                                                         )
                                                         .map((kendaraan) => (
                                                             <option
@@ -1360,7 +1371,9 @@ export default function Trip({
                                                 </option>
                                                 {driversAvailable
                                                     .toSorted((a, b) =>
-                                                        a.name.localeCompare(b.name)
+                                                        a.name.localeCompare(
+                                                            b.name
+                                                        )
                                                     )
                                                     .map((driver) => (
                                                         <option
@@ -1396,53 +1409,63 @@ export default function Trip({
                             {/* Kolom Kanan - Foto dan Catatan */}
                             <div className="space-y-3">
                                 {/* Foto Kendaraan */}
-                                <div className="bg-gray-50 dark:bg-[#414141] rounded-lg p-4">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         Foto Kendaraan
                                     </label>
-                                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                                    <div
+                                        className="mt-1 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg p-4"
+                                        onDragOver={handleDragOver}
+                                        onDrop={handleDrop}
+                                    >
                                         {previewPhotos.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center space-y-3 py-5">
-                                                <FaImage className="h-10 w-10 text-gray-400" />
-                                                <div className="text-gray-600 dark:text-gray-400 text-sm text-center">
-                                                    <span className="font-medium">
-                                                        Pilih foto atau ambil
-                                                        gambar
-                                                    </span>
-                                                </div>
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={
-                                                            handleGalleryUpload
-                                                        }
-                                                        className="inline-flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                                                <svg
+                                                    className="mx-auto h-12 w-12 text-gray-400"
+                                                    stroke="currentColor"
+                                                    fill="none"
+                                                    viewBox="0 0 48 48"
+                                                    aria-hidden="true"
+                                                >
+                                                    <path
+                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                        strokeWidth={2}
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                    />
+                                                </svg>
+                                                <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                                                    <label
+                                                        htmlFor="file-upload"
+                                                        className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                                                     >
-                                                        <FaUpload className="mr-1 w-3 h-3" />
-                                                        Galeri
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={
-                                                            handleCameraCapture
-                                                        }
-                                                        className="inline-flex items-center px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
-                                                    >
-                                                        <FaCamera className="mr-1 w-3 h-3" />
-                                                        Kamera
-                                                    </button>
+                                                        <span className="px-2">
+                                                            Upload file
+                                                        </span>
+                                                        <input
+                                                            id="file-upload"
+                                                            name="file-upload"
+                                                            type="file"
+                                                            className="sr-only"
+                                                            accept="image/*"
+                                                            multiple
+                                                            onChange={
+                                                                handleFileUpload
+                                                            }
+                                                            ref={fileInputRef}
+                                                        />
+                                                    </label>
+                                                    <p className="pl-1">
+                                                        atau drag and drop
+                                                    </p>
                                                 </div>
-                                                <input
-                                                    type="file"
-                                                    ref={fileInputRef}
-                                                    className="hidden"
-                                                    onChange={handleFileUpload}
-                                                    accept="image/*"
-                                                    multiple
-                                                />
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    PNG atau JPG hingga 5MB
+                                                    (Maksimal 5 foto)
+                                                </p>
                                             </div>
                                         ) : (
-                                            <div className="grid grid-cols-3 gap-2">
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                                 {previewPhotos.map(
                                                     (preview, index) => (
                                                         <div
@@ -1451,10 +1474,10 @@ export default function Trip({
                                                         >
                                                             <img
                                                                 src={preview}
-                                                                alt={`Foto ${
+                                                                alt={`Preview ${
                                                                     index + 1
                                                                 }`}
-                                                                className="w-full h-24 object-cover rounded-lg"
+                                                                className="w-full h-32 object-cover rounded-lg"
                                                             />
                                                             <button
                                                                 type="button"
@@ -1463,34 +1486,55 @@ export default function Trip({
                                                                         index
                                                                     )
                                                                 }
-                                                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                                             >
-                                                                <FaTimes className="w-3 h-3" />
+                                                                <FaTimes className="w-4 h-4" />
                                                             </button>
                                                         </div>
                                                     )
                                                 )}
                                                 {previewPhotos.length < 5 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={
-                                                            handleGalleryUpload
-                                                        }
-                                                        className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
-                                                    >
-                                                        <FaPlus className="text-gray-400 w-4 h-4 mb-1" />
-                                                        <span className="text-gray-600 dark:text-gray-400 text-xs">
-                                                            Tambah
+                                                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+                                                        <input
+                                                            type="file"
+                                                            className="hidden"
+                                                            accept="image/*"
+                                                            multiple
+                                                            onChange={
+                                                                handleFileUpload
+                                                            }
+                                                            ref={fileInputRef}
+                                                        />
+                                                        <FaPlus className="w-6 h-6 text-gray-400" />
+                                                        <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                                            Tambah Foto
                                                         </span>
-                                                    </button>
+                                                    </label>
                                                 )}
                                             </div>
                                         )}
                                     </div>
-                                    {errors.foto_berangkat && (
-                                        <p className="mt-1 text-xs text-red-600">
-                                            {errors.foto_berangkat}
-                                        </p>
+                                    {photos.length > 0 && (
+                                        <div className="mt-2 flex items-center justify-between">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                {photos.length} foto terpilih (
+                                                {photos.length}/5)
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPhotos([]);
+                                                    setPreviewPhotos([]);
+                                                    if (fileInputRef.current) {
+                                                        fileInputRef.current.value =
+                                                            "";
+                                                    }
+                                                }}
+                                                className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                            >
+                                                Hapus Semua
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 
@@ -1536,10 +1580,10 @@ export default function Trip({
                             </button>
                             <button
                                 type="submit"
-                                disabled={processing}
+                                disabled={processing || isSubmitting}
                                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors flex items-center space-x-2 text-sm"
                             >
-                                {processing ? (
+                                {processing || isSubmitting ? (
                                     <>
                                         <FaSpinner className="animate-spin w-4 h-4" />
                                         <span>Menyimpan...</span>
@@ -1635,88 +1679,108 @@ export default function Trip({
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Foto Kendaraan Kembali
                                 </label>
-                                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
-                                    {previewPhotos.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center h-full space-y-4 w-full min-h-[200px]">
-                                            <div className="text-center space-y-2 flex flex-col items-center justify-center">
-                                                <FaImage className="h-12 w-12 text-gray-400" />
-                                                <div className="text-gray-600 dark:text-gray-400">
-                                                    <span className="font-medium">
-                                                        Pilih foto atau ambil
-                                                        gambar
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex space-x-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        handleGalleryUploadClose
-                                                    }
-                                                    className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                                    <div className="space-y-2 text-center">
+                                        {previewPhotos.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center space-y-3 py-5">
+                                                <svg
+                                                    className="mx-auto h-12 w-12 text-gray-400"
+                                                    stroke="currentColor"
+                                                    fill="none"
+                                                    viewBox="0 0 48 48"
+                                                    aria-hidden="true"
                                                 >
-                                                    <FaUpload className="mr-2" />
-                                                    Galeri
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        handleCameraCaptureClose
-                                                    }
-                                                    className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                                                >
-                                                    <FaCamera className="mr-2" />
-                                                    Kamera
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-3 gap-4">
-                                            {previewPhotos.map(
-                                                (preview, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="relative"
+                                                    <path
+                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                        strokeWidth={2}
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                    />
+                                                </svg>
+                                                <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                                                    <label
+                                                        htmlFor="file-upload-close"
+                                                        className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                                                     >
-                                                        <img
-                                                            src={preview}
-                                                            alt={`Foto ${
-                                                                index + 1
-                                                            }`}
-                                                            className="w-full h-48 object-cover rounded-lg"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                removePhoto(
-                                                                    index
-                                                                )
+                                                        <span className="px-2">
+                                                            Upload file
+                                                        </span>
+                                                        <input
+                                                            id="file-upload-close"
+                                                            name="file-upload-close"
+                                                            type="file"
+                                                            className="sr-only"
+                                                            accept="image/*"
+                                                            multiple
+                                                            onChange={
+                                                                handleFileUploadClose
                                                             }
-                                                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                                            ref={
+                                                                fileInputRefClose
+                                                            }
+                                                        />
+                                                    </label>
+                                                    <p className="pl-1">
+                                                        atau drag and drop
+                                                    </p>
+                                                </div>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    PNG atau JPG hingga 5MB
+                                                    (Maksimal 5 foto)
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                                {previewPhotos.map(
+                                                    (preview, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="relative group"
                                                         >
-                                                            <FaTimes />
-                                                        </button>
-                                                    </div>
-                                                )
-                                            )}
-                                            {previewPhotos.length < 5 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        handleGalleryUploadClose
-                                                    }
-                                                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
-                                                >
-                                                    <FaPlus className="text-gray-400 w-4 h-4 mb-1" />
-                                                    <span className="text-gray-600 dark:text-gray-400 text-xs">
-                                                        Tambah
-                                                    </span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
+                                                            <img
+                                                                src={preview}
+                                                                alt={`Preview ${
+                                                                    index + 1
+                                                                }`}
+                                                                className="w-full h-32 object-cover rounded-lg"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removePhoto(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                                            >
+                                                                <FaTimes className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    )
+                                                )}
+                                                {previewPhotos.length < 5 && (
+                                                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+                                                        <input
+                                                            type="file"
+                                                            className="hidden"
+                                                            accept="image/*"
+                                                            multiple
+                                                            onChange={
+                                                                handleFileUploadClose
+                                                            }
+                                                            ref={
+                                                                fileInputRefClose
+                                                            }
+                                                        />
+                                                        <FaPlus className="w-6 h-6 text-gray-400" />
+                                                        <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                                            Tambah Foto
+                                                        </span>
+                                                    </label>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
@@ -1749,17 +1813,44 @@ export default function Trip({
                             </button>
                             <button
                                 type="submit"
-                                disabled={processingCloseTrip}
-                                className="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                                disabled={isClosingTrip}
+                                className="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors flex items-center space-x-2"
                             >
-                                {processingCloseTrip
-                                    ? "Menyimpan..."
-                                    : "Simpan"}
+                                {isClosingTrip ? (
+                                    <>
+                                        <svg
+                                            className="animate-spin h-5 w-5 mr-2"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                                fill="none"
+                                            />
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            />
+                                        </svg>
+                                        <span>Menyimpan...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FaSave className="w-4 h-4" />
+                                        <span>Simpan</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </form>
                 )}
             </Modal>
+
             <Modal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
@@ -1779,11 +1870,16 @@ export default function Trip({
                                             type="radio"
                                             name="export-type"
                                             value="month"
-                                            checked={exportType === 'month'}
-                                            onChange={() => setExportType('month')}
+                                            checked={exportType === "month"}
+                                            onChange={() =>
+                                                setExportType("month")
+                                            }
                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                         />
-                                        <label htmlFor="export-month" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                        <label
+                                            htmlFor="export-month"
+                                            className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                                        >
                                             Berdasarkan Bulan
                                         </label>
                                     </div>
@@ -1793,18 +1889,23 @@ export default function Trip({
                                             type="radio"
                                             name="export-type"
                                             value="all"
-                                            checked={exportType === 'all'}
-                                            onChange={() => setExportType('all')}
+                                            checked={exportType === "all"}
+                                            onChange={() =>
+                                                setExportType("all")
+                                            }
                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                         />
-                                        <label htmlFor="export-all" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                        <label
+                                            htmlFor="export-all"
+                                            className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                                        >
                                             Semua Data
                                         </label>
                                     </div>
                                 </div>
                             </div>
-                            
-                            {exportType === 'month' && (
+
+                            {exportType === "month" && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Pilih Bulan
@@ -1816,27 +1917,31 @@ export default function Trip({
                                         <input
                                             type="month"
                                             value={exportMonth}
-                                            onChange={(e) => setExportMonth(e.target.value)}
+                                            onChange={(e) =>
+                                                setExportMonth(e.target.value)
+                                            }
                                             className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                     </div>
                                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                        Data akan difilter berdasarkan bulan yang dipilih
+                                        Data akan difilter berdasarkan bulan
+                                        yang dipilih
                                     </p>
                                 </div>
                             )}
-                            
-                            {exportType === 'all' && (
+
+                            {exportType === "all" && (
                                 <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
                                     <FaGlobe className="text-blue-500 flex-shrink-0" />
                                     <p className="text-sm">
-                                        Semua data kendaraan dinas akan diexport ke file Excel
+                                        Semua data kendaraan dinas akan diexport
+                                        ke file Excel
                                     </p>
                                 </div>
                             )}
                         </div>
                     </div>
-                    
+
                     <div className="flex justify-end space-x-3">
                         <button
                             type="button"
@@ -1856,6 +1961,7 @@ export default function Trip({
                     </div>
                 </div>
             </Modal>
+
             <Modal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
@@ -1868,75 +1974,152 @@ export default function Trip({
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                     Pilih Jenis Export
                                 </label>
-                                <RadioGroup value={exportType} onChange={setExportType} className="space-y-3">
+                                <RadioGroup
+                                    value={exportType}
+                                    onChange={setExportType}
+                                    className="space-y-3"
+                                >
                                     <RadioGroup.Option value="month">
                                         {({ checked }) => (
-                                            <div className={`
+                                            <div
+                                                className={`
                                                 relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
-                                                ${checked 
-                                                    ? 'bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102' 
-                                                    : 'border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400'}
-                                            `}>
+                                                ${
+                                                    checked
+                                                        ? "bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102"
+                                                        : "border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400"
+                                                }
+                                            `}
+                                            >
                                                 <div className="flex items-center justify-between w-full">
                                                     <div className="flex items-center">
-                                                        <div className={`
+                                                        <div
+                                                            className={`
                                                             rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
-                                                            ${checked 
-                                                                ? 'border-blue-500 bg-blue-500 transform scale-110' 
-                                                                : 'border-gray-400 dark:border-gray-500'}
-                                                        `}>
+                                                            ${
+                                                                checked
+                                                                    ? "border-blue-500 bg-blue-500 transform scale-110"
+                                                                    : "border-gray-400 dark:border-gray-500"
+                                                            }
+                                                        `}
+                                                        >
                                                             {checked && (
                                                                 <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
                                                             )}
                                                         </div>
                                                         <div className="text-sm transition-all duration-300">
-                                                            <RadioGroup.Label as="p" className={`font-medium transition-colors duration-300 ${checked ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
-                                                                Berdasarkan Bulan
+                                                            <RadioGroup.Label
+                                                                as="p"
+                                                                className={`font-medium transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-600 dark:text-blue-400"
+                                                                        : "text-gray-700 dark:text-gray-300"
+                                                                }`}
+                                                            >
+                                                                Berdasarkan
+                                                                Bulan
                                                             </RadioGroup.Label>
-                                                            <RadioGroup.Description as="span" className={`inline transition-colors duration-300 ${checked ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                                                                Export data untuk bulan tertentu
+                                                            <RadioGroup.Description
+                                                                as="span"
+                                                                className={`inline transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-500 dark:text-blue-400"
+                                                                        : "text-gray-500 dark:text-gray-400"
+                                                                }`}
+                                                            >
+                                                                Export data
+                                                                untuk bulan
+                                                                tertentu
                                                             </RadioGroup.Description>
                                                         </div>
                                                     </div>
-                                                    <div className={`p-2 rounded-full transform transition-all duration-300 ${checked ? 'bg-blue-100 dark:bg-blue-800 rotate-0 scale-110' : 'bg-gray-100 dark:bg-gray-700 rotate-0'}`}>
-                                                        <FaCalendarAlt className={`w-5 h-5 transition-colors duration-300 ${checked ? 'text-blue-500' : 'text-gray-400'}`} />
+                                                    <div
+                                                        className={`p-2 rounded-full transform transition-all duration-300 ${
+                                                            checked
+                                                                ? "bg-blue-100 dark:bg-blue-800 rotate-0 scale-110"
+                                                                : "bg-gray-100 dark:bg-gray-700 rotate-0"
+                                                        }`}
+                                                    >
+                                                        <FaCalendarAlt
+                                                            className={`w-5 h-5 transition-colors duration-300 ${
+                                                                checked
+                                                                    ? "text-blue-500"
+                                                                    : "text-gray-400"
+                                                            }`}
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
                                     </RadioGroup.Option>
-                                    
+
                                     <RadioGroup.Option value="all">
                                         {({ checked }) => (
-                                            <div className={`
+                                            <div
+                                                className={`
                                                 relative flex items-center p-4 rounded-lg cursor-pointer transform transition-all duration-300 ease-in-out
-                                                ${checked 
-                                                    ? 'bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102' 
-                                                    : 'border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400'}
-                                            `}>
+                                                ${
+                                                    checked
+                                                        ? "bg-blue-50 border-2 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500 shadow-md scale-102"
+                                                        : "border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400"
+                                                }
+                                            `}
+                                            >
                                                 <div className="flex items-center justify-between w-full">
                                                     <div className="flex items-center">
-                                                        <div className={`
+                                                        <div
+                                                            className={`
                                                             rounded-full border-2 flex items-center justify-center w-5 h-5 mr-3 transition-colors duration-300
-                                                            ${checked 
-                                                                ? 'border-blue-500 bg-blue-500 transform scale-110' 
-                                                                : 'border-gray-400 dark:border-gray-500'}
-                                                        `}>
+                                                            ${
+                                                                checked
+                                                                    ? "border-blue-500 bg-blue-500 transform scale-110"
+                                                                    : "border-gray-400 dark:border-gray-500"
+                                                            }
+                                                        `}
+                                                        >
                                                             {checked && (
                                                                 <FaCheck className="w-3 h-3 text-white animate-fadeIn" />
                                                             )}
                                                         </div>
                                                         <div className="text-sm transition-all duration-300">
-                                                            <RadioGroup.Label as="p" className={`font-medium transition-colors duration-300 ${checked ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                            <RadioGroup.Label
+                                                                as="p"
+                                                                className={`font-medium transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-600 dark:text-blue-400"
+                                                                        : "text-gray-700 dark:text-gray-300"
+                                                                }`}
+                                                            >
                                                                 Semua Data
                                                             </RadioGroup.Label>
-                                                            <RadioGroup.Description as="span" className={`inline transition-colors duration-300 ${checked ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                                                                Export seluruh data kendaraan dinas
+                                                            <RadioGroup.Description
+                                                                as="span"
+                                                                className={`inline transition-colors duration-300 ${
+                                                                    checked
+                                                                        ? "text-blue-500 dark:text-blue-400"
+                                                                        : "text-gray-500 dark:text-gray-400"
+                                                                }`}
+                                                            >
+                                                                Export seluruh
+                                                                data kendaraan
+                                                                dinas
                                                             </RadioGroup.Description>
                                                         </div>
                                                     </div>
-                                                    <div className={`p-2 rounded-full transform transition-all duration-300 ${checked ? 'bg-blue-100 dark:bg-blue-800 rotate-0 scale-110' : 'bg-gray-100 dark:bg-gray-700 rotate-0'}`}>
-                                                        <FaGlobe className={`w-5 h-5 transition-colors duration-300 ${checked ? 'text-blue-500' : 'text-gray-400'}`} />
+                                                    <div
+                                                        className={`p-2 rounded-full transform transition-all duration-300 ${
+                                                            checked
+                                                                ? "bg-blue-100 dark:bg-blue-800 rotate-0 scale-110"
+                                                                : "bg-gray-100 dark:bg-gray-700 rotate-0"
+                                                        }`}
+                                                    >
+                                                        <FaGlobe
+                                                            className={`w-5 h-5 transition-colors duration-300 ${
+                                                                checked
+                                                                    ? "text-blue-500"
+                                                                    : "text-gray-400"
+                                                            }`}
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -1944,13 +2127,17 @@ export default function Trip({
                                     </RadioGroup.Option>
                                 </RadioGroup>
                             </div>
-                            
-                            <div className="overflow-hidden transition-all duration-500 ease-in-out" 
-                                 style={{ 
-                                     maxHeight: exportType === 'month' ? '200px' : '0',
-                                     opacity: exportType === 'month' ? 1 : 0,
-                                     marginTop: exportType === 'month' ? '1.5rem' : '0'
-                                 }}>
+
+                            <div
+                                className="overflow-hidden transition-all duration-500 ease-in-out"
+                                style={{
+                                    maxHeight:
+                                        exportType === "month" ? "200px" : "0",
+                                    opacity: exportType === "month" ? 1 : 0,
+                                    marginTop:
+                                        exportType === "month" ? "1.5rem" : "0",
+                                }}
+                            >
                                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Pilih Bulan
@@ -1961,10 +2148,16 @@ export default function Trip({
                                         </div>
                                         <input
                                             type="month"
-                                            value={`${exportDate.getFullYear()}-${String(exportDate.getMonth() + 1).padStart(2, '0')}`}
+                                            value={`${exportDate.getFullYear()}-${String(
+                                                exportDate.getMonth() + 1
+                                            ).padStart(2, "0")}`}
                                             onChange={(e) => {
-                                                const [year, month] = e.target.value.split('-');
-                                                const newDate = new Date(year, month - 1);
+                                                const [year, month] =
+                                                    e.target.value.split("-");
+                                                const newDate = new Date(
+                                                    year,
+                                                    month - 1
+                                                );
                                                 setExportDate(newDate);
                                             }}
                                             className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
@@ -1973,18 +2166,23 @@ export default function Trip({
                                     <div className="mt-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
                                         <FaInfo className="w-4 h-4 mr-2 text-blue-500" />
                                         <p>
-                                            Data akan difilter berdasarkan bulan yang dipilih
+                                            Data akan difilter berdasarkan bulan
+                                            yang dipilih
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div className="overflow-hidden transition-all duration-500 ease-in-out" 
-                                 style={{ 
-                                     maxHeight: exportType === 'all' ? '200px' : '0',
-                                     opacity: exportType === 'all' ? 1 : 0,
-                                     marginTop: exportType === 'all' ? '1.5rem' : '0'
-                                 }}>
+
+                            <div
+                                className="overflow-hidden transition-all duration-500 ease-in-out"
+                                style={{
+                                    maxHeight:
+                                        exportType === "all" ? "200px" : "0",
+                                    opacity: exportType === "all" ? 1 : 0,
+                                    marginTop:
+                                        exportType === "all" ? "1.5rem" : "0",
+                                }}
+                            >
                                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                                     <div className="flex items-center">
                                         <div className="bg-blue-100 dark:bg-blue-800 p-3 rounded-full mr-3">
@@ -1995,7 +2193,8 @@ export default function Trip({
                                                 Export Semua Data
                                             </h3>
                                             <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                                                Semua data kendaraan dinas akan diexport ke file Excel
+                                                Semua data kendaraan dinas akan
+                                                diexport ke file Excel
                                             </p>
                                         </div>
                                     </div>
@@ -2003,7 +2202,7 @@ export default function Trip({
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                             type="button"
