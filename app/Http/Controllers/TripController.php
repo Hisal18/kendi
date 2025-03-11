@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Kendaraan;
 use App\Models\Trip;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Events\TripUpdated;
 use App\Models\Driver;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,7 +21,7 @@ class TripController extends Controller
     public function index()
     {
         return Inertia::render('Kendaraan/Trip', [
-            'trips' => Trip::with(['Kendaraan', 'driver'])->latest()->get(),
+            'trips' => Trip::with(['kendaraan', 'driver', 'createdBy'])->latest()->get(),
             'kendaraans' => Kendaraan::all(),
             'drivers' => Driver::all()
         ]);
@@ -54,16 +56,13 @@ class TripController extends Controller
 
         // Process photo uploads
         $photos = [];
-        // Tangani multiple foto
-    if ($request->hasFile('foto_berangkat')) {
+        if ($request->hasFile('foto_berangkat')) {
             foreach ($request->file('foto_berangkat') as $photo) {
                 $path = $photo->store('trip_photos', 'public');
-                // Simpan path ke database
                 $photos[] = $path;
             }
         }
 
-        // Check if we have any valid photos
         if (empty($photos)) {
             return response()->json([
                 'type' => 'error',
@@ -71,11 +70,9 @@ class TripController extends Controller
             ], 422);
         }
 
-        // Get vehicle and driver
         $kendaraan = Kendaraan::find($request->kendaraan_id);
         $driver = Driver::find($request->driver_id);
 
-        // Create the trip
         try {
             $trip = Trip::create([
                 'code_trip' => $request->code_trip,
@@ -87,10 +84,10 @@ class TripController extends Controller
                 'km_awal' => $request->km,
                 'penumpang' => $request->penumpang,
                 'status' => 'Sedang Berjalan',
-                'foto_berangkat' => json_encode($photos), // Ensure photos are JSON encoded
+                'foto_berangkat' => json_encode($photos),
+                'created_by' => Auth::id(),
             ]);
 
-            // Update vehicle and driver status
             $kendaraan->update(['status' => 'Digunakan']);
             $driver->update(['status' => 'Sedang Bertugas']);
 
@@ -123,7 +120,7 @@ class TripController extends Controller
     {
         try {
             $trip = Trip::where('code_trip', $code_trip)
-                        ->with(['kendaraan', 'driver'])
+                        ->with(['kendaraan', 'driver', 'createdBy'])
                         ->firstOrFail();
 
             // Pastikan foto_berangkat dan foto_kembali adalah array

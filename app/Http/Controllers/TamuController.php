@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class TamuController extends Controller
 {
@@ -49,6 +50,7 @@ class TamuController extends Controller
             $tamu->waktu_kedatangan = $request->waktu_kedatangan;
             $tamu->status = 'New';
             $tamu->foto_kedatangan = '[]';
+            $tamu->created_by = Auth::id();
             $tamu->save();
 
             // Proses upload foto

@@ -52,4 +52,19 @@ class User extends Authenticatable
     {
         return $this->role === $role;
     }
+
+    public function trip()
+    {
+        return $this->hasMany(Trip::class );
+    }
+
+    public function tamu()
+    {
+        return $this->hasMany(Tamu::class );
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

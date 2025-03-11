@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\Models\User;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,8 @@ class Tamu extends Model
         'waktu_kepergian',
         'foto_kedatangan',
         'foto_kepergian',
-        'status'
+        'status',
+        'created_by',
     ];
 
     protected $casts = [
@@ -25,4 +27,9 @@ class Tamu extends Model
         'waktu_kedatangan' => 'datetime',
         'waktu_kepergian' => 'datetime',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -423,7 +423,10 @@ export default function Trip({
 
             console.log("Server response:", response.data);
 
-            toast.success("Trip berhasil ditambahkan", toastConfig);
+            toast.success(
+                `Trip ${data.code_trip} berhasil ditambahkan`,
+                toastConfig
+            );
             reset();
             setPhotos([]);
             setPreviewPhotos([]);
@@ -546,7 +549,10 @@ export default function Trip({
             })
             .then((response) => {
                 console.log("Server response:", response.data);
-                toast.success("Trip berhasil ditutup", toastConfig);
+                toast.success(
+                    `Trip ${selectedTrip.code_trip} berhasil ditutup`,
+                    toastConfig
+                );
                 setCloseKendaraan(false);
                 setSelectedTrip(null);
                 setKmAkhir("");
@@ -1098,7 +1104,7 @@ export default function Trip({
                                                             "trips.show",
                                                             item.code_trip
                                                         )}
-                                                        className="text-blue-500 hover:text-blue-700 underline"
+                                                        className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                                                     >
                                                         {item.code_trip}
                                                     </Link>
@@ -1132,19 +1138,24 @@ export default function Trip({
                                                           ) + " KM"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                    {item.jarak + " KM"}
+                                                    {item.jarak === null ||
+                                                    item.jarak === undefined
+                                                        ? "-"
+                                                        : item.jarak + " KM"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
-                                                            item.status ===
-                                                            "Sedang Berjalan"
-                                                                ? "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300"
-                                                                : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                                        }`}
-                                                    >
-                                                        {item.status}
-                                                    </span>
+                                                    {item.status ===
+                                                    "Sedang Berjalan" ? (
+                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 items-center w-auto inline-flex">
+                                                            <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
+                                                            {item.status}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 items-center w-auto inline-flex">
+                                                            <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                                                            {item.status}
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm">
                                                     <div className="dropdown-container relative">
@@ -1350,15 +1361,15 @@ export default function Trip({
                                                 Kode Trip
                                             </label>
                                             <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <FaLock className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
                                                 <input
                                                     type="text"
                                                     value={data.code_trip}
-                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
-                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <FaLock className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                                </div>
                                             </div>
                                         </div>
                                         <div>
@@ -1366,17 +1377,17 @@ export default function Trip({
                                                 Waktu
                                             </label>
                                             <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <FaClock className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
                                                 <input
                                                     type="datetime-local"
                                                     value={
                                                         data.waktu_keberangkatan
                                                     }
-                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
-                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <FaClock className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1387,10 +1398,13 @@ export default function Trip({
                                             Pilih Kendaraan
                                         </label>
                                         <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                                <FaCarSide className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
                                             <select
                                                 value={data.kendaraan_id}
                                                 onChange={handleKendaraanChange}
-                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
                                                 required
                                             >
                                                 <option value="">
@@ -1424,9 +1438,6 @@ export default function Trip({
                                                             </option>
                                                         ))}
                                             </select>
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                <FaCarSide className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                            </div>
                                         </div>
                                     </div>
 
@@ -1437,15 +1448,15 @@ export default function Trip({
                                                 Merek
                                             </label>
                                             <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <FaCar className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
                                                 <input
                                                     type="text"
                                                     value={data.merek}
-                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
-                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <FaCar className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                                </div>
                                             </div>
                                         </div>
                                         <div>
@@ -1453,15 +1464,15 @@ export default function Trip({
                                                 Plat Nomor
                                             </label>
                                             <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <FaIdCard className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
                                                 <input
                                                     type="text"
                                                     value={data.plat_kendaraan}
-                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
-                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <FaIdCard className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1473,6 +1484,9 @@ export default function Trip({
                                                 Kilometer Awal
                                             </label>
                                             <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <FaTachometerAlt className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
                                                 <input
                                                     type="text"
                                                     inputMode="numeric"
@@ -1483,12 +1497,9 @@ export default function Trip({
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
                                                     required
                                                 />
-                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <FaTachometerAlt className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                                </div>
                                             </div>
                                         </div>
                                         <div>
@@ -1496,15 +1507,15 @@ export default function Trip({
                                                 Status
                                             </label>
                                             <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <FaInfo className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                                </div>
                                                 <input
                                                     type="text"
                                                     value={data.status}
-                                                    className="block w-full px-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
-                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <FaInfo className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1515,6 +1526,9 @@ export default function Trip({
                                             Tujuan
                                         </label>
                                         <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <FaMapMarkerAlt className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
                                             <input
                                                 type="text"
                                                 value={data.tujuan}
@@ -1524,13 +1538,10 @@ export default function Trip({
                                                         e.target.value
                                                     )
                                                 }
-                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
-                                                placeholder="Masukkan tujuan"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                placeholder="Contoh : GI Kosambi Baru"
                                                 required
                                             />
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                <FaMapMarkerAlt className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                            </div>
                                         </div>
                                     </div>
 
@@ -1539,6 +1550,9 @@ export default function Trip({
                                             Penumpang
                                         </label>
                                         <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <FaUsers className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
                                             <input
                                                 type="text"
                                                 value={data.penumpang}
@@ -1548,13 +1562,10 @@ export default function Trip({
                                                         e.target.value
                                                     )
                                                 }
-                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
-                                                placeholder="Nama penumpang"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                placeholder="Masukkan nama penumpang"
                                                 required
                                             />
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                <FaUsers className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                            </div>
                                         </div>
                                     </div>
 
@@ -1563,6 +1574,9 @@ export default function Trip({
                                             Driver
                                         </label>
                                         <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                                <FaUserTie className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                            </div>
                                             <select
                                                 value={data.driver_id}
                                                 onChange={(e) =>
@@ -1571,7 +1585,7 @@ export default function Trip({
                                                         e.target.value
                                                     )
                                                 }
-                                                className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
                                                 required
                                             >
                                                 <option value="">
@@ -1595,9 +1609,6 @@ export default function Trip({
                                                         </option>
                                                     ))}
                                             </select>
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                <FaUserTie className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                            </div>
                                         </div>
                                         {errors.driver_id && (
                                             <div className="text-red-500 text-xs mt-1">
@@ -1622,7 +1633,7 @@ export default function Trip({
                                         Foto Kendaraan
                                     </label>
                                     <div
-                                        className="mt-1 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg p-4"
+                                        className="mt-1 border-2 border-gray-300  dark:border-gray-600 border-dashed rounded-lg p-4"
                                         onDragOver={handleDragOver}
                                         onDrop={handleDrop}
                                     >
@@ -1752,6 +1763,9 @@ export default function Trip({
                                         Catatan
                                     </label>
                                     <div className="relative">
+                                        <div className="absolute top-2 left-2">
+                                            <FaEdit className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                        </div>
                                         <textarea
                                             value={data.catatan}
                                             onChange={(e) =>
@@ -1761,12 +1775,9 @@ export default function Trip({
                                                 )
                                             }
                                             rows="3"
-                                            className="block w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                            className="block w-full pl-8 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
                                             placeholder="Tambahkan catatan jika diperlukan..."
                                         />
-                                        <div className="absolute top-2 right-2">
-                                            <FaEdit className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                        </div>
                                     </div>
                                     {errors.catatan && (
                                         <div className="text-red-500 text-xs mt-1">
@@ -1871,13 +1882,15 @@ export default function Trip({
                                         Kilometer Akhir
                                     </label>
                                     <input
-                                        type="number"
+                                        type="text"
+                                        inputMode="numeric"
                                         value={kmAkhir}
                                         onChange={(e) =>
                                             setKmAkhir(e.target.value)
                                         }
                                         className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         required
+                                        placeholder="Kilometer Akhir harus lebih besar dari Kilometer Awal"
                                     />
                                 </div>
                             </div>

@@ -168,7 +168,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                 preserveScroll: true,
                 onSuccess: (page) => {
                     toast.success(
-                        "Data kendaraan berhasil ditambahkan!",
+                        `Kendaraan ${formData.plat_kendaraan} berhasil ditambahkan!`,
                         toastConfig
                     );
 
@@ -585,7 +585,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                 },
                 onSuccess: (page) => {
                     toast.success(
-                        "Kendaraan tamu berhasil ditutup!",
+                        `Kendaraan ${selectedTamu.plat_kendaraan} berhasil ditutup!`,
                         toastConfig
                     );
 
@@ -920,7 +920,9 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                {item.plat_kendaraan}{" "}
+                                                <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+                                                    {item.plat_kendaraan}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                                                 {dateFormat(
@@ -937,15 +939,17 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                                     : "-"}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span
-                                                    className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
-                                                        item.status === "Close"
-                                                            ? "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300"
-                                                            : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                                    }`}
-                                                >
-                                                    {item.status}
-                                                </span>
+                                                {item.status === "New" ? (
+                                                    <span className="px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 items-center w-auto inline-flex">
+                                                        <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
+                                                        {item.status}
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 items-center w-auto inline-flex">
+                                                        <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                                                        {item.status}
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Menu
@@ -1706,7 +1710,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow-sm">
                                 <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 flex items-center">
                                     <FaImage className="mr-2 text-blue-500" />
-                                    Foto Kendaraan
+                                    Foto Kedatangan
                                 </h4>
                                 {selectedTamu.foto_kedatangan &&
                                 selectedTamu.foto_kedatangan.length > 0 ? (
@@ -1744,7 +1748,8 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
 
                             {selectedTamu.foto_kepergian && (
                                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow-sm mt-4">
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                                        <FaImage className="mr-2 text-blue-500" />
                                         Foto Kepergian
                                     </h4>
                                     {selectedTamu.foto_kepergian &&
