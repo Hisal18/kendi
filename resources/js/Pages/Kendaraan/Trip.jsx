@@ -14,12 +14,9 @@ import {
     FaChevronRight,
     FaEllipsisH,
     FaPlus,
-    FaFilePdf,
     FaCamera,
     FaCheck,
     FaCarSide,
-    FaUpload,
-    FaImage,
     FaLock,
     FaIdCard,
     FaTachometerAlt,
@@ -33,13 +30,11 @@ import {
     FaSpinner,
     FaCalendarAlt,
     FaGlobe,
-    FaChevronDown,
     FaEye,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import Modal from "@/Components/ModalNew";
-import DatePicker from "react-datepicker";
-import { Menu, Transition, RadioGroup } from "@headlessui/react";
+import { RadioGroup } from "@headlessui/react";
 import { ToastContainer, toast, Flip } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -55,13 +50,11 @@ export default function Trip({
     const [currentTime, setCurrentTime] = useState(new Date());
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8; // Jumlah item per halaman
-    const [showExportDropdown, setShowExportDropdown] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [closeKendaraan, setCloseKendaraan] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState(null);
     const [isClosingTrip, setIsClosingTrip] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
-    const [exportMonth, setExportMonth] = useState("");
     const [exportType, setExportType] = useState("all");
     const [exportDate, setExportDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
@@ -252,6 +245,10 @@ export default function Trip({
                 Tujuan: trip.tujuan || "-",
                 Jarak: trip.jarak ? trip.jarak + " KM" : "-",
                 Penumpang: trip.penumpang || "-",
+                "Jenis BBm": trip.jenis_bbm || "-",
+                "Jumlah Liter": trip.jumlah_liter || "-",
+                "Harga Per Liter": trip.harga_per_liter || "-",
+                "Total Harga BBm": trip.total_harga_bbm || "-",
                 Catatan: trip.catatan || "-",
                 Status: trip.status || "-",
             }));
@@ -279,6 +276,10 @@ export default function Trip({
                 { wch: 25 }, // J - Tujuan
                 { wch: 10 }, // K - Jarak
                 { wch: 25 }, // L - Penumpang
+                { wch: 25 }, // M - Jenis BBm
+                { wch: 25 }, // N - Jumlah Liter
+                { wch: 25 }, // O - Harga Per Liter
+                { wch: 25 }, // P - Total Harga BBm
                 { wch: 30 }, // M - Catatan
                 { wch: 15 }, // N - Status
             ];
@@ -926,28 +927,67 @@ export default function Trip({
         });
     };
 
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    useEffect(() => {
+        // Deteksi mode gelap dari preferensi sistem atau HTML
+        const darkModeMediaQuery = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+        );
+        const htmlElement = document.documentElement;
+
+        const updateDarkMode = () => {
+            const isDark =
+                htmlElement.classList.contains("dark") ||
+                darkModeMediaQuery.matches;
+            setIsDarkMode(isDark);
+        };
+
+        // Panggil sekali untuk inisialisasi
+        updateDarkMode();
+
+        // Tambahkan listener untuk perubahan mode
+        darkModeMediaQuery.addEventListener("change", updateDarkMode);
+
+        // Tambahkan listener untuk perubahan class pada HTML
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === "class") {
+                    updateDarkMode();
+                }
+            });
+        });
+
+        observer.observe(htmlElement, { attributes: true });
+
+        return () => {
+            darkModeMediaQuery.removeEventListener("change", updateDarkMode);
+            observer.disconnect();
+        };
+    }, []);
+
     return (
         <>
             <Head title="Monitoring Kendaraan" />
             <DashboardLayout>
                 <div className="py-0">
                     {/* Header Section dengan Background Gradient dan Waktu Real-time */}
-                    <div className="mb-4 text-white">
-                        <h1 className="text-3xl font-bold mb-2 text-gray-500 dark:text-gray-400">
+                    <div className="mb-4">
+                        <h1 className="text-3xl font-bold mb-2 text-gray-800 dark:text-gray-200">
                             Monitoring Perjalanan
                         </h1>
-                        <p className="opacity-90 text-gray-700 dark:text-gray-500">
+                        <p className="text-gray-600 dark:text-gray-400">
                             Data monitoring kendaraan hari ini -{" "}
                             {dateFormat(currentTime, "dd mmmm yyyy, HH:MM:ss")}
                         </p>
                     </div>
 
                     {/* Stats Cards dengan Animasi Hover */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
                             <div className="flex items-center space-x-4">
-                                <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
-                                    <FaCar className="text-blue-500 dark:text-blue-400 text-xl" />
+                                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
+                                    <FaCar className="text-blue-600 dark:text-blue-400 text-xl" />
                                 </div>
                                 <div>
                                     <h3 className="text-gray-500 dark:text-gray-400 text-sm">
@@ -959,10 +999,10 @@ export default function Trip({
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
                             <div className="flex items-center space-x-4">
-                                <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
-                                    <FaArrowRight className="text-green-500 dark:text-green-400 text-xl" />
+                                <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full">
+                                    <FaArrowRight className="text-green-600 dark:text-green-400 text-xl" />
                                 </div>
                                 <div>
                                     <h3 className="text-gray-500 dark:text-gray-400 text-sm">
@@ -974,10 +1014,10 @@ export default function Trip({
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
                             <div className="flex items-center space-x-4">
-                                <div className="bg-red-100 dark:bg-red-900 p-3 rounded-full">
-                                    <FaArrowLeft className="text-red-500 dark:text-red-400 text-xl" />
+                                <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full">
+                                    <FaArrowLeft className="text-red-600 dark:text-red-400 text-xl" />
                                 </div>
                                 <div>
                                     <h3 className="text-gray-500 dark:text-gray-400 text-sm">
@@ -989,10 +1029,10 @@ export default function Trip({
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
                             <div className="flex items-center space-x-4">
-                                <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
-                                    <FaParking className="text-purple-500 dark:text-purple-400 text-xl" />
+                                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full">
+                                    <FaParking className="text-purple-600 dark:text-purple-400 text-xl" />
                                 </div>
                                 <div>
                                     <h3 className="text-gray-500 dark:text-gray-400 text-sm">
@@ -1007,14 +1047,14 @@ export default function Trip({
                     </div>
 
                     {/* Table Section dengan Search Bar dan Export Button */}
-                    <div className="bg-white dark:bg-[#313131] rounded-xl shadow-lg overflow-hidden">
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                                 <div className="relative w-full md:w-auto">
                                     <input
                                         type="text"
                                         placeholder="Cari kendaraan..."
-                                        className="w-full md:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl dark:bg-[#515151] dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
+                                        className="w-full md:w-80 pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
                                         value={searchTerm}
                                         onChange={(e) =>
                                             setSearchTerm(e.target.value)
@@ -1026,7 +1066,7 @@ export default function Trip({
                                     {/* Button Tambah Data */}
                                     <button
                                         onClick={() => setShowPopup(true)}
-                                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
+                                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
                                     >
                                         <FaPlus className="text-lg" />
                                         <span>Tambah Data</span>
@@ -1038,7 +1078,7 @@ export default function Trip({
                                             onClick={() =>
                                                 setShowExportModal(true)
                                             }
-                                            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
+                                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
                                         >
                                             <FaFileExcel className="text-lg" />
                                             <span>Export Excel</span>
@@ -1052,7 +1092,7 @@ export default function Trip({
                                 <TableSkeleton />
                             ) : (
                                 <table className="w-full">
-                                    <thead className="bg-gray-50 dark:bg-[#515151]">
+                                    <thead className="bg-gray-50 dark:bg-gray-700/60">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 No
@@ -1087,47 +1127,52 @@ export default function Trip({
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white dark:bg-[#313131] divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody className="bg-white dark:bg-[#1f2937] divide-y divide-gray-200 dark:divide-gray-700">
                                         {currentItems.map((item, index) => (
                                             <tr
                                                 key={index}
-                                                className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
+                                                className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
                                             >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                     {indexOfFirstItem +
                                                         index +
                                                         1}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                     <Link
                                                         href={route(
                                                             "trips.show",
                                                             item.code_trip
                                                         )}
-                                                        className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                                                        className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-800/70 transition-colors"
                                                     >
                                                         {item.code_trip}
                                                     </Link>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                     {
                                                         item.kendaraan
                                                             .plat_kendaraan
                                                     }
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                     {item.driver.name}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
-                                                    {item.tujuan}
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                    <div className="flex items-center">
+                                                        <FaMapMarkerAlt className="text-red-500 dark:text-red-400 mr-1 flex-shrink-0" />
+                                                        <span>
+                                                            {item.tujuan}
+                                                        </span>
+                                                    </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                     {new Intl.NumberFormat(
                                                         "id-ID"
                                                     ).format(item.km_awal)}
                                                     {" KM"}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                     {item?.km_akhir === null ||
                                                     item?.km_akhir === undefined
                                                         ? "-"
@@ -1137,7 +1182,7 @@ export default function Trip({
                                                               item.km_akhir
                                                           ) + " KM"}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                     {item.jarak === null ||
                                                     item.jarak === undefined
                                                         ? "-"
@@ -1146,12 +1191,12 @@ export default function Trip({
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {item.status ===
                                                     "Sedang Berjalan" ? (
-                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 items-center w-auto inline-flex">
+                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300 items-center w-auto inline-flex">
                                                             <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
                                                             {item.status}
                                                         </span>
                                                     ) : (
-                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 items-center w-auto inline-flex">
+                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 items-center w-auto inline-flex">
                                                             <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
                                                             {item.status}
                                                         </span>
@@ -1286,7 +1331,7 @@ export default function Trip({
                                         className={`flex items-center justify-center w-10 h-10 rounded-full ${
                                             currentPage === 1
                                                 ? "text-gray-400 cursor-not-allowed"
-                                                : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         } transition-colors duration-200`}
                                     >
                                         <FaChevronLeft className="w-4 h-4" />
@@ -1309,8 +1354,8 @@ export default function Trip({
                                                             className={`flex items-center justify-center w-10 h-10 rounded-full ${
                                                                 currentPage ===
                                                                 page
-                                                                    ? "bg-blue-500 text-white"
-                                                                    : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
+                                                                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                             } transition-colors duration-200`}
                                                         >
                                                             {page}
@@ -1330,7 +1375,7 @@ export default function Trip({
                                         className={`flex items-center justify-center w-10 h-10 rounded-full ${
                                             currentPage === totalPages
                                                 ? "text-gray-400 cursor-not-allowed"
-                                                : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         } transition-colors duration-200`}
                                     >
                                         <FaChevronRight className="w-4 h-4" />
@@ -1353,7 +1398,7 @@ export default function Trip({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Kolom Kiri - Informasi Trip */}
                             <div>
-                                <div className="bg-gray-50 dark:bg-[#414141] rounded-lg p-4 space-y-3">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3 border border-gray-200 dark:border-gray-700">
                                     {/* Header Info */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
@@ -1367,7 +1412,7 @@ export default function Trip({
                                                 <input
                                                     type="text"
                                                     value={data.code_trip}
-                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:shadow-none dark:disabled:border-gray-700 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
                                             </div>
@@ -1385,7 +1430,7 @@ export default function Trip({
                                                     value={
                                                         data.waktu_keberangkatan
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:shadow-none dark:disabled:border-gray-700 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
                                             </div>
@@ -1404,7 +1449,7 @@ export default function Trip({
                                             <select
                                                 value={data.kendaraan_id}
                                                 onChange={handleKendaraanChange}
-                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
                                                 required
                                             >
                                                 <option value="">
@@ -1454,7 +1499,7 @@ export default function Trip({
                                                 <input
                                                     type="text"
                                                     value={data.merek}
-                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:shadow-none dark:disabled:border-gray-700 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
                                             </div>
@@ -1470,7 +1515,7 @@ export default function Trip({
                                                 <input
                                                     type="text"
                                                     value={data.plat_kendaraan}
-                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:shadow-none dark:disabled:border-gray-700 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
                                             </div>
@@ -1497,7 +1542,7 @@ export default function Trip({
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
                                                     required
                                                 />
                                             </div>
@@ -1513,7 +1558,7 @@ export default function Trip({
                                                 <input
                                                     type="text"
                                                     value={data.status}
-                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none dark:disabled:border-gray-700 dark:disabled:bg-[#616161]/20 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
+                                                    className="block w-full pl-10 pr-3 py-2 disabled:border-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:shadow-none dark:disabled:border-gray-700 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors cursor-not-allowed text-sm"
                                                     disabled
                                                 />
                                             </div>
@@ -1538,7 +1583,7 @@ export default function Trip({
                                                         e.target.value
                                                     )
                                                 }
-                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
                                                 placeholder="Contoh : GI Kosambi Baru"
                                                 required
                                             />
@@ -1562,7 +1607,7 @@ export default function Trip({
                                                         e.target.value
                                                     )
                                                 }
-                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
                                                 placeholder="Masukkan nama penumpang"
                                                 required
                                             />
@@ -1585,7 +1630,7 @@ export default function Trip({
                                                         e.target.value
                                                     )
                                                 }
-                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
+                                                className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors appearance-none text-sm"
                                                 required
                                             >
                                                 <option value="">
@@ -1633,14 +1678,14 @@ export default function Trip({
                                         Foto Kendaraan
                                     </label>
                                     <div
-                                        className="mt-1 border-2 border-gray-300  dark:border-gray-600 border-dashed rounded-lg p-4"
+                                        className="mt-1 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg p-4 bg-white dark:bg-gray-800"
                                         onDragOver={handleDragOver}
                                         onDrop={handleDrop}
                                     >
                                         {previewPhotos.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center space-y-3 py-5">
                                                 <svg
-                                                    className="mx-auto h-12 w-12 text-gray-400"
+                                                    className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
                                                     stroke="currentColor"
                                                     fill="none"
                                                     viewBox="0 0 48 48"
@@ -1656,7 +1701,7 @@ export default function Trip({
                                                 <div className="flex text-sm text-gray-600 dark:text-gray-400">
                                                     <label
                                                         htmlFor="file-upload"
-                                                        className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                                                        className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                                                     >
                                                         <span className="px-2">
                                                             Upload file
@@ -1713,7 +1758,7 @@ export default function Trip({
                                                     )
                                                 )}
                                                 {previewPhotos.length < 5 && (
-                                                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+                                                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-gray-50 dark:bg-gray-800">
                                                         <input
                                                             type="file"
                                                             className="hidden"
@@ -1724,7 +1769,7 @@ export default function Trip({
                                                             }
                                                             ref={fileInputRef}
                                                         />
-                                                        <FaPlus className="w-6 h-6 text-gray-400" />
+                                                        <FaPlus className="w-6 h-6 text-gray-400 dark:text-gray-500" />
                                                         <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                                             Tambah Foto
                                                         </span>
@@ -1758,7 +1803,7 @@ export default function Trip({
                                 </div>
 
                                 {/* Catatan */}
-                                <div className="bg-gray-50 dark:bg-[#414141] rounded-lg p-4">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Catatan
                                     </label>
@@ -1775,7 +1820,7 @@ export default function Trip({
                                                 )
                                             }
                                             rows="3"
-                                            className="block w-full pl-8 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
+                                            className="block w-full pl-8 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
                                             placeholder="Tambahkan catatan jika diperlukan..."
                                         />
                                     </div>
@@ -1800,7 +1845,7 @@ export default function Trip({
                             <button
                                 type="submit"
                                 disabled={processing || isSubmitting}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors flex items-center space-x-2 text-sm"
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg disabled:opacity-50 transition-colors flex items-center space-x-2 text-sm"
                             >
                                 {processing || isSubmitting ? (
                                     <>
@@ -1844,7 +1889,7 @@ export default function Trip({
                                     <input
                                         type="text"
                                         value={selectedTrip.code_trip}
-                                        className="block w-full px-4 py-3 rounded-lg bg-gray-100 cursor-not-allowed border-gray-300 dark:border-gray-600 dark:bg-[#717171] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        className="block w-full px-4 py-3 rounded-lg bg-gray-100 cursor-not-allowed border-gray-300 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         disabled
                                     />
                                 </div>
@@ -1858,7 +1903,7 @@ export default function Trip({
                                             selectedTrip.kendaraan
                                                 .plat_kendaraan
                                         }
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed dark:border-gray-600 dark:bg-[#717171] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         disabled
                                     />
                                 </div>
@@ -1873,7 +1918,7 @@ export default function Trip({
                                     <input
                                         type="text"
                                         value={selectedTrip.km_awal}
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300  bg-gray-100 cursor-not-allowed dark:border-gray-600 dark:bg-[#717171] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         disabled
                                     />
                                 </div>
@@ -1888,7 +1933,7 @@ export default function Trip({
                                         onChange={(e) =>
                                             setKmAkhir(e.target.value)
                                         }
-                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-[#515151] dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                        className="block w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                         required
                                         placeholder="Kilometer Akhir harus lebih besar dari Kilometer Awal"
                                     />
@@ -2041,7 +2086,7 @@ export default function Trip({
                             <button
                                 type="submit"
                                 disabled={isClosingTrip}
-                                className="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors flex items-center space-x-2"
+                                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg disabled:opacity-50 transition-colors flex items-center space-x-2"
                             >
                                 {isClosingTrip ? (
                                     <>
@@ -2276,7 +2321,7 @@ export default function Trip({
                                                 );
                                                 setExportDate(newDate);
                                             }}
-                                            className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#515151] text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                            className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                         />
                                     </div>
                                     <div className="mt-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
@@ -2330,7 +2375,7 @@ export default function Trip({
                         <button
                             type="button"
                             onClick={exportToExcel}
-                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2 shadow-sm hover:shadow-md"
+                            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-lg transition-colors flex items-center space-x-2 shadow-sm hover:shadow-md"
                         >
                             <FaFileExcel className="w-4 h-4" />
                             <span>Export Excel</span>
@@ -2349,7 +2394,7 @@ export default function Trip({
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
-                theme="light"
+                theme={isDarkMode ? "dark" : "light"}
                 transition={Flip}
             />
         </>

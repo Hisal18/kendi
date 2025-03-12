@@ -25,6 +25,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('driver', DriverController::class);
     
     Route::resource('kendaraan', KendaraanController::class);
+
+    Route::post('/trips/{code_trip}/bbm', [TripController::class, 'updateBbm'])->name('trips.update.bbm');
     // Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan.index');
     // ... route admin lainnya
 });
@@ -73,5 +75,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 });
+
+
 
 require __DIR__.'/auth.php';

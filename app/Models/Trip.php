@@ -30,6 +30,10 @@ class Trip extends Model
         'foto_berangkat',
         'foto_kembali',
         'created_by',
+        'jenis_bbm',
+        'jumlah_liter',
+        'harga_per_liter',
+        'total_harga_bbm',
     ];
 
     protected $casts = [

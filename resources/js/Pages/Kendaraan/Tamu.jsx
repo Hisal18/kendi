@@ -771,14 +771,14 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                     </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                         <div className="flex items-center space-x-4">
-                            <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
-                                <FaCar className="text-blue-500 dark:text-blue-400 text-xl" />
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
+                                <FaCar className="text-blue-600 dark:text-blue-400 text-xl" />
                             </div>
                             <div>
                                 <h3 className="text-gray-500 dark:text-gray-400 text-sm">
-                                    Total Kendaraan Hari ini
+                                    Total Kendaraan
                                 </h3>
                                 <p className="text-2xl font-bold text-gray-800 dark:text-white">
                                     {tamus.length}
@@ -786,7 +786,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                         <div className="flex items-center space-x-4">
                             <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
                                 <FaArrowRight className="text-green-500 dark:text-green-400 text-xl" />
@@ -805,7 +805,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                         <div className="flex items-center space-x-4">
                             <div className="bg-red-100 dark:bg-red-900 p-3 rounded-full">
                                 <FaArrowLeft className="text-red-500 dark:text-red-400 text-xl" />
@@ -824,7 +824,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                         <div className="flex items-center space-x-4">
                             <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
                                 <FaParking className="text-purple-500 dark:text-purple-400 text-xl" />
@@ -844,14 +844,14 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-[#313131] rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-lg overflow-hidden">
                     <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div className="relative w-full md:w-auto">
                                 <input
                                     type="text"
                                     placeholder="Cari kendaraan..."
-                                    className="w-full md:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl dark:bg-[#515151] dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
+                                    className="w-full md:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
                                     value={searchTerm}
                                     onChange={(e) =>
                                         setSearchTerm(e.target.value)
@@ -863,7 +863,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                 {/* Button Tambah Data */}
                                 <button
                                     onClick={() => setShowPopup(true)}
-                                    className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                                    className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
                                 >
                                     <FaPlus className="text-lg" />
                                     <span>Tambah Data</span>
@@ -873,7 +873,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                 {auth.user.role === "admin" && (
                                     <button
                                         onClick={() => setShowExportModal(true)}
-                                        className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                                        className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
                                     >
                                         <FaFileExcel className="text-lg" />
                                         <span>Export Excel</span>
@@ -887,7 +887,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                             <TableSkeleton />
                         ) : (
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-[#515151]">
+                                <thead className="bg-gray-50 dark:bg-gray-700/60">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             No
@@ -909,11 +909,11 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-[#313131] divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody className="bg-white dark:bg-[#1f2937] divide-y divide-gray-200 dark:divide-gray-700">
                                     {currentItems.map((item, index) => (
                                         <tr
                                             key={index}
-                                            className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
+                                            className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                                                 {indexOfFirstItem + index + 1}

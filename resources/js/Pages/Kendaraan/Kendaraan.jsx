@@ -12,6 +12,10 @@ import {
     FaCar,
     FaSearch,
     FaEllipsisV,
+    FaExclamation,
+    FaInbox,
+    FaInfo,
+    FaTachometerAlt,
 } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -33,15 +37,19 @@ export default function Kendaraan({ kendaraans }) {
     const itemsPerPage = 8;
 
     const filteredKendaraans = Array.isArray(kendaraans)
-    ? kendaraans.filter(
-        (kendaraan) =>
-            kendaraan?.merek
-                ?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            kendaraan?.plat_kendaraan
-                ?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            kendaraan?.status
-                ?.toLowerCase().includes(searchTerm.toLowerCase())
-    ): [];
+        ? kendaraans.filter(
+              (kendaraan) =>
+                  kendaraan?.merek
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                  kendaraan?.plat_kendaraan
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                  kendaraan?.status
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase())
+          )
+        : [];
 
     const totalPages = Math.ceil(filteredKendaraans.length / itemsPerPage);
 
@@ -83,45 +91,49 @@ export default function Kendaraan({ kendaraans }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // Buat FormData object untuk menangani upload file
         const formDataToSend = new FormData();
-        formDataToSend.append('plat_kendaraan', formData.plat_kendaraan);
-        formDataToSend.append('merek', formData.merek);
-        formDataToSend.append('km', formData.km_awal); // Sesuaikan dengan kolom di database
-        formDataToSend.append('status', formData.status);
-        
+        formDataToSend.append("plat_kendaraan", formData.plat_kendaraan);
+        formDataToSend.append("merek", formData.merek);
+        formDataToSend.append("km", formData.km_awal); // Sesuaikan dengan kolom di database
+        formDataToSend.append("status", formData.status);
+
         if (formData.foto) {
-            formDataToSend.append('foto', formData.foto);
+            formDataToSend.append("foto", formData.foto);
         }
 
         if (isEdit) {
-            router.post(`/kendaraan/${selectedKendaraan.id}`, {
-                _method: 'PUT',
-                ...Object.fromEntries(formDataToSend)
-            }, {
-                onSuccess: () => {
-                    toast.success("Kendaraan berhasil diperbarui", {
-                        position: "top-right",
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
+            router.post(
+                `/kendaraan/${selectedKendaraan.id}`,
+                {
+                    _method: "PUT",
+                    ...Object.fromEntries(formDataToSend),
                 },
-                onError: (errors) => {
-                    toast.error("Gagal memperbarui kendaraan", {
-                        position: "top-right",
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
-                    console.error(errors);
+                {
+                    onSuccess: () => {
+                        toast.success("Kendaraan berhasil diperbarui", {
+                            position: "top-right",
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                        });
+                    },
+                    onError: (errors) => {
+                        toast.error("Gagal memperbarui kendaraan", {
+                            position: "top-right",
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                        });
+                        console.error(errors);
+                    },
                 }
-            });
+            );
         } else {
             router.post("/kendaraan", formDataToSend, {
                 onSuccess: () => {
@@ -144,7 +156,7 @@ export default function Kendaraan({ kendaraans }) {
                         draggable: true,
                     });
                     console.error(errors);
-                }
+                },
             });
         }
 
@@ -173,7 +185,7 @@ export default function Kendaraan({ kendaraans }) {
                         pauseOnHover: true,
                         draggable: true,
                     });
-                }
+                },
             });
         }
     };
@@ -237,7 +249,7 @@ export default function Kendaraan({ kendaraans }) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                             <div className="flex items-center space-x-4">
                                 <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
                                     <FaCar className="text-blue-500 dark:text-blue-400 text-xl" />
@@ -254,14 +266,14 @@ export default function Kendaraan({ kendaraans }) {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-[#313131] rounded-xl shadow-lg overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                                 <div className="relative w-full md:w-auto">
                                     <input
                                         type="text"
                                         placeholder="Cari kendaraan..."
-                                        className="w-full md:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl dark:bg-[#515151] dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
+                                        className="w-full md:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
                                         value={searchTerm}
                                         onChange={(e) =>
                                             setSearchTerm(e.target.value)
@@ -272,7 +284,7 @@ export default function Kendaraan({ kendaraans }) {
                                 <div className="flex flex-col md:flex-row items-center gap-4">
                                     <button
                                         onClick={() => openModal()}
-                                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                                     >
                                         <FaPlus className="text-lg" />
                                         <span>Tambah Kendaraan</span>
@@ -291,7 +303,7 @@ export default function Kendaraan({ kendaraans }) {
                                 </div>
                             ) : (
                                 <table className="w-full">
-                                    <thead className="bg-gray-50 dark:bg-[#515151]">
+                                    <thead className="bg-gray-50 dark:bg-gray-700/60">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 No
@@ -313,96 +325,123 @@ export default function Kendaraan({ kendaraans }) {
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white dark:bg-[#313131] divide-y divide-gray-200 dark:divide-gray-700">
-                                        {currentItems.map((kendaraan, index) => (
-                                            <tr
-                                                key={kendaraan.id}
-                                                className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
-                                            >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                    {indexOfFirstItem + index + 1}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                    {kendaraan.plat_kendaraan}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {kendaraan.merek}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                    {new Intl.NumberFormat(
-                                                        "id-ID"
-                                                    ).format(kendaraan.km)}
-                                                    {" KM"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
-                                                            kendaraan.status === "Tersedia"
-                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                                                : kendaraan.status === "Digunakan"
-                                                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                                        }`}
-                                                    >
-                                                        {kendaraan.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <Menu as="div" className="relative inline-block text-left">
-                                                        <Menu.Button className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md">
-                                                            <FaEllipsisV className="w-4 h-4" />
-                                                        </Menu.Button>
-
-                                                        <Transition
-                                                            as={Fragment}
-                                                            enter="transition ease-out duration-100"
-                                                            enterFrom="transform opacity-0 scale-95"
-                                                            enterTo="transform opacity-100 scale-100"
-                                                            leave="transition ease-in duration-75"
-                                                            leaveFrom="transform opacity-100 scale-100"
-                                                            leaveTo="transform opacity-0 scale-95"
+                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        {currentItems.map(
+                                            (kendaraan, index) => (
+                                                <tr
+                                                    key={kendaraan.id}
+                                                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                                                >
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                        {indexOfFirstItem +
+                                                            index +
+                                                            1}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                        {
+                                                            kendaraan.plat_kendaraan
+                                                        }
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {kendaraan.merek}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                        {new Intl.NumberFormat(
+                                                            "id-ID"
+                                                        ).format(kendaraan.km)}
+                                                        {" KM"}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span
+                                                            className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
+                                                                kendaraan.status ===
+                                                                "Tersedia"
+                                                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                                    : kendaraan.status ===
+                                                                      "Digunakan"
+                                                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                                                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                                            }`}
                                                         >
-                                                            <Menu.Items className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
-                                                                <div className="py-1">
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <button
-                                                                                onClick={() => openModal(kendaraan)}
-                                                                                className={`${
-                                                                                    active 
-                                                                                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' 
-                                                                                        : 'text-gray-700 dark:text-gray-200'
-                                                                                } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
-                                                                            >
-                                                                                <FaEdit className="text-blue-500" />
-                                                                                <span>Edit</span>
-                                                                            </button>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <button
-                                                                                onClick={() => handleDelete(kendaraan.id)}
-                                                                                className={`${
-                                                                                    active 
-                                                                                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' 
-                                                                                        : 'text-gray-700 dark:text-gray-200'
-                                                                                } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
-                                                                            >
-                                                                                <FaTrash className="text-red-500" />
-                                                                                <span>Hapus</span>
-                                                                            </button>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                </div>
-                                                            </Menu.Items>
-                                                        </Transition>
-                                                    </Menu>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                            {kendaraan.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <Menu
+                                                            as="div"
+                                                            className="relative inline-block text-left"
+                                                        >
+                                                            <Menu.Button className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md">
+                                                                <FaEllipsisV className="w-4 h-4" />
+                                                            </Menu.Button>
+
+                                                            <Transition
+                                                                as={Fragment}
+                                                                enter="transition ease-out duration-100"
+                                                                enterFrom="transform opacity-0 scale-95"
+                                                                enterTo="transform opacity-100 scale-100"
+                                                                leave="transition ease-in duration-75"
+                                                                leaveFrom="transform opacity-100 scale-100"
+                                                                leaveTo="transform opacity-0 scale-95"
+                                                            >
+                                                                <Menu.Items className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
+                                                                    <div className="py-1">
+                                                                        <Menu.Item>
+                                                                            {({
+                                                                                active,
+                                                                            }) => (
+                                                                                <button
+                                                                                    onClick={() =>
+                                                                                        openModal(
+                                                                                            kendaraan
+                                                                                        )
+                                                                                    }
+                                                                                    className={`${
+                                                                                        active
+                                                                                            ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                                                                                            : "text-gray-700 dark:text-gray-200"
+                                                                                    } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
+                                                                                >
+                                                                                    <FaEdit className="text-blue-500" />
+                                                                                    <span>
+                                                                                        Edit
+                                                                                    </span>
+                                                                                </button>
+                                                                            )}
+                                                                        </Menu.Item>
+                                                                        <Menu.Item>
+                                                                            {({
+                                                                                active,
+                                                                            }) => (
+                                                                                <button
+                                                                                    onClick={() =>
+                                                                                        handleDelete(
+                                                                                            kendaraan.id
+                                                                                        )
+                                                                                    }
+                                                                                    className={`${
+                                                                                        active
+                                                                                            ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                                                                                            : "text-gray-700 dark:text-gray-200"
+                                                                                    } w-full text-left px-4 py-2 text-sm flex items-center gap-2`}
+                                                                                >
+                                                                                    <FaTrash className="text-red-500" />
+                                                                                    <span>
+                                                                                        Hapus
+                                                                                    </span>
+                                                                                </button>
+                                                                            )}
+                                                                        </Menu.Item>
+                                                                    </div>
+                                                                </Menu.Items>
+                                                            </Transition>
+                                                        </Menu>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        )}
                                     </tbody>
                                 </table>
                             )}
@@ -499,7 +538,7 @@ export default function Kendaraan({ kendaraans }) {
                             leaveFrom="opacity-100"
                             leaveTo="opacity-0"
                         >
-                            <div className="fixed inset-0 bg-gray-500 backdrop-blur-sm bg-opacity-70" />
+                            <div className="fixed inset-0 bg-black/25 backdrop-blur-sm dark:bg-gray-900/80" />
                         </Transition.Child>
 
                         <div className="fixed inset-0 overflow-y-auto">
@@ -513,7 +552,7 @@ export default function Kendaraan({ kendaraans }) {
                                     leaveFrom="opacity-100 scale-100"
                                     leaveTo="opacity-0 scale-95"
                                 >
-                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#313131] p-6 text-left align-middle shadow-xl transition-all">
+                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
                                         <Dialog.Title
                                             as="h3"
                                             className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4"
@@ -531,58 +570,79 @@ export default function Kendaraan({ kendaraans }) {
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     Plat Kendaraan
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    value={
-                                                        formData.plat_kendaraan
-                                                    }
-                                                    onChange={(e) =>
-                                                        setFormData({
-                                                            ...formData,
-                                                            plat_kendaraan:
-                                                                e.target.value,
-                                                        })
-                                                    }
-                                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                    required
-                                                />
+                                                <div className="relative">
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <FaCar className="text-gray-400" />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={
+                                                            formData.plat_kendaraan
+                                                        }
+                                                        onChange={(e) =>
+                                                            setFormData({
+                                                                ...formData,
+                                                                plat_kendaraan:
+                                                                    e.target
+                                                                        .value,
+                                                            })
+                                                        }
+                                                        className="mt-1 pl-10 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                                        required
+                                                        placeholder="Plat Kendaraan"
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     Merek
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    value={formData.merek}
-                                                    onChange={(e) =>
-                                                        setFormData({
-                                                            ...formData,
-                                                            merek: e.target
-                                                                .value,
-                                                        })
-                                                    }
-                                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                    required
-                                                />
+                                                <div className="relative">
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <FaInfo className="text-gray-400" />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.merek}
+                                                        onChange={(e) =>
+                                                            setFormData({
+                                                                ...formData,
+                                                                merek: e.target
+                                                                    .value,
+                                                            })
+                                                        }
+                                                        className="mt-1 pl-10 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                                        required
+                                                        placeholder="Merek kendaraan"
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     Kilometer
                                                 </label>
-                                                <input
-                                                    type="number"
-                                                    value={formData.km_awal}
-                                                    onChange={(e) =>
-                                                        setFormData({
-                                                            ...formData,
-                                                            km_awal: e.target.value,
-                                                        })
-                                                    }
-                                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                    required
-                                                />
+                                                <div className="relative">
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <FaTachometerAlt className="text-gray-400" />
+                                                    </div>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.km_awal}
+                                                        onChange={(e) =>
+                                                            setFormData({
+                                                                ...formData,
+                                                                km_awal:
+                                                                    e.target
+                                                                        .value,
+                                                            })
+                                                        }
+                                                        className="mt-1 pl-10 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                                        required
+                                                        placeholder="Kilometer"
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div>
@@ -598,7 +658,7 @@ export default function Kendaraan({ kendaraans }) {
                                                                 .value,
                                                         })
                                                     }
-                                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
                                                 >
                                                     <option value="Tersedia">
                                                         Tersedia
@@ -615,14 +675,14 @@ export default function Kendaraan({ kendaraans }) {
                                             <div className="mt-6 flex justify-end space-x-3">
                                                 <button
                                                     type="button"
-                                                    className="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                                    className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-colors"
                                                     onClick={closeModal}
                                                 >
                                                     Batal
                                                 </button>
                                                 <button
                                                     type="submit"
-                                                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                                    className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-4 py-2 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-colors"
                                                 >
                                                     {isEdit
                                                         ? "Simpan Perubahan"

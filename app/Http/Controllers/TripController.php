@@ -231,4 +231,36 @@ class TripController extends Controller
                 ->with('message', 'Gagal menutup trip: ' . $e->getMessage());
         }
     }
+
+    public function updateBbm(Request $request, $code_trip)
+    {
+        try {
+            $trip = Trip::where('code_trip', $code_trip)->firstOrFail();
+            
+            $validated = $request->validate([
+                'jenis_bbm' => 'required|string',
+                'jumlah_liter' => 'required|numeric|min:0',
+                'harga_per_liter' => 'required|numeric|min:0',
+                'total_harga' => 'required|numeric|min:0',
+            ]);
+
+            $trip->update([
+                'jenis_bbm' => $validated['jenis_bbm'],
+                'jumlah_liter' => $validated['jumlah_liter'],
+                'harga_per_liter' => $validated['harga_per_liter'],
+                'total_harga_bbm' => $validated['total_harga'],
+            ]);
+
+            return redirect()->back()->with([
+                'type' => 'success',
+                'message' => 'Data BBM berhasil disimpan'
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with([
+                'type' => 'error',
+                'message' => 'Gagal menyimpan data BBM: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
