@@ -25,6 +25,8 @@ import {
     FaMapMarkerAlt,
     FaTachometerAlt,
     FaCalendarAlt,
+    FaArrowUp,
+    FaArrowDown,
 } from "react-icons/fa";
 
 // Registrasi ChartJS components
@@ -372,418 +374,113 @@ export default function Dashboard({
             <DashboardLayout>
                 <div className="p-0 md:px-0">
                     {/* Stat Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        {/* Total Kendaraan */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                         <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mr-4">
-                                    <FaCar className="w-6 h-6" />
-                                </div>
+                            <div className="flex justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                        Total Kendaraan
-                                    </p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                        {vehicleStats?.totalVehicles || 0}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="mt-3 flex items-center text-sm">
-                                <span className="text-emerald-500 dark:text-emerald-400 font-medium flex items-center">
-                                    <svg
-                                        className="w-4 h-4 mr-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                        ></path>
-                                    </svg>
-                                    {vehicleStats?.availableVehicles || 0}{" "}
-                                    tersedia
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Total Driver */}
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mr-4">
-                                    <FaUserTie className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                        Total Driver
-                                    </p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                        {driverStats?.totalDrivers || 0}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="mt-3 flex items-center text-sm">
-                                <span className="text-emerald-500 dark:text-emerald-400 font-medium flex items-center">
-                                    <svg
-                                        className="w-4 h-4 mr-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                        ></path>
-                                    </svg>
-                                    {driverStats?.availableDrivers || 0}{" "}
-                                    tersedia
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Total Trip */}
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4">
-                                    <FaRoute className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                         Total Trip
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                         {tripStats?.totalTrips || 0}
                                     </p>
                                 </div>
+                                <div className="bg-blue-100 dark:bg-blue-900/30 h-12 w-12 rounded-lg flex items-center justify-center">
+                                    <FaRoute className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                </div>
                             </div>
-                            <div className="mt-3 flex items-center text-sm">
-                                <span className="text-amber-500 dark:text-amber-400 font-medium flex items-center">
-                                    <svg
-                                        className="w-4 h-4 mr-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                                        ></path>
-                                    </svg>
-                                    {tripStats?.activeTrips || 0} sedang
-                                    berjalan
+                            <div className="mt-4 flex items-center text-sm">
+                                <span className="text-green-500 dark:text-green-400 flex items-center">
+                                    <FaArrowUp className="h-3 w-3 mr-1" />
+                                    {tripStats?.activeTrips || 0}
+                                </span>
+                                <span className="text-gray-500 dark:text-gray-400 ml-2">
+                                    Trip aktif saat ini
                                 </span>
                             </div>
                         </div>
 
-                        {/* Total Kilometer */}
                         <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 mr-4">
-                                    <FaTachometerAlt className="w-6 h-6" />
-                                </div>
+                            <div className="flex justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                        Total Kilometer
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Total Jarak
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                         {tripStats?.totalKilometers?.toLocaleString() ||
-                                            "0"}{" "}
+                                            0}{" "}
                                         km
                                     </p>
                                 </div>
+                                <div className="bg-purple-100 dark:bg-purple-900/30 h-12 w-12 rounded-lg flex items-center justify-center">
+                                    <FaChartLine className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                                </div>
                             </div>
-                            <div className="mt-3 flex items-center text-sm">
-                                <span className="text-emerald-500 dark:text-emerald-400 font-medium flex items-center">
-                                    <svg
-                                        className="w-4 h-4 mr-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                        ></path>
-                                    </svg>
+                            <div className="mt-4 flex items-center text-sm">
+                                <span className="text-green-500 dark:text-green-400 flex items-center">
+                                    <FaArrowUp className="h-3 w-3 mr-1" />
                                     {tripStats?.weeklyKilometers?.toLocaleString() ||
-                                        "320"}{" "}
-                                    km minggu ini
+                                        0}
+                                </span>
+                                <span className="text-gray-500 dark:text-gray-400 ml-2">
+                                    km dalam 7 hari terakhir
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
+                            <div className="flex justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Total Kendaraan
+                                    </p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                        {vehicleStats?.totalVehicles || 0}
+                                    </p>
+                                </div>
+                                <div className="bg-green-100 dark:bg-green-900/30 h-12 w-12 rounded-lg flex items-center justify-center">
+                                    <FaCar className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                </div>
+                            </div>
+                            <div className="mt-4 flex items-center text-sm">
+                                <span className="text-green-500 dark:text-green-400 flex items-center">
+                                    <FaArrowUp className="h-3 w-3 mr-1" />
+                                    {vehicleStats?.availableVehicles || 0}
+                                </span>
+                                <span className="text-gray-500 dark:text-gray-400 ml-2">
+                                    kendaraan tersedia
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
+                            <div className="flex justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Total Driver
+                                    </p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                        {driverStats?.totalDrivers || 0}
+                                    </p>
+                                </div>
+                                <div className="bg-amber-100 dark:bg-amber-900/30 h-12 w-12 rounded-lg flex items-center justify-center">
+                                    <FaUserTie className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                                </div>
+                            </div>
+                            <div className="mt-4 flex items-center text-sm">
+                                <span className="text-green-500 dark:text-green-400 flex items-center">
+                                    <FaArrowUp className="h-3 w-3 mr-1" />
+                                    {driverStats?.availableDrivers || 0}
+                                </span>
+                                <span className="text-gray-500 dark:text-gray-400 ml-2">
+                                    driver tersedia
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Charts Section */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        {/* Trip Activity Chart */}
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <div className="h-80">
-                                <Line
-                                    data={tripActivityData}
-                                    options={tripActivityOptions}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Vehicle Usage Chart */}
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <div className="h-80">
-                                <Bar
-                                    data={vehicleUsageData}
-                                    options={vehicleUsageOptions}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Additional Charts and Tables */}
+                    {/* Monthly Stats and Chart */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                        {/* Driver Statistics Section */}
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
-                                <FaUserTie className="mr-2 text-indigo-500 dark:text-indigo-400" />
-                                Status Driver
-                            </h3>
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl">
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            Tersedia
-                                        </p>
-                                        <p className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                                            {driverStats?.driversByStatus
-                                                ?.Tersedia || 0}
-                                        </p>
-                                    </div>
-                                    <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl">
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            Sedang Bertugas
-                                        </p>
-                                        <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
-                                            {driverStats?.driversByStatus?.[
-                                                "Sedang Bertugas"
-                                            ] || 0}
-                                        </p>
-                                    </div>
-                                    <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl">
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            Cuti
-                                        </p>
-                                        <p className="text-xl font-bold text-red-600 dark:text-red-400">
-                                            {driverStats?.driversByStatus
-                                                ?.Cuti || 0}
-                                        </p>
-                                    </div>
-                                    <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl">
-                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            Lainnya
-                                        </p>
-                                        <p className="text-xl font-bold text-gray-600 dark:text-gray-300">
-                                            {driverStats?.driversByStatus
-                                                ?.Lainnya || 0}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Driver Baru (30 hari terakhir)
-                                    </h4>
-                                    <div className="flex items-center">
-                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mr-2 overflow-hidden">
-                                            <div
-                                                className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2.5 rounded-full"
-                                                style={{
-                                                    width: `${
-                                                        (driverStats?.newDrivers /
-                                                            driverStats?.totalDrivers) *
-                                                        100
-                                                    }%`,
-                                                }}
-                                            ></div>
-                                        </div>
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {driverStats?.newDrivers || 0}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Recent Trips Table */}
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md lg:col-span-2">
-                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
-                                <FaRoute className="mr-2 text-blue-500 dark:text-blue-400" />
-                                Trip Terbaru
-                            </h3>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                Kode Trip
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                Kendaraan
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                Driver
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                Tujuan
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                Tanggal
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white dark:bg-[#1f2937] divide-y divide-gray-200 dark:divide-gray-700">
-                                        {(recentTrips && recentTrips.length > 0
-                                            ? recentTrips
-                                            : "Tidak ada data"
-                                        ).map((trip) => (
-                                            <tr
-                                                key={trip.id}
-                                                className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150"
-                                            >
-                                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                                                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md text-xs">
-                                                        {trip.code_trip}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                                    {trip.kendaraan?.merek ||
-                                                        "-"}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                                    {trip.driver?.name || "-"}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                                    <div className="flex items-center">
-                                                        <FaMapMarkerAlt className="text-red-500 dark:text-red-400 mr-1 flex-shrink-0" />
-                                                        <span>
-                                                            {trip.tujuan}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                                    <div className="flex flex-col">
-                                                        <span>
-                                                            {formatDate(
-                                                                trip.waktu_keberangkatan
-                                                            )}
-                                                        </span>
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {formatTime(
-                                                                trip.waktu_keberangkatan
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3 text-sm">
-                                                    <span
-                                                        className={`px-2.5 py-1 text-xs rounded-full inline-flex items-center ${
-                                                            trip.status ===
-                                                            "Sedang Berjalan"
-                                                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-                                                                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                        }`}
-                                                    >
-                                                        {trip.status ===
-                                                            "Sedang Berjalan" && (
-                                                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mr-1.5 animate-pulse"></span>
-                                                        )}
-                                                        {trip.status ===
-                                                            "Selesai" && (
-                                                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>
-                                                        )}
-                                                        {trip.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* View All Link */}
-                            <div className="mt-4 text-center">
-                                <Link
-                                    href={route("trips.index")}
-                                    className="inline-flex items-center text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
-                                >
-                                    Lihat Semua Trip
-                                    <svg
-                                        className="ml-1 w-4 h-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M9 5l7 7-7 7"
-                                        ></path>
-                                    </svg>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        {/* Top Destinations */}
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
-                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
-                                <FaMapMarkerAlt className="mr-2 text-red-500 dark:text-red-400" />
-                                Tujuan Terpopuler
-                            </h3>
-                            <div className="space-y-3">
-                                {(
-                                    tripStats?.topDestinations || [
-                                        { name: "Bandung", count: 12 },
-                                        { name: "Jakarta", count: 8 },
-                                        { name: "Surabaya", count: 6 },
-                                        { name: "Yogyakarta", count: 5 },
-                                    ]
-                                ).map((destination, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between"
-                                    >
-                                        <div className="flex items-center">
-                                            <span className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-700 dark:text-gray-300 font-medium mr-3">
-                                                {index + 1}
-                                            </span>
-                                            <span className="text-gray-800 dark:text-gray-200">
-                                                {destination.name}
-                                            </span>
-                                        </div>
-                                        <span className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-lg text-xs font-medium">
-                                            {destination.count} trip
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Monthly Stats */}
                         <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
                                 <FaCalendarAlt className="mr-2 text-blue-500 dark:text-blue-400" />
@@ -795,25 +492,45 @@ export default function Dashboard({
                                         Total Trip Bulan Ini
                                     </p>
                                     <p className="text-2xl font-bold">
-                                        {tripStats?.monthlyTrips || 42}
+                                        {tripStats?.monthlyTrips || 0}
                                     </p>
                                     <div className="mt-2 text-xs flex items-center text-indigo-100">
-                                        <svg
-                                            className="w-3 h-3 mr-1"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                            ></path>
-                                        </svg>
+                                        {tripStats?.monthlyTripGrowth >= 0 ? (
+                                            <svg
+                                                className="w-3 h-3 mr-1"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                                                ></path>
+                                            </svg>
+                                        ) : (
+                                            <svg
+                                                className="w-3 h-3 mr-1"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                                                ></path>
+                                            </svg>
+                                        )}
                                         <span>
-                                            {tripStats?.monthlyTripGrowth || 12}
+                                            {Math.abs(
+                                                tripStats?.monthlyTripGrowth ||
+                                                    0
+                                            )}
                                             % dari bulan lalu
                                         </span>
                                     </div>
@@ -824,32 +541,163 @@ export default function Dashboard({
                                     </p>
                                     <p className="text-2xl font-bold">
                                         {tripStats?.monthlyKilometers?.toLocaleString() ||
-                                            "1,250"}{" "}
+                                            0}{" "}
                                         km
                                     </p>
                                     <div className="mt-2 text-xs flex items-center text-emerald-100">
-                                        <svg
-                                            className="w-3 h-3 mr-1"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                            ></path>
-                                        </svg>
+                                        {tripStats?.monthlyKilometerGrowth >=
+                                        0 ? (
+                                            <svg
+                                                className="w-3 h-3 mr-1"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                                                ></path>
+                                            </svg>
+                                        ) : (
+                                            <svg
+                                                className="w-3 h-3 mr-1"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                                                ></path>
+                                            </svg>
+                                        )}
                                         <span>
-                                            {tripStats?.monthlyKilometerGrowth ||
-                                                8}
+                                            {Math.abs(
+                                                tripStats?.monthlyKilometerGrowth ||
+                                                    0
+                                            )}
                                             % dari bulan lalu
                                         </span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="lg:col-span-2 bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                                <FaChartLine className="mr-2 text-blue-500 dark:text-blue-400" />
+                                Aktivitas Trip 7 Hari Terakhir
+                            </h3>
+                            <div className="h-64">
+                                <Bar
+                                    data={tripActivityData}
+                                    options={tripActivityOptions}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Recent Trips */}
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                            <FaRoute className="mr-2 text-blue-500 dark:text-blue-400" />
+                            Trip Terbaru
+                        </h3>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead>
+                                    <tr>
+                                        <th className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Kode Trip
+                                        </th>
+                                        <th className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Tujuan
+                                        </th>
+                                        <th className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Kendaraan
+                                        </th>
+                                        <th className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Driver
+                                        </th>
+                                        <th className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Waktu Berangkat
+                                        </th>
+                                        <th className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200 dark:bg-[#1f2937] dark:divide-gray-700">
+                                    {recentTrips && recentTrips.length > 0 ? (
+                                        recentTrips.map((trip) => (
+                                            <tr
+                                                key={trip.id}
+                                                className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                            >
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                                    {trip.code_trip}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                    {trip.tujuan}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                    {trip.kendaraan?.merek} (
+                                                    {
+                                                        trip.kendaraan
+                                                            ?.plat_kendaraan
+                                                    }
+                                                    )
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                    {trip.driver?.name || "-"}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                    {new Date(
+                                                        trip.waktu_keberangkatan
+                                                    ).toLocaleString("id-ID", {
+                                                        day: "numeric",
+                                                        month: "short",
+                                                        year: "numeric",
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                    })}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                    <span
+                                                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                        ${
+                                                            trip.status ===
+                                                            "Sedang Berjalan"
+                                                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                                                : trip.status ===
+                                                                  "Selesai"
+                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                                        }`}
+                                                    >
+                                                        {trip.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td
+                                                colSpan="6"
+                                                className="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                                            >
+                                                Tidak ada data trip terbaru
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

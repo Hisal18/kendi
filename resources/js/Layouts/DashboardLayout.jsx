@@ -47,15 +47,19 @@ export default function DashboardLayout({ children }) {
                             <div className="w-full md:w-auto">
                                 <h1 className="text-3xl font-bold p-0 bg-gradient-to-r from-indigo-500 to-purple-600 text-transparent bg-clip-text animate-slide">
                                     {url.startsWith("/dashboard") &&
-                                        "Dashboard"}
-                                    {url.startsWith("/user") && "Users"}
-                                    {url.startsWith("/trip") && "Trip"}
-                                    {url.startsWith("/profile") && "Profile"}
-                                    {url.startsWith("/driver") && "Driver"}
+                                        "Dashboard Ringkasan dan statistik operasional kendaraan"}
+                                    {url.startsWith("/user") &&
+                                        "Manajemen Pengguna dan Hak Akses"}
+                                    {url.startsWith("/trip") &&
+                                        "Manajemen Trip dan Perjalanan Dinas"}
+                                    {url.startsWith("/profile") &&
+                                        "Pengaturan Profil Pengguna"}
+                                    {url.startsWith("/driver") &&
+                                        "Manajemen Data Driver dan Sopir"}
                                     {url.startsWith("/tamu") &&
-                                        "Kendaraan Tamu"}
+                                        "Manajemen Kendaraan Tamu dan Pengunjung"}
                                     {url.startsWith("/kendaraan") &&
-                                        "Kendaraan Dinas"}
+                                        "Manajemen Armada Kendaraan Dinas"}
                                 </h1>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     {new Date().toLocaleDateString("id-ID", {

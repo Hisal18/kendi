@@ -26,7 +26,7 @@ export default function User({ users, filters }) {
     const [isEdit, setIsEdit] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // Konfigurasi toast
+    // Modifikasi konfigurasi toast
     const toastConfig = {
         position: "top-right",
         autoClose: 2000,
@@ -35,6 +35,7 @@ export default function User({ users, filters }) {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        theme: "colored", // Mengubah theme menjadi colored untuk tampilan yang lebih baik
     };
 
     const createForm = useForm({
@@ -76,10 +77,10 @@ export default function User({ users, filters }) {
             onSuccess: () => {
                 setShowModal(false);
                 createForm.reset();
-                toast.success("User berhasil ditambahkan", toastConfig);
+                toast.success("✅ User berhasil ditambahkan", toastConfig);
             },
             onError: () => {
-                toast.error("Gagal menambahkan user", toastConfig);
+                toast.error("❌ Gagal menambahkan user", toastConfig);
             },
         });
     };
@@ -91,10 +92,10 @@ export default function User({ users, filters }) {
                 setIsEditModalOpen(false);
                 setEditingUser(null);
                 editForm.reset();
-                toast.success("User berhasil diperbarui", toastConfig);
+                toast.success("✅ User berhasil diperbarui", toastConfig);
             },
             onError: () => {
-                toast.error("Gagal memperbarui user", toastConfig);
+                toast.error("❌ Gagal memperbarui user", toastConfig);
             },
         });
     };
@@ -103,10 +104,10 @@ export default function User({ users, filters }) {
         if (confirm("Apakah Anda yakin ingin menghapus user ini?")) {
             router.delete(route("users.destroy", userId), {
                 onSuccess: () => {
-                    toast.success("User berhasil dihapus", toastConfig);
+                    toast.success("✅ User berhasil dihapus", toastConfig);
                 },
                 onError: () => {
-                    toast.error("Gagal menghapus user", toastConfig);
+                    toast.error("❌ Gagal menghapus user", toastConfig);
                 },
             });
         }
@@ -128,7 +129,7 @@ export default function User({ users, filters }) {
         <>
             <Head title="User Management" />
             <DashboardLayout>
-                <div className="py-2 dark:bg-[#212121]">
+                <div className="py-2 dark:bg-gray-900">
                     <div className="w-full mx-auto sm:px-6 lg:px-0">
                         <div className="flex justify-between items-center mb-6">
                             <div>
@@ -145,14 +146,14 @@ export default function User({ users, filters }) {
                                     setShowModal(true);
                                     createForm.reset();
                                 }}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center gap-2 transition-colors"
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center gap-2 transition-colors shadow-sm"
                             >
                                 <FaUserPlus />
                                 <span>Tambah User</span>
                             </button>
                         </div>
 
-                        <div className="bg-white dark:bg-[#313131] overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
                             <div className="flex p-6 justify-between items-center border-b border-gray-200 dark:border-gray-700">
                                 <div className="relative w-full md:w-1/3">
                                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -163,7 +164,7 @@ export default function User({ users, filters }) {
                                         placeholder="Cari user..."
                                         onChange={handleSearch}
                                         defaultValue={filters.search}
-                                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#515151] dark:border-gray-600 dark:text-white transition-colors"
+                                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
                                     />
                                 </div>
                             </div>
@@ -172,39 +173,39 @@ export default function User({ users, filters }) {
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead>
                                         <tr>
-                                            <th className="px-6 py-3 bg-gray-50 dark:bg-[#414141] text-left">
+                                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left">
                                                 <span className="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Nama
                                                 </span>
                                             </th>
-                                            <th className="px-6 py-3 bg-gray-50 dark:bg-[#414141] text-left">
+                                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left">
                                                 <span className="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Email
                                                 </span>
                                             </th>
-                                            <th className="px-6 py-3 bg-gray-50 dark:bg-[#414141] text-left">
+                                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left">
                                                 <span className="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Role
                                                 </span>
                                             </th>
 
-                                            <th className="px-6 py-3 bg-gray-50 dark:bg-[#414141] text-left">
+                                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left">
                                                 <span className="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Aksi
                                                 </span>
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200 dark:bg-[#313131] dark:divide-gray-700">
+                                    <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                                         {users.data.map((user) => (
                                             <tr
                                                 key={user.id}
-                                                className="hover:bg-gray-100 dark:hover:bg-[#414141] transition-colors"
+                                                className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
                                                     <div className="flex items-center">
-                                                        <div className="flex-shrink-0 h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                                            <FaUser className="text-gray-500 dark:text-gray-400" />
+                                                        <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-full flex items-center justify-center">
+                                                            <FaUser className="text-blue-500 dark:text-blue-400" />
                                                         </div>
                                                         <div className="ml-4">
                                                             <div className="font-medium">
@@ -221,8 +222,8 @@ export default function User({ users, filters }) {
                                                         className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                                             user.role ===
                                                             "admin"
-                                                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                                                : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                                                ? "bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 dark:from-blue-900 dark:to-indigo-900 dark:text-blue-300"
+                                                                : "bg-gradient-to-r from-green-100 to-teal-100 text-green-800 dark:from-green-900 dark:to-teal-900 dark:text-green-300"
                                                         }`}
                                                     >
                                                         {user.role}
@@ -237,7 +238,7 @@ export default function User({ users, filters }) {
                                                                     user
                                                                 )
                                                             }
-                                                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 transition-colors flex items-center gap-1"
+                                                            className="px-3 py-1 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded-md hover:from-blue-100 hover:to-blue-200 dark:from-blue-900 dark:to-blue-800 dark:text-blue-300 dark:hover:from-blue-800 dark:hover:to-blue-700 transition-colors flex items-center gap-1 shadow-sm"
                                                         >
                                                             <FaEdit className="text-xs" />
                                                             <span>Edit</span>
@@ -248,7 +249,7 @@ export default function User({ users, filters }) {
                                                                     user.id
                                                                 )
                                                             }
-                                                            className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-colors flex items-center gap-1"
+                                                            className="px-3 py-1 bg-gradient-to-r from-red-50 to-red-100 text-red-700 rounded-md hover:from-red-100 hover:to-red-200 dark:from-red-900 dark:to-red-800 dark:text-red-300 dark:hover:from-red-800 dark:hover:to-red-700 transition-colors flex items-center gap-1 shadow-sm"
                                                         >
                                                             <FaTrash className="text-xs" />
                                                             <span>Hapus</span>
@@ -263,7 +264,7 @@ export default function User({ users, filters }) {
 
                             {/* Pagination */}
                             {users.links && (
-                                <div className="px-6 py-4 bg-white dark:bg-[#313131] border-t border-gray-200 dark:border-gray-700">
+                                <div className="px-6 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                                     <div className="flex justify-between items-center">
                                         <div className="text-sm text-gray-500 dark:text-gray-400">
                                             Showing {users.from} to {users.to}{" "}
@@ -279,12 +280,12 @@ export default function User({ users, filters }) {
                                                     }
                                                     className={`px-3 py-1 rounded ${
                                                         link.active
-                                                            ? "bg-blue-500 text-white"
-                                                            : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                                                            ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
+                                                            : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                                                     } ${
                                                         !link.url &&
                                                         "opacity-50 cursor-not-allowed"
-                                                    }`}
+                                                    } transition-colors`}
                                                     dangerouslySetInnerHTML={{
                                                         __html: link.label,
                                                     }}
@@ -300,7 +301,7 @@ export default function User({ users, filters }) {
                 </div>
             </DashboardLayout>
 
-            {/* Modal Tambah User */}
+            {/* Modal Tambah User - Perbaikan warna */}
             <Transition appear show={showModal} as={Fragment}>
                 <Dialog
                     as="div"
@@ -330,7 +331,7 @@ export default function User({ users, filters }) {
                                 leaveFrom="opacity-100 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#313131] p-6 text-left align-middle shadow-xl transition-all">
+                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700">
                                     <Dialog.Title
                                         as="h3"
                                         className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4 flex items-center"
@@ -360,7 +361,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="Masukkan nama lengkap"
                                                     required
                                                 />
@@ -391,7 +392,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="email@example.com"
                                                     required
                                                 />
@@ -422,7 +423,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="Minimal 8 karakter"
                                                     required
                                                 />
@@ -454,7 +455,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="Ulangi password"
                                                     required
                                                 />
@@ -477,7 +478,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     required
                                                 >
                                                     <option value="user">
@@ -501,14 +502,14 @@ export default function User({ users, filters }) {
                                                 onClick={() =>
                                                     setShowModal(false)
                                                 }
-                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
                                             >
                                                 Batal
                                             </button>
                                             <button
                                                 type="submit"
                                                 disabled={createForm.processing}
-                                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+                                                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 border border-transparent rounded-md shadow-sm hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center transition-colors"
                                             >
                                                 {createForm.processing ? (
                                                     <>
@@ -552,7 +553,7 @@ export default function User({ users, filters }) {
                 </Dialog>
             </Transition>
 
-            {/* Modal Edit User */}
+            {/* Modal Edit User - Similar style updates */}
             <Transition appear show={isEditModalOpen} as={Fragment}>
                 <Dialog
                     as="div"
@@ -582,7 +583,7 @@ export default function User({ users, filters }) {
                                 leaveFrom="opacity-100 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#313131] p-6 text-left align-middle shadow-xl transition-all">
+                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700">
                                     <Dialog.Title
                                         as="h3"
                                         className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4 flex items-center"
@@ -612,7 +613,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="Masukkan nama lengkap"
                                                     required
                                                 />
@@ -641,7 +642,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="email@example.com"
                                                     required
                                                 />
@@ -672,7 +673,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="Kosongkan jika tidak ingin mengubah"
                                                 />
                                             </div>
@@ -703,7 +704,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     placeholder="Ulangi password"
                                                 />
                                             </div>
@@ -725,7 +726,7 @@ export default function User({ users, filters }) {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                                     required
                                                 >
                                                     <option value="user">
@@ -749,14 +750,14 @@ export default function User({ users, filters }) {
                                                 onClick={() =>
                                                     setIsEditModalOpen(false)
                                                 }
-                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
                                             >
                                                 Batal
                                             </button>
                                             <button
                                                 type="submit"
                                                 disabled={editForm.processing}
-                                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+                                                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 border border-transparent rounded-md shadow-sm hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center transition-colors"
                                             >
                                                 {editForm.processing ? (
                                                     <>
@@ -812,7 +813,8 @@ export default function User({ users, filters }) {
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
-                theme="light"
+                theme="colored"
+                className="toast-container"
             />
         </>
     );

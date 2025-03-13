@@ -284,19 +284,6 @@ export default function Sidebar() {
                 </div>
             </div>
 
-            {/* Floating hamburger button that's always visible on mobile */}
-            <button
-                onClick={() => setIsSidebarOpen(true)}
-                className={`fixed bottom-6 right-6 p-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full text-white lg:hidden z-40 shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 ${
-                    isSidebarOpen
-                        ? "opacity-0 pointer-events-none"
-                        : "opacity-100"
-                }`}
-                aria-label="Open menu"
-            >
-                <FaBars className="w-5 h-5" />
-            </button>
-
             {/* Modal Konfirmasi Logout */}
             {showLogoutModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">

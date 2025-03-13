@@ -44,13 +44,11 @@ const toastConfig = {
 
 export default function Tamu({ tamus: initialsTamus, auth }) {
     const [tamus, setTamus] = useState(initialsTamus || []);
-    const [currentTime, setCurrentTime] = useState(new Date());
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [showPopup, setShowPopup] = useState(false);
-    const [showExportDropdown, setShowExportDropdown] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
     const [previewPhotos, setPreviewPhotos] = useState([]);
     const [photos, setPhotos] = useState([]);
     const fileInputRef = useRef(null);
@@ -66,7 +64,6 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedTamu, setSelectedTamu] = useState(null);
     const [closeKendaraan, setCloseKendaraan] = useState(false);
-    const [kmAkhir, setKmAkhir] = useState("");
     const fileInputRefClose = useRef(null);
     const [isClosingTamu, setIsClosingTamu] = useState(false);
 
@@ -112,12 +109,10 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
         return pages;
     };
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
+    const handleItemsPerPageChange = (value) => {
+        setItemsPerPage(value);
+        setCurrentPage(1);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -415,17 +410,6 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
         );
         toast.info("Foto berhasil dihapus!", toastConfig);
     };
-
-    const tamu = tamus.filter((tamu) => {
-        // Filter berdasarkan status 'New' dan tanggal hari ini
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Set waktu ke awal hari
-
-        const tamuDate = new Date(tamu.waktu_kedatangan);
-        tamuDate.setHours(0, 0, 0, 0); // Set waktu ke awal hari
-
-        return tamu.status === "New" && tamuDate.getTime() === today.getTime();
-    });
 
     // Fungsi untuk export ke Excel berdasarkan bulan atau semua data
     const exportToExcel = () => {
@@ -761,41 +745,32 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
         <>
             <Head title="Tamu" />
             <DashboardLayout>
-                <div className="mb-4 text-white">
-                    <h1 className="text-3xl font-bold mb-2 text-gray-500 dark:text-gray-400">
-                        Monitoring Kendaraan Tamu
-                    </h1>
-                    <p className="opacity-90 text-gray-700 dark:text-gray-500">
-                        Data monitoring kendaraan hari ini -{" "}
-                        {dateFormat(currentTime, "dd mmmm yyyy, HH:MM:ss")}
-                    </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
-                                <FaCar className="text-blue-600 dark:text-blue-400 text-xl" />
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 rounded-full">
+                                <FaCar className="text-blue-600 dark:text-blue-400 text-lg sm:text-xl" />
                             </div>
                             <div>
-                                <h3 className="text-gray-500 dark:text-gray-400 text-sm">
+                                <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                                     Total Kendaraan
                                 </h3>
-                                <p className="text-2xl font-bold text-gray-800 dark:text-white">
+                                <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
                                     {tamus.length}
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
-                                <FaArrowRight className="text-green-500 dark:text-green-400 text-xl" />
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="bg-green-100 dark:bg-green-900/30 p-2 sm:p-3 rounded-full">
+                                <FaArrowRight className="text-green-600 dark:text-green-400 text-lg sm:text-xl" />
                             </div>
                             <div>
-                                <h3 className="text-gray-500 dark:text-gray-400 text-sm">
+                                <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                                     Kendaraan Masuk
                                 </h3>
-                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                                     {
                                         tamus.filter(
                                             (tamu) => tamu.status === "New"
@@ -805,75 +780,74 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-red-100 dark:bg-red-900 p-3 rounded-full">
-                                <FaArrowLeft className="text-red-500 dark:text-red-400 text-xl" />
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="bg-red-100 dark:bg-red-900/30 p-2 sm:p-3 rounded-full">
+                                <FaArrowLeft className="text-red-600 dark:text-red-400 text-lg sm:text-xl" />
                             </div>
                             <div>
-                                <h3 className="text-gray-500 dark:text-gray-400 text-sm">
+                                <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                                     Kendaraan Keluar
                                 </h3>
-                                <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
                                     {
                                         tamus.filter(
-                                            (tamu) => tamu.status === "Close"
+                                            (tamu) => tamu.status === "Trip"
                                         ).length
                                     }
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
-                                <FaParking className="text-purple-500 dark:text-purple-400 text-xl" />
+                    <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="bg-purple-100 dark:bg-purple-900/30 p-2 sm:p-3 rounded-full">
+                                <FaParking className="text-purple-600 dark:text-purple-400 text-lg sm:text-xl" />
                             </div>
                             <div>
-                                <h3 className="text-gray-500 dark:text-gray-400 text-sm">
-                                    Dalam Parkiran
+                                <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
+                                    Total Tamu
                                 </h3>
-                                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                    {
-                                        tamus.filter(
-                                            (tamu) => tamu.status === "New"
-                                        ).length
-                                    }
+                                <p className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                    {tamus.length}
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-lg overflow-hidden">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                            <div className="relative w-full md:w-auto">
-                                <input
-                                    type="text"
-                                    placeholder="Cari kendaraan..."
-                                    className="w-full md:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
-                                    value={searchTerm}
-                                    onChange={(e) =>
-                                        setSearchTerm(e.target.value)
-                                    }
-                                />
-                                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                    <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="max-w-full sm:w-1/4">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Cari kendaraan..."
+                                        className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
+                                        value={searchTerm}
+                                        onChange={(e) =>
+                                            setSearchTerm(e.target.value)
+                                        }
+                                    />
+                                    <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                                </div>
                             </div>
-                            <div className="flex flex-col md:flex-row items-center gap-4">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
                                 {/* Button Tambah Data */}
                                 <button
                                     onClick={() => setShowPopup(true)}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
+                                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full sm:w-auto"
                                 >
-                                    <FaPlus className="text-lg" />
-                                    <span>Tambah Data</span>
+                                    <FaCar className="text-lg" />
+                                    <span>Kendaraan Masuk</span>
                                 </button>
 
-                                {/* Export Excel Button */}
+                                {/* Dropdown Export */}
                                 {auth.user.role === "admin" && (
                                     <button
                                         onClick={() => setShowExportModal(true)}
-                                        className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
+                                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full sm:w-auto"
                                     >
                                         <FaFileExcel className="text-lg" />
                                         <span>Export Excel</span>
@@ -1058,59 +1032,86 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                         )}
 
                         {/* Pagination baru yang lebih modern */}
-                        <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f2937] sticky bottom-0 left-0 right-0 shadow-md">
+                            {/* Info showing entries - Responsive text size */}
+                            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left mb-4 sm:mb-0">
                                 Showing{" "}
                                 <span className="font-medium mx-1">
                                     {indexOfFirstItem + 1}
                                 </span>
                                 to{" "}
                                 <span className="font-medium mx-1">
-                                    {Math.min(
-                                        indexOfLastItem,
-                                        filteredTamus.length
-                                    )}
+                                    {Math.min(indexOfLastItem, tamus.length)}
                                 </span>
                                 of{" "}
                                 <span className="font-medium mx-1">
-                                    {filteredTamus.length}
+                                    {tamus.length}
                                 </span>{" "}
                                 entries
                             </div>
 
-                            <div className="flex items-center space-x-2">
-                                {/* Previous Button */}
+                            {/* Items per page selector - Centered on desktop */}
+                            <div className="flex items-center sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:border-gray-700 px-3 py-2">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                    Tampilkan
+                                </span>
+                                <select
+                                    value={itemsPerPage}
+                                    onChange={(e) =>
+                                        handleItemsPerPageChange(
+                                            Number(e.target.value)
+                                        )
+                                    }
+                                    className="ml-3 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium px-3 py-1.5 border-0 focus:ring-2 focus:ring-blue-500 transition-all duration-200 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                                >
+                                    <option value={8} className="py-4">
+                                        8 baris
+                                    </option>
+                                    <option value={16} className="py-4">
+                                        16 baris
+                                    </option>
+                                    <option
+                                        value={tamus.length}
+                                        className="py-4"
+                                    >
+                                        Semua baris
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                {/* Previous Button - Responsive sizing */}
                                 <button
                                     onClick={() => paginate(currentPage - 1)}
                                     disabled={currentPage === 1}
-                                    className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                                    className={`flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-md ${
                                         currentPage === 1
-                                            ? "text-gray-400 cursor-not-allowed"
-                                            : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                     } transition-colors duration-200`}
                                 >
-                                    <FaChevronLeft className="w-4 h-4" />
+                                    <FaChevronLeft className="w-3 sm:w-4 h-3 sm:h-4" />
                                 </button>
 
-                                {/* Page Numbers */}
-                                <div className="flex items-center space-x-1">
+                                {/* Page Numbers - Desktop View */}
+                                <div className="hidden sm:flex items-center mx-2">
                                     {getPaginationNumbers().map(
                                         (page, index) => (
                                             <React.Fragment key={index}>
                                                 {page === "..." ? (
-                                                    <span className="flex items-center justify-center w-10 h-10">
-                                                        <FaEllipsisV className="w-4 h-4 text-gray-400" />
+                                                    <span className="flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10">
+                                                        <FaEllipsisH className="w-3 sm:w-4 h-3 sm:h-4 text-gray-400" />
                                                     </span>
                                                 ) : (
                                                     <button
                                                         onClick={() =>
                                                             paginate(page)
                                                         }
-                                                        className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                                                        className={`flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-full mx-1 ${
                                                             currentPage === page
-                                                                ? "bg-blue-500 text-white"
-                                                                : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                        } transition-colors duration-200`}
+                                                                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
+                                                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        } transition-all duration-200`}
                                                     >
                                                         {page}
                                                     </button>
@@ -1120,17 +1121,22 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                     )}
                                 </div>
 
-                                {/* Next Button */}
+                                {/* Mobile Pagination Info */}
+                                <span className="mx-3 sm:hidden text-xs font-medium text-gray-600 dark:text-gray-300">
+                                    {currentPage} / {totalPages}
+                                </span>
+
+                                {/* Next Button - Responsive sizing */}
                                 <button
                                     onClick={() => paginate(currentPage + 1)}
                                     disabled={currentPage === totalPages}
-                                    className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                                    className={`flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-md ${
                                         currentPage === totalPages
-                                            ? "text-gray-400 cursor-not-allowed"
-                                            : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                     } transition-colors duration-200`}
                                 >
-                                    <FaChevronRight className="w-4 h-4" />
+                                    <FaChevronRight className="w-3 sm:w-4 h-3 sm:h-4" />
                                 </button>
                             </div>
                         </div>

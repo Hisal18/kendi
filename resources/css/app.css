@@ -2,37 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-/* width */
+/* Custom Scrollbar Styling */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
+    height: 10px;
 }
 
-/* Track */
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: rgba(241, 241, 241, 0.1);
+    border-radius: 10px;
 }
 
 .dark ::-webkit-scrollbar-track {
-    background: #2d2d2d;
+    background: rgba(45, 45, 45, 0.2);
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #999;
-    border-radius: 5px;
+    background: linear-gradient(45deg, #999, #777);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: all 0.3s ease;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-    background: #666;
+    background: linear-gradient(45deg, #666, #444);
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
-/* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: linear-gradient(45deg, #777, #555);
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-    background: #444;
+    background: linear-gradient(45deg, #555, #333);
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }
 .waves {
     position: relative;

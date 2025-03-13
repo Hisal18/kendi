@@ -47,9 +47,8 @@ export default function Trip({
 }) {
     const [trips, setTrips] = useState(initialTrips || []);
     const [searchTerm, setSearchTerm] = useState("");
-    const [currentTime, setCurrentTime] = useState(new Date());
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8; // Jumlah item per halaman
+    const [itemsPerPage, setItemsPerPage] = useState(8);
     const [showPopup, setShowPopup] = useState(false);
     const [closeKendaraan, setCloseKendaraan] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState(null);
@@ -58,11 +57,8 @@ export default function Trip({
     const [exportType, setExportType] = useState("all");
     const [exportDate, setExportDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
-
-    // Tambahkan state untuk mengelola dropdown
     const [openDropdown, setOpenDropdown] = useState(null);
 
-    // Tambahkan fungsi untuk mengelola dropdown
     const toggleDropdown = (id) => {
         if (openDropdown === id) {
             setOpenDropdown(null);
@@ -966,79 +962,74 @@ export default function Trip({
         };
     }, []);
 
+    // Tambahkan function untuk mengubah jumlah item per halaman
+    const handleItemsPerPageChange = (value) => {
+        setItemsPerPage(value);
+        setCurrentPage(1);
+    };
+
     return (
         <>
             <Head title="Monitoring Kendaraan" />
             <DashboardLayout>
                 <div className="py-0">
-                    {/* Header Section dengan Background Gradient dan Waktu Real-time */}
-                    <div className="mb-4">
-                        <h1 className="text-3xl font-bold mb-2 text-gray-800 dark:text-gray-200">
-                            Monitoring Perjalanan
-                        </h1>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Data monitoring kendaraan hari ini -{" "}
-                            {dateFormat(currentTime, "dd mmmm yyyy, HH:MM:ss")}
-                        </p>
-                    </div>
-
                     {/* Stats Cards dengan Animasi Hover */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
-                                    <FaCar className="text-blue-600 dark:text-blue-400 text-xl" />
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                            <div className="flex items-center space-x-3 sm:space-x-4">
+                                <div className="bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 rounded-full">
+                                    <FaCar className="text-blue-600 dark:text-blue-400 text-lg sm:text-xl" />
                                 </div>
                                 <div>
-                                    <h3 className="text-gray-500 dark:text-gray-400 text-sm">
+                                    <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                                         Total Kendaraan
                                     </h3>
-                                    <p className="text-2xl font-bold text-gray-800 dark:text-white">
+                                    <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
                                         {totalKendaraan}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full">
-                                    <FaArrowRight className="text-green-600 dark:text-green-400 text-xl" />
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                            <div className="flex items-center space-x-3 sm:space-x-4">
+                                <div className="bg-green-100 dark:bg-green-900/30 p-2 sm:p-3 rounded-full">
+                                    <FaArrowRight className="text-green-600 dark:text-green-400 text-lg sm:text-xl" />
                                 </div>
                                 <div>
-                                    <h3 className="text-gray-500 dark:text-gray-400 text-sm">
+                                    <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                                         Kendaraan Tersedia
                                     </h3>
-                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                    <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                                         {kendaraanTersedia}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full">
-                                    <FaArrowLeft className="text-red-600 dark:text-red-400 text-xl" />
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                            <div className="flex items-center space-x-3 sm:space-x-4">
+                                <div className="bg-red-100 dark:bg-red-900/30 p-2 sm:p-3 rounded-full">
+                                    <FaArrowLeft className="text-red-600 dark:text-red-400 text-lg sm:text-xl" />
                                 </div>
                                 <div>
-                                    <h3 className="text-gray-500 dark:text-gray-400 text-sm">
+                                    <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                                         Sedang Digunakan
                                     </h3>
-                                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                    <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
                                         {kendaraanDigunakan}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full">
-                                    <FaParking className="text-purple-600 dark:text-purple-400 text-xl" />
+                        <div className="bg-white dark:bg-[#1f2937] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                            <div className="flex items-center space-x-3 sm:space-x-4">
+                                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 sm:p-3 rounded-full">
+                                    <FaParking className="text-purple-600 dark:text-purple-400 text-lg sm:text-xl" />
                                 </div>
                                 <div>
-                                    <h3 className="text-gray-500 dark:text-gray-400 text-sm">
+                                    <h3 className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                                         Dalam Perawatan
                                     </h3>
-                                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                    <p className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
                                         {kendaraanPerawatan}
                                     </p>
                                 </div>
@@ -1048,28 +1039,30 @@ export default function Trip({
 
                     {/* Table Section dengan Search Bar dan Export Button */}
                     <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                                <div className="relative w-full md:w-auto">
-                                    <input
-                                        type="text"
-                                        placeholder="Cari kendaraan..."
-                                        className="w-full md:w-80 pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
-                                        value={searchTerm}
-                                        onChange={(e) =>
-                                            setSearchTerm(e.target.value)
-                                        }
-                                    />
-                                    <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                        <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="max-w-full sm:w-1/4">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Cari kendaraan..."
+                                            className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
+                                            value={searchTerm}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
+                                            }
+                                        />
+                                        <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                                    </div>
                                 </div>
-                                <div className="flex flex-col md:flex-row items-center gap-4">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
                                     {/* Button Tambah Data */}
                                     <button
                                         onClick={() => setShowPopup(true)}
-                                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
+                                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full sm:w-auto"
                                     >
-                                        <FaPlus className="text-lg" />
-                                        <span>Tambah Data</span>
+                                        <FaCar className="text-lg" />
+                                        <span>Trip Baru</span>
                                     </button>
 
                                     {/* Dropdown Export */}
@@ -1078,7 +1071,7 @@ export default function Trip({
                                             onClick={() =>
                                                 setShowExportModal(true)
                                             }
-                                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full md:w-auto justify-center"
+                                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md w-full sm:w-auto"
                                         >
                                             <FaFileExcel className="text-lg" />
                                             <span>Export Excel</span>
@@ -1091,159 +1084,193 @@ export default function Trip({
                             {isLoading ? (
                                 <TableSkeleton />
                             ) : (
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 dark:bg-gray-700/60">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                No
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                code Trip
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                No Polisi
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                Driver
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                Tujuan
-                                            </th>
-
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                KM Awal
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                KM Akhir
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                Jarak
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                action
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white dark:bg-[#1f2937] divide-y divide-gray-200 dark:divide-gray-700">
-                                        {currentItems.map((item, index) => (
-                                            <tr
-                                                key={index}
-                                                className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
-                                            >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    {indexOfFirstItem +
-                                                        index +
-                                                        1}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    <Link
-                                                        href={route(
-                                                            "trips.show",
-                                                            item.code_trip
-                                                        )}
-                                                        className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-800/70 transition-colors"
-                                                    >
-                                                        {item.code_trip}
-                                                    </Link>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    {
-                                                        item.kendaraan
-                                                            .plat_kendaraan
-                                                    }
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    {item.driver.name}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    <div className="flex items-center">
-                                                        <FaMapMarkerAlt className="text-red-500 dark:text-red-400 mr-1 flex-shrink-0" />
-                                                        <span>
-                                                            {item.tujuan}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    {new Intl.NumberFormat(
-                                                        "id-ID"
-                                                    ).format(item.km_awal)}
-                                                    {" KM"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    {item?.km_akhir === null ||
-                                                    item?.km_akhir === undefined
-                                                        ? "-"
-                                                        : new Intl.NumberFormat(
-                                                              "id-ID"
-                                                          ).format(
-                                                              item.km_akhir
-                                                          ) + " KM"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                    {item.jarak === null ||
-                                                    item.jarak === undefined
-                                                        ? "-"
-                                                        : item.jarak + " KM"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {item.status ===
-                                                    "Sedang Berjalan" ? (
-                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300 items-center w-auto inline-flex">
-                                                            <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
-                                                            {item.status}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 items-center w-auto inline-flex">
-                                                            <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-                                                            {item.status}
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm">
-                                                    <div className="dropdown-container relative">
-                                                        <button
-                                                            onClick={() =>
-                                                                toggleDropdown(
-                                                                    item.id
-                                                                )
-                                                            }
-                                                            type="button"
-                                                            className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md"
+                                <div className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <table className="min-w-full">
+                                        <thead className="bg-gray-50 dark:bg-gray-700/60">
+                                            <tr>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    No
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    code Trip
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    No Polisi
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    Driver
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    Tujuan
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    KM Awal
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    KM Akhir
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    Jarak
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    Status
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    action
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white dark:bg-[#1f2937] divide-y divide-gray-200 dark:divide-gray-700">
+                                            {currentItems.map((item, index) => (
+                                                <tr
+                                                    key={index}
+                                                    className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+                                                >
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        {indexOfFirstItem +
+                                                            index +
+                                                            1}
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        <Link
+                                                            href={route(
+                                                                "trips.show",
+                                                                item.code_trip
+                                                            )}
+                                                            className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-800/70 transition-colors"
                                                         >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                className="h-4 w-4"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
+                                                            {item.code_trip}
+                                                        </Link>
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        {
+                                                            item.kendaraan
+                                                                .plat_kendaraan
+                                                        }
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        {item.driver.name}
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        <div className="flex items-center">
+                                                            <FaMapMarkerAlt className="text-red-500 dark:text-red-400 mr-1 flex-shrink-0" />
+                                                            <span>
+                                                                {item.tujuan}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        {new Intl.NumberFormat(
+                                                            "id-ID"
+                                                        ).format(item.km_awal)}
+                                                        {" KM"}
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        {item?.km_akhir ===
+                                                            null ||
+                                                        item?.km_akhir ===
+                                                            undefined
+                                                            ? "-"
+                                                            : new Intl.NumberFormat(
+                                                                  "id-ID"
+                                                              ).format(
+                                                                  item.km_akhir
+                                                              ) + " KM"}
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        {item.jarak === null ||
+                                                        item.jarak === undefined
+                                                            ? "-"
+                                                            : item.jarak +
+                                                              " KM"}
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                                                        {item.status ===
+                                                        "Sedang Berjalan" ? (
+                                                            <span className="px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300 items-center w-auto inline-flex">
+                                                                <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
+                                                                {item.status}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 items-center w-auto inline-flex">
+                                                                <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                                                                {item.status}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm">
+                                                        <div className="dropdown-container relative">
+                                                            <button
+                                                                onClick={() =>
+                                                                    toggleDropdown(
+                                                                        item.id
+                                                                    )
+                                                                }
+                                                                type="button"
+                                                                className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-1.5 rounded-lg shadow-sm hover:shadow-md"
                                                             >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth={
-                                                                        2
-                                                                    }
-                                                                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                                                                />
-                                                            </svg>
-                                                        </button>
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    className="h-4 w-4"
+                                                                    fill="none"
+                                                                    viewBox="0 0 24 24"
+                                                                    stroke="currentColor"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth={
+                                                                            2
+                                                                        }
+                                                                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                                                    />
+                                                                </svg>
+                                                            </button>
 
-                                                        {openDropdown ===
-                                                            item.id && (
-                                                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-20 border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                                                <div className="py-1 divide-y divide-gray-200 dark:divide-gray-700">
-                                                                    {item.status ===
-                                                                    "Sedang Berjalan" ? (
+                                                            {openDropdown ===
+                                                                item.id && (
+                                                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-20 border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                                                    <div className="py-1 divide-y divide-gray-200 dark:divide-gray-700">
+                                                                        {item.status ===
+                                                                        "Sedang Berjalan" ? (
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setSelectedTrip(
+                                                                                        item
+                                                                                    );
+                                                                                    setCloseKendaraan(
+                                                                                        true
+                                                                                    );
+                                                                                    setOpenDropdown(
+                                                                                        null
+                                                                                    );
+                                                                                }}
+                                                                                type="button"
+                                                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors duration-200"
+                                                                            >
+                                                                                <FaCarSide className="text-teal-500 text-lg flex-shrink-0" />
+                                                                                <span className="font-medium">
+                                                                                    Tutup
+                                                                                    Trip
+                                                                                </span>
+                                                                            </button>
+                                                                        ) : (
+                                                                            <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3 bg-gray-50 dark:bg-gray-900">
+                                                                                <FaCheck className="text-green-500 text-lg flex-shrink-0" />
+                                                                                <span className="font-medium">
+                                                                                    Trip
+                                                                                    Selesai
+                                                                                </span>
+                                                                            </div>
+                                                                        )}
+
                                                                         <button
                                                                             onClick={() => {
-                                                                                setSelectedTrip(
-                                                                                    item
-                                                                                );
-                                                                                setCloseKendaraan(
-                                                                                    true
+                                                                                router.visit(
+                                                                                    route(
+                                                                                        "trips.show",
+                                                                                        item.code_trip
+                                                                                    )
                                                                                 );
                                                                                 setOpenDropdown(
                                                                                     null
@@ -1252,57 +1279,28 @@ export default function Trip({
                                                                             type="button"
                                                                             className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors duration-200"
                                                                         >
-                                                                            <FaCarSide className="text-teal-500 text-lg flex-shrink-0" />
+                                                                            <FaEye className="text-blue-500 text-lg flex-shrink-0" />
                                                                             <span className="font-medium">
-                                                                                Tutup
-                                                                                Trip
+                                                                                Lihat
+                                                                                Detail
                                                                             </span>
                                                                         </button>
-                                                                    ) : (
-                                                                        <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3 bg-gray-50 dark:bg-gray-900">
-                                                                            <FaCheck className="text-green-500 text-lg flex-shrink-0" />
-                                                                            <span className="font-medium">
-                                                                                Trip
-                                                                                Selesai
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
-
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            router.visit(
-                                                                                route(
-                                                                                    "trips.show",
-                                                                                    item.code_trip
-                                                                                )
-                                                                            );
-                                                                            setOpenDropdown(
-                                                                                null
-                                                                            );
-                                                                        }}
-                                                                        type="button"
-                                                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 transition-colors duration-200"
-                                                                    >
-                                                                        <FaEye className="text-blue-500 text-lg flex-shrink-0" />
-                                                                        <span className="font-medium">
-                                                                            Lihat
-                                                                            Detail
-                                                                        </span>
-                                                                    </button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             )}
 
-                            {/* Pagination baru yang lebih modern */}
-                            <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
-                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            {/* Di dalam tabel, sebelum pagination controls */}
+                            <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f2937] sticky bottom-0 left-0 right-0 shadow-md">
+                                {/* Info showing entries - Responsive text size */}
+                                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left mb-4 sm:mb-0">
                                     Showing{" "}
                                     <span className="font-medium mx-1">
                                         {indexOfFirstItem + 1}
@@ -1321,42 +1319,71 @@ export default function Trip({
                                     entries
                                 </div>
 
-                                <div className="flex items-center space-x-2">
-                                    {/* Previous Button */}
+                                {/* Items per page selector - Centered on desktop */}
+                                <div className="flex items-center sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:border-gray-700 px-3 py-2">
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                        Tampilkan
+                                    </span>
+                                    <select
+                                        value={itemsPerPage}
+                                        onChange={(e) =>
+                                            handleItemsPerPageChange(
+                                                Number(e.target.value)
+                                            )
+                                        }
+                                        className="ml-3 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium px-3 py-1.5 border-0 focus:ring-2 focus:ring-blue-500 transition-all duration-200 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                                    >
+                                        <option value={8} className="py-4">
+                                            8 baris
+                                        </option>
+                                        <option value={16} className="py-4">
+                                            16 baris
+                                        </option>
+                                        <option
+                                            value={filteredTrips.length}
+                                            className="py-4"
+                                        >
+                                            Semua baris
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div className="flex items-center space-x-4">
+                                    {/* Previous Button - Responsive sizing */}
                                     <button
                                         onClick={() =>
                                             paginate(currentPage - 1)
                                         }
                                         disabled={currentPage === 1}
-                                        className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                                        className={`flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-md ${
                                             currentPage === 1
-                                                ? "text-gray-400 cursor-not-allowed"
+                                                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                                                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         } transition-colors duration-200`}
                                     >
-                                        <FaChevronLeft className="w-4 h-4" />
+                                        <FaChevronLeft className="w-3 sm:w-4 h-3 sm:h-4" />
                                     </button>
 
-                                    {/* Page Numbers */}
-                                    <div className="flex items-center space-x-1">
+                                    {/* Page Numbers - Desktop View */}
+                                    <div className="hidden sm:flex items-center mx-2">
                                         {getPaginationNumbers().map(
                                             (page, index) => (
                                                 <React.Fragment key={index}>
                                                     {page === "..." ? (
-                                                        <span className="flex items-center justify-center w-10 h-10">
-                                                            <FaEllipsisH className="w-4 h-4 text-gray-400" />
+                                                        <span className="flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10">
+                                                            <FaEllipsisH className="w-3 sm:w-4 h-3 sm:h-4 text-gray-400" />
                                                         </span>
                                                     ) : (
                                                         <button
                                                             onClick={() =>
                                                                 paginate(page)
                                                             }
-                                                            className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                                                            className={`flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-full mx-1 ${
                                                                 currentPage ===
                                                                 page
-                                                                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
+                                                                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
                                                                     : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            } transition-colors duration-200`}
+                                                            } transition-all duration-200`}
                                                         >
                                                             {page}
                                                         </button>
@@ -1366,19 +1393,24 @@ export default function Trip({
                                         )}
                                     </div>
 
-                                    {/* Next Button */}
+                                    {/* Mobile Pagination Info */}
+                                    <span className="mx-3 sm:hidden text-xs font-medium text-gray-600 dark:text-gray-300">
+                                        {currentPage} / {totalPages}
+                                    </span>
+
+                                    {/* Next Button - Responsive sizing */}
                                     <button
                                         onClick={() =>
                                             paginate(currentPage + 1)
                                         }
                                         disabled={currentPage === totalPages}
-                                        className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                                        className={`flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-md ${
                                             currentPage === totalPages
-                                                ? "text-gray-400 cursor-not-allowed"
+                                                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                                                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         } transition-colors duration-200`}
                                     >
-                                        <FaChevronRight className="w-4 h-4" />
+                                        <FaChevronRight className="w-3 sm:w-4 h-3 sm:h-4" />
                                     </button>
                                 </div>
                             </div>

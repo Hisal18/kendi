@@ -152,6 +152,9 @@ class DashboardController extends Controller
             ->whereNotNull('jarak')
             ->sum('jarak');
         
+        // Tambahkan statistik bulanan
+        $monthlyStats = $this->getMonthlyStats();
+        
         return [
             'totalTrips' => $totalTrips,
             'activeTrips' => $activeTrips,
@@ -159,7 +162,12 @@ class DashboardController extends Controller
             'weeklyKilometers' => $weeklyKilometers,
             'dailyLabels' => $dailyLabels,
             'dailyCounts' => $dailyCounts,
-            'dailyKilometers' => $dailyKilometers
+            'dailyKilometers' => $dailyKilometers,
+            // Tambahkan data bulanan
+            'monthlyTrips' => $monthlyStats['monthlyTrips'],
+            'monthlyTripGrowth' => $monthlyStats['monthlyTripGrowth'],
+            'monthlyKilometers' => $monthlyStats['monthlyKilometers'],
+            'monthlyKilometerGrowth' => $monthlyStats['monthlyKilometerGrowth']
         ];
     }
     
@@ -304,5 +312,52 @@ class DashboardController extends Controller
         }
         
         return $formattedDestinations;
+    }
+
+    private function getMonthlyStats()
+    {
+        $currentMonth = Carbon::now()->startOfMonth();
+        $lastMonth = Carbon::now()->subMonth()->startOfMonth();
+        
+        // Trip bulan ini
+        $monthlyTrips = Trip::whereBetween('waktu_keberangkatan', [
+            $currentMonth, 
+            Carbon::now()->endOfMonth()
+        ])->count();
+        
+        // Trip bulan lalu
+        $lastMonthTrips = Trip::whereBetween('waktu_keberangkatan', [
+            $lastMonth, 
+            $lastMonth->copy()->endOfMonth()
+        ])->count();
+        
+        // Hitung pertumbuhan
+        $monthlyTripGrowth = $lastMonthTrips > 0 
+            ? round((($monthlyTrips - $lastMonthTrips) / $lastMonthTrips) * 100) 
+            : 0;
+        
+        // Kilometer bulan ini
+        $monthlyKilometers = Trip::whereBetween('waktu_keberangkatan', [
+            $currentMonth, 
+            Carbon::now()->endOfMonth()
+        ])->whereNotNull('jarak')->sum('jarak');
+        
+        // Kilometer bulan lalu
+        $lastMonthKilometers = Trip::whereBetween('waktu_keberangkatan', [
+            $lastMonth, 
+            $lastMonth->copy()->endOfMonth()
+        ])->whereNotNull('jarak')->sum('jarak');
+        
+        // Hitung pertumbuhan kilometer
+        $monthlyKilometerGrowth = $lastMonthKilometers > 0 
+            ? round((($monthlyKilometers - $lastMonthKilometers) / $lastMonthKilometers) * 100) 
+            : 0;
+        
+        return [
+            'monthlyTrips' => $monthlyTrips,
+            'monthlyTripGrowth' => $monthlyTripGrowth,
+            'monthlyKilometers' => $monthlyKilometers,
+            'monthlyKilometerGrowth' => $monthlyKilometerGrowth
+        ];
     }
 }
