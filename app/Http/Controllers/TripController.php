@@ -41,7 +41,7 @@ class TripController extends Controller
             'waktu_keberangkatan' => 'required|date',
             'tujuan' => 'required|string',
             'catatan' => 'nullable|string',
-            'km' => 'required|numeric|min:' . $kendaraan->km,
+            'km' => 'required|numeric',
             'penumpang' => 'nullable|string',
             'foto_berangkat' => 'required|array',
             'foto_berangkat.*' => 'required|image|max:5120', // 5MB max per image

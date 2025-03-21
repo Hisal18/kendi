@@ -249,18 +249,10 @@ export default function Driver({ drivers: initialDrivers }) {
             <Head title="Driver" />
             <DashboardLayout>
                 <div className="py-0">
-                    <div className="mb-4 text-white">
-                        <h1 className="text-3xl font-bold mb-2 text-gray-500 dark:text-gray-400">
-                            Pengelolaan Driver
-                        </h1>
-                        <p className="opacity-90 text-gray-700 dark:text-gray-500">
-                            Data driver wilayah UPT Karawang
-                        </p>
-                    </div>
                     <div className="w-full mx-auto sm:px-6 lg:px-0">
                         {/* Statistik Card */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                                 <div className="flex items-center space-x-4">
                                     <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
                                         <FaUser className="text-blue-500 dark:text-blue-400 text-xl" />
@@ -275,7 +267,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                                 <div className="flex items-center space-x-4">
                                     <div className="bg-emerald-100 dark:bg-emerald-900 p-3 rounded-full">
                                         <FaUser className="text-emerald-500 dark:text-emerald-400 text-xl" />
@@ -290,7 +282,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                                 <div className="flex items-center space-x-4">
                                     <div className="bg-amber-100 dark:bg-amber-900 p-3 rounded-full">
                                         <FaUser className="text-amber-500 dark:text-amber-400 text-xl" />
@@ -305,7 +297,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-[#313131] rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105">
                                 <div className="flex items-center space-x-4">
                                     <div className="bg-rose-100 dark:bg-rose-900 p-3 rounded-full">
                                         <FaUser className="text-rose-500 dark:text-rose-400 text-xl" />
@@ -322,14 +314,14 @@ export default function Driver({ drivers: initialDrivers }) {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#313131] rounded-xl shadow-lg overflow-hidden">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
                             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                                     <div className="relative w-full md:w-auto">
                                         <input
                                             type="text"
                                             placeholder="Cari driver..."
-                                            className="w-full md:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl dark:bg-[#515151] dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
+                                            className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-white focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none transition-colors duration-200"
                                             value={searchTerm}
                                             onChange={(e) =>
                                                 setSearchTerm(e.target.value)
@@ -369,7 +361,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                     </div>
                                 ) : (
                                     <table className="w-full">
-                                        <thead className="bg-gray-50 dark:bg-[#515151]">
+                                        <thead className="bg-gray-50 dark:bg-gray-700/60">
                                             <tr>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     No
@@ -388,12 +380,12 @@ export default function Driver({ drivers: initialDrivers }) {
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white dark:bg-[#313131] divide-y divide-gray-200 dark:divide-gray-700">
+                                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                             {currentItems.map(
                                                 (driver, index) => (
                                                     <tr
                                                         key={driver.id}
-                                                        className="hover:bg-gray-50 dark:hover:bg-[#717171] transition-colors duration-200"
+                                                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                                                     >
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                                             {indexOfFirstItem +
@@ -608,7 +600,7 @@ export default function Driver({ drivers: initialDrivers }) {
                             leaveFrom="opacity-100"
                             leaveTo="opacity-0"
                         >
-                            <div className="fixed inset-0 bg-gray-500 backdrop-blur-sm bg-opacity-70" />
+                            <div className="fixed inset-0 bg-gray-500 dark:bg-gray-700 dark:bg-opacity-70 backdrop-blur-sm bg-opacity-70" />
                         </Transition.Child>
 
                         <div className="fixed inset-0 overflow-y-auto">
@@ -622,7 +614,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                     leaveFrom="opacity-100 scale-100"
                                     leaveTo="opacity-0 scale-95"
                                 >
-                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#313131] p-6 text-left align-middle shadow-xl transition-all">
+                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
                                         <Dialog.Title
                                             as="h3"
                                             className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4 flex items-center"
@@ -655,7 +647,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                                                     .value,
                                                             })
                                                         }
-                                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                                         placeholder="Masukkan nama driver"
                                                         required
                                                     />
@@ -688,7 +680,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                                                         .value,
                                                             })
                                                         }
-                                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                                         placeholder="Contoh: 081234567890"
                                                         required
                                                     />
@@ -713,7 +705,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                                                 .value,
                                                         })
                                                     }
-                                                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#414141] dark:text-white"
+                                                    className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                                     required
                                                 >
                                                     <option value="Tersedia">
@@ -832,7 +824,7 @@ export default function Driver({ drivers: initialDrivers }) {
                                     leaveFrom="opacity-100 scale-100"
                                     leaveTo="opacity-0 scale-95"
                                 >
-                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#313131] p-6 text-left align-middle shadow-xl transition-all">
+                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
                                         <div className="flex items-center justify-center mb-4">
                                             <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full">
                                                 <FaExclamationTriangle className="text-red-500 dark:text-red-400 text-xl" />

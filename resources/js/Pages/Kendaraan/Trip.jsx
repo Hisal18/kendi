@@ -459,7 +459,6 @@ export default function Trip({
                 kendaraan_id: selectedKendaraan.id,
                 merek: selectedKendaraan.merek,
                 plat_kendaraan: selectedKendaraan.plat_kendaraan,
-                km: selectedKendaraan.km,
                 status: selectedKendaraan.status || "",
             });
         }

@@ -17,6 +17,7 @@ import {
     FaFileExcel,
     FaGlobe,
     FaEllipsisV,
+    FaEllipsisH,
     FaEye,
     FaCarSide,
     FaCalendarAlt,
