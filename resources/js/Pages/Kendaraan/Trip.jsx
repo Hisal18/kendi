@@ -31,6 +31,10 @@ import {
     FaCalendarAlt,
     FaGlobe,
     FaEye,
+    FaCalendarCheck,
+    FaCalendarTimes,
+    FaCalendarMinus,
+    FaCalendarPlus,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import Modal from "@/Components/ModalNew";
@@ -58,6 +62,7 @@ export default function Trip({
     const [exportDate, setExportDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     const toggleDropdown = (id) => {
         if (openDropdown === id) {
@@ -99,6 +104,15 @@ export default function Trip({
                 "waktu_keberangkatan",
                 dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM")
             );
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    // Update current time every second
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
         }, 1000);
 
         return () => clearInterval(timer);
@@ -1091,7 +1105,10 @@ export default function Trip({
                                                     No
                                                 </th>
                                                 <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                    code Trip
+                                                    Berangkat
+                                                </th>
+                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    Kembali
                                                 </th>
                                                 <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     No Polisi
@@ -1131,15 +1148,43 @@ export default function Trip({
                                                             1}
                                                     </td>
                                                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                        <Link
-                                                            href={route(
-                                                                "trips.show",
-                                                                item.code_trip
-                                                            )}
-                                                            className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-sm hover:bg-blue-200 dark:hover:bg-blue-800/70 transition-colors"
-                                                        >
-                                                            {item.code_trip}
-                                                        </Link>
+                                                        <div className="flex items-center">
+                                                            <FaCalendarAlt className="text-blue-500 dark:text-blue-400 mr-2 flex-shrink-0" />
+                                                            <span>
+                                                                {dateFormat(
+                                                                    item.waktu_keberangkatan,
+                                                                    "dd mmmm yyyy, HH:MM"
+                                                                ) || "-"}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                        <div className="flex items-center">
+                                                            {/* <FaCalendarCheck className="text-green-500 dark:text-green-400 mr-2 flex-shrink-0" /> */}
+                                                            <span>
+                                                                {item.waktu_kembali ===
+                                                                null ? (
+                                                                    <>
+                                                                        <div className="inline-flex">
+                                                                            <FaCalendarMinus className="text-red-500 animate-pulse dark:text-red-400 mr-2 flex " />
+                                                                            {
+                                                                                " - - - , -:-"
+                                                                            }
+                                                                        </div>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <div className="inline-flex">
+                                                                            <FaCalendarCheck className="text-green-500 dark:text-green-400 mr-2 flex-shrink-0" />
+                                                                            {dateFormat(
+                                                                                item.waktu_kembali,
+                                                                                "dd mmmm yyyy, HH:MM"
+                                                                            )}
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                                         {

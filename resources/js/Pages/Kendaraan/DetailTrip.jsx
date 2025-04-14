@@ -21,9 +21,120 @@ import {
     FaSpinner,
     FaGasPump as FaGasStation,
     FaCheck,
+    FaInfo,
 } from "react-icons/fa";
 import { ToastContainer, toast, Flip } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Tambahkan section untuk informasi BBM
+const BbmInfoSection = ({ trip, auth }) => {
+    if (!auth.user.role === "admin") return null;
+
+    // Jika tidak ada data BBM, return null
+    if (
+        !trip.jenis_bbm &&
+        !trip.jumlah_liter &&
+        !trip.harga_per_liter &&
+        !trip.total_harga_bbm
+    ) {
+        return null;
+    }
+
+    const getBbmStatusColor = (jenisBbm) => {
+        const colors = {
+            Pertalite:
+                "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+            Pertamax:
+                "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+            "Pertamax Turbo":
+                "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+            Dexlite:
+                "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+            Solar: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+        };
+        return (
+            colors[jenisBbm] ||
+            "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
+        );
+    };
+
+    return (
+        <>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-5 mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+                        <FaGasPump className="mr-2 text-blue-500" />
+                        Informasi BBM
+                    </h2>
+                    <div className="flex items-center text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-md">
+                        <FaInfo className="h-3.5 w-3.5 mr-1.5 text-blue-400" />
+                        Hanya untuk admin
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {/* Jenis BBM */}
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            Jenis BBM
+                        </p>
+                        <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-sm font-medium ${getBbmStatusColor(
+                                trip.jenis_bbm
+                            )}`}
+                        >
+                            {trip.jenis_bbm || "-"}
+                        </span>
+                    </div>
+
+                    {/* Jumlah Liter */}
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            Jumlah
+                        </p>
+                        <p className="text-base font-semibold text-gray-900 dark:text-white">
+                            {trip.jumlah_liter ? `${trip.jumlah_liter} L` : "-"}
+                        </p>
+                    </div>
+
+                    {/* Harga per Liter */}
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            Harga/Liter
+                        </p>
+                        <p className="text-base font-semibold text-gray-900 dark:text-white">
+                            {trip.harga_per_liter
+                                ? new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                      minimumFractionDigits: 0,
+                                      maximumFractionDigits: 0,
+                                  }).format(trip.harga_per_liter)
+                                : "-"}
+                        </p>
+                    </div>
+
+                    {/* Total Harga */}
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            Total
+                        </p>
+                        <p className="text-base font-semibold text-gray-900 dark:text-white">
+                            {trip.total_harga_bbm
+                                ? new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                      minimumFractionDigits: 0,
+                                      maximumFractionDigits: 0,
+                                  }).format(trip.total_harga_bbm)
+                                : "-"}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
 
 export default function DetailTrip({ trip, auth }) {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -458,48 +569,67 @@ export default function DetailTrip({ trip, auth }) {
                     {/* Informasi Kilometer */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6 transition-all hover:shadow-md">
                         <h2 className="text-lg font-medium mb-4 text-gray-900 dark:text-white flex items-center">
-                            <FaTachometerAlt className="mr-2 text-blue-500" />{" "}
+                            <FaTachometerAlt className="mr-2 text-blue-500" />
                             Informasi Kilometer
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 transition-all hover:shadow-md">
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 flex items-center">
-                                    <FaTachometerAlt className="mr-2 text-blue-400" />{" "}
-                                    Kilometer Awal
-                                </p>
-                                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {trip.km_awal || "-"}{" "}
-                                    <span className="text-sm text-gray-500">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex flex-col transition-all">
+                                <div className="flex items-center mb-2">
+                                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
+                                        <FaTachometerAlt className="text-blue-500" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Kilometer Awal
+                                    </p>
+                                </div>
+                                <p className="text-xl font-semibold text-gray-900 dark:text-white ml-11">
+                                    {trip.km_awal || "-"}
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
                                         km
                                     </span>
                                 </p>
                             </div>
-                            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 transition-all hover:shadow-md">
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 flex items-center">
-                                    <FaTachometerAlt className="mr-2 text-green-400" />{" "}
-                                    Kilometer Akhir
-                                </p>
-                                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {trip.km_akhir || "-"}{" "}
-                                    <span className="text-sm text-gray-500">
+
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex flex-col transition-all">
+                                <div className="flex items-center mb-2">
+                                    <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-3">
+                                        <FaTachometerAlt className="text-green-500" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Kilometer Akhir
+                                    </p>
+                                </div>
+                                <p className="text-xl font-semibold text-gray-900 dark:text-white ml-11">
+                                    {trip.km_akhir || "-"}
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
                                         km
                                     </span>
                                 </p>
                             </div>
-                            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 transition-all hover:shadow-md">
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 flex items-center">
-                                    <FaMapMarkerAlt className="mr-2 text-red-400" />{" "}
-                                    Jarak Tempuh
-                                </p>
-                                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {trip.jarak || "-"}{" "}
-                                    <span className="text-sm text-gray-500">
+
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex flex-col transition-all">
+                                <div className="flex items-center mb-2">
+                                    <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mr-3">
+                                        <FaMapMarkerAlt className="text-red-500" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Jarak Tempuh
+                                    </p>
+                                </div>
+                                <p className="text-xl font-semibold text-gray-900 dark:text-white ml-11">
+                                    {trip.jarak || "-"}
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
                                         km
                                     </span>
                                 </p>
                             </div>
                         </div>
                     </div>
+
+                    {/* Tambahkan BbmInfoSection setelah Informasi Kilometer */}
+                    {auth.user.role === "admin" && (
+                        <BbmInfoSection trip={trip} auth={auth} />
+                    )}
 
                     {/* Foto Berangkat */}
                     {renderPhotoSection(

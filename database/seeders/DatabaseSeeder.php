@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
 
         Tamu::factory(10)->create();
 
-        // Trip::factory(10)->create();
+        Trip::factory(100)->create();
         // Kendaraan::factory(10)->create();
 
         // User::factory()->create([

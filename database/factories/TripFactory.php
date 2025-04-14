@@ -28,7 +28,13 @@ class TripFactory extends Factory
             'driver_id' => Driver::factory(),
             'waktu_keberangkatan' => $waktu_keberangkatan,
             'waktu_kembali' => $waktu_kembali,
-            
+            'km_awal' => fake()->numberBetween(1000, 50000),
+            'km_akhir' => function (array $attributes) {
+                return $attributes['km_awal'] + fake()->numberBetween(10, 500);
+            },
+            'jarak' => function (array $attributes) {
+                return $attributes['km_akhir'] - $attributes['km_awal'];
+            },
             'tujuan' => fake()->city(),
             'status' => fake()->randomElement(['Sedang Berjalan', 'Selesai']),
             'catatan' => fake()->optional()->text(200),
