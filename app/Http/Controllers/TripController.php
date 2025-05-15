@@ -45,6 +45,7 @@ class TripController extends Controller
             'penumpang' => 'nullable|string',
             'foto_berangkat' => 'required|array',
             'foto_berangkat.*' => 'required|image|max:5120', // 5MB max per image
+            'lokasi' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -84,6 +85,7 @@ class TripController extends Controller
                 'km_awal' => $request->km,
                 'penumpang' => $request->penumpang,
                 'status' => 'Sedang Berjalan',
+                'lokasi' => $request->lokasi,
                 'foto_berangkat' => json_encode($photos),
                 'created_by' => Auth::id(),
             ]);
@@ -124,12 +126,12 @@ class TripController extends Controller
                         ->firstOrFail();
 
             // Pastikan foto_berangkat dan foto_kembali adalah array
-            $trip->foto_berangkat = is_string($trip->foto_berangkat) 
-                ? json_decode($trip->foto_berangkat, true) 
+            $trip->foto_berangkat = is_string($trip->foto_berangkat)
+                ? json_decode($trip->foto_berangkat, true)
                 : $trip->foto_berangkat;
-            
-            $trip->foto_kembali = is_string($trip->foto_kembali) 
-                ? json_decode($trip->foto_kembali, true) 
+
+            $trip->foto_kembali = is_string($trip->foto_kembali)
+                ? json_decode($trip->foto_kembali, true)
                 : $trip->foto_kembali;
 
             return Inertia::render('Kendaraan/DetailTrip', [
@@ -200,7 +202,7 @@ class TripController extends Controller
                 'km_akhir' => $validated['km_akhir'],
                 'foto_kembali' => !empty($photos) ? json_encode($photos) : null
             ]);
-            
+
             // Update kendaraan status and km
             $trip->kendaraan->update([
                 'km' => $validated['km_akhir'],
@@ -236,7 +238,7 @@ class TripController extends Controller
     {
         try {
             $trip = Trip::where('code_trip', $code_trip)->firstOrFail();
-            
+
             $validated = $request->validate([
                 'jenis_bbm' => 'required|string',
                 'jumlah_liter' => 'required|numeric|min:0',

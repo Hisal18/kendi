@@ -77,10 +77,10 @@ export default function User({ users, filters }) {
             onSuccess: () => {
                 setShowModal(false);
                 createForm.reset();
-                toast.success("✅ User berhasil ditambahkan", toastConfig);
+                toast.success("User berhasil ditambahkan", toastConfig);
             },
             onError: () => {
-                toast.error("❌ Gagal menambahkan user", toastConfig);
+                toast.error("Gagal menambahkan user", toastConfig);
             },
         });
     };
@@ -92,10 +92,10 @@ export default function User({ users, filters }) {
                 setIsEditModalOpen(false);
                 setEditingUser(null);
                 editForm.reset();
-                toast.success("✅ User berhasil diperbarui", toastConfig);
+                toast.success("User berhasil diperbarui", toastConfig);
             },
             onError: () => {
-                toast.error("❌ Gagal memperbarui user", toastConfig);
+                toast.error("Gagal memperbarui user", toastConfig);
             },
         });
     };
@@ -104,10 +104,10 @@ export default function User({ users, filters }) {
         if (confirm("Apakah Anda yakin ingin menghapus user ini?")) {
             router.delete(route("users.destroy", userId), {
                 onSuccess: () => {
-                    toast.success("✅ User berhasil dihapus", toastConfig);
+                    toast.success("User berhasil dihapus", toastConfig);
                 },
                 onError: () => {
-                    toast.error("❌ Gagal menghapus user", toastConfig);
+                    toast.error("Gagal menghapus user", toastConfig);
                 },
             });
         }

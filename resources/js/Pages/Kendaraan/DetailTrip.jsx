@@ -495,7 +495,8 @@ export default function DetailTrip({ trip, auth }) {
                                         Driver:
                                     </span>
                                     <span className="text-sm text-gray-900 dark:text-white w-full md:w-2/3 font-medium">
-                                        {trip.driver?.name || "-"}
+                                        {trip.driver?.name || "-"} -{" "}
+                                        {trip.driver.phone_number || "-"}
                                     </span>
                                 </div>
                                 <div className="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -583,7 +584,10 @@ export default function DetailTrip({ trip, auth }) {
                                     </p>
                                 </div>
                                 <p className="text-xl font-semibold text-gray-900 dark:text-white ml-11">
-                                    {trip.km_awal || "-"}
+                                    {String(trip.km_awal).replace(
+                                        /\B(?=(\d{3})+(?!\d))/g,
+                                        "."
+                                    )}
                                     <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
                                         km
                                     </span>
@@ -600,7 +604,10 @@ export default function DetailTrip({ trip, auth }) {
                                     </p>
                                 </div>
                                 <p className="text-xl font-semibold text-gray-900 dark:text-white ml-11">
-                                    {trip.km_akhir || "-"}
+                                    {String(trip.km_akhir).replace(
+                                        /\B(?=(\d{3})+(?!\d))/g,
+                                        "."
+                                    )}
                                     <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
                                         km
                                     </span>
@@ -617,7 +624,10 @@ export default function DetailTrip({ trip, auth }) {
                                     </p>
                                 </div>
                                 <p className="text-xl font-semibold text-gray-900 dark:text-white ml-11">
-                                    {trip.jarak || "-"}
+                                    {String(trip.jarak).replace(
+                                        /\B(?=(\d{3})+(?!\d))/g,
+                                        "."
+                                    )}
                                     <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
                                         km
                                     </span>

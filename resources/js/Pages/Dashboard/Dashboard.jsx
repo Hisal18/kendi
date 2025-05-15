@@ -55,6 +55,26 @@ export default function Dashboard({
         localStorage.getItem("darkMode") === "true"
     );
 
+    // Filter recent trips based on user location and status "Sedang Berjalan"
+    const filteredRecentTrips = React.useMemo(() => {
+        if (auth?.user.isAdmin) {
+            return recentTrips.filter(
+                (trip) => trip.status === "Sedang Berjalan"
+            );
+        }
+        if (!auth?.user.lokasi || auth.user.lokasi.trim() === "") {
+            return recentTrips.filter(
+                (trip) => trip.status === "Sedang Berjalan"
+            );
+        }
+        return recentTrips.filter(
+            (trip) =>
+                trip.lokasi &&
+                trip.lokasi.toLowerCase() === auth.user.lokasi.toLowerCase() &&
+                trip.status === "Sedang Berjalan"
+        );
+    }, [recentTrips, auth?.user.lokasi, auth?.user.isAdmin]);
+
     // Update chart theme when dark mode changes
     useEffect(() => {
         const darkModeListener = () => {
@@ -634,8 +654,9 @@ export default function Dashboard({
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-[#1f2937] dark:divide-gray-700">
-                                    {recentTrips && recentTrips.length > 0 ? (
-                                        recentTrips.map((trip) => (
+                                    {filteredRecentTrips &&
+                                    filteredRecentTrips.length > 0 ? (
+                                        filteredRecentTrips.map((trip) => (
                                             <tr
                                                 key={trip.id}
                                                 className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -670,7 +691,7 @@ export default function Dashboard({
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                     <span
-                                                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                                         ${
                                                             trip.status ===
                                                             "Sedang Berjalan"

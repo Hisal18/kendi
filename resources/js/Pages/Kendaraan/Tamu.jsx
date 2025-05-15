@@ -58,6 +58,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
         plat_kendaraan: "",
         waktu_kedatangan: dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM"),
         foto_kendaraan: [],
+        lokasi: auth.user.lokasi,
     });
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportDate, setExportDate] = useState(new Date());
@@ -71,11 +72,18 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const filteredTamus = Array.isArray(tamus)
-        ? tamus.filter((tamu) =>
-              tamu?.plat_kendaraan
+        ? tamus.filter((tamu) => {
+              // Filter by lokasi user if lokasi is not empty
+              if (auth.user.lokasi && auth.user.lokasi.trim() !== "") {
+                  if (tamu.lokasi !== auth.user.lokasi) {
+                      return false;
+                  }
+              }
+              // Filter by search term on plat_kendaraan
+              return tamu?.plat_kendaraan
                   ?.toLowerCase()
-                  ?.includes(searchTerm.toLowerCase())
-          )
+                  ?.includes(searchTerm.toLowerCase());
+          })
         : [];
 
     // Pagination
@@ -141,6 +149,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                 "waktu_kedatangan",
                 formData.waktu_kedatangan
             );
+            submitFormData.append("lokasi", formData.lokasi);
 
             // Append setiap foto dengan nama field yang konsisten
             photos.forEach((photo) => {
@@ -151,6 +160,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
             console.log("Submitting form data:", {
                 plat_kendaraan: formData.plat_kendaraan,
                 waktu_kedatangan: formData.waktu_kedatangan,
+                lokasi: formData.lokasi,
                 photos: photos.map((p) => ({
                     name: p.name,
                     type: p.type,
@@ -879,6 +889,13 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Status
                                         </th>
+                                        {auth.user.role === "admin" && (
+                                            <>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                    Lokasi
+                                                </th>
+                                            </>
+                                        )}
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             action
                                         </th>
@@ -926,6 +943,22 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                                                     </span>
                                                 )}
                                             </td>
+                                            {auth.user.role === "admin" && (
+                                                <>
+                                                    <td>
+                                                        <span
+                                                            className={`${
+                                                                item.lokasi ===
+                                                                "Karawang"
+                                                                    ? "bg-rose-100 dark:bg-rose-900 text-rose-800 dark:text-rose-200 hover:bg-rose-200 dark:hover:bg-rose-800"
+                                                                    : "bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 hover:bg-indigo-200 dark:hover:bg-indigo-800"
+                                                            } px-2 py-1 rounded-md text-sm font-medium transition-colors`}
+                                                        >
+                                                            {item.lokasi}
+                                                        </span>
+                                                    </td>
+                                                </>
+                                            )}
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Menu
                                                     as="div"
@@ -1052,7 +1085,7 @@ export default function Tamu({ tamus: initialsTamus, auth }) {
                             </div>
 
                             {/* Items per page selector - Centered on desktop */}
-                            <div className="flex items-center sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:border-gray-700 px-3 py-2">
+                            <div className="flex items-center sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg dark:border-gray-700 px-3 py-2">
                                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                                     Tampilkan
                                 </span>

@@ -129,6 +129,7 @@ export default function Trip({
         merek: "",
         plat_kendaraan: "",
         status: "",
+        lokasi: auth.user.lokasi,
         penumpang: "",
     });
 
@@ -140,8 +141,13 @@ export default function Trip({
     const [previewPhotos, setPreviewPhotos] = useState([]);
 
     const filteredTrips = Array.isArray(trips)
-        ? trips.filter(
-              (trip) =>
+        ? trips.filter((trip) => {
+              if (auth.user.lokasi && auth.user.lokasi.trim() !== "") {
+                  if (trip.lokasi !== auth.user.lokasi) {
+                      return false;
+                  }
+              }
+              return (
                   trip?.kendaraan?.plat_kendaraan
                       ?.toLowerCase()
                       ?.includes(searchTerm.toLowerCase()) ||
@@ -154,7 +160,8 @@ export default function Trip({
                   trip?.driver?.name
                       ?.toLowerCase()
                       .includes(searchTerm.toLowerCase())
-          )
+              );
+          })
         : [];
 
     const totalPages = Math.ceil(filteredTrips.length / itemsPerPage);
@@ -396,29 +403,13 @@ export default function Trip({
         formData.append("waktu_keberangkatan", data.waktu_keberangkatan);
         formData.append("tujuan", data.tujuan);
         formData.append("catatan", data.catatan || "");
-        formData.append("km", data.km);
+        formData.append("km", data.km.replace(/\./g, ""));
         formData.append("penumpang", data.penumpang || "");
+        formData.append("lokasi", data.lokasi);
 
         // Append each photo with the correct field name (tanpa indeks)
         photos.forEach((photo) => {
             formData.append("foto_berangkat[]", photo);
-        });
-
-        // Log untuk debugging
-        console.log("Submitting form data:", {
-            code_trip: data.code_trip,
-            kendaraan_id: data.kendaraan_id,
-            driver_id: data.driver_id,
-            waktu_keberangkatan: data.waktu_keberangkatan,
-            tujuan: data.tujuan,
-            catatan: data.catatan,
-            km: data.km,
-            penumpang: data.penumpang,
-            photos: photos.map((p) => ({
-                name: p.name,
-                type: p.type,
-                size: p.size,
-            })),
         });
 
         setIsLoading(true);
@@ -431,8 +422,6 @@ export default function Trip({
                     Accept: "application/json",
                 },
             });
-
-            console.log("Server response:", response.data);
 
             toast.success(
                 `Trip ${data.code_trip} berhasil ditambahkan`,
@@ -536,18 +525,6 @@ export default function Trip({
             });
         }
 
-        // Log untuk debugging
-        console.log("Closing trip data:", {
-            km_akhir: kmAkhir,
-            waktu_kembali: dateFormat(new Date(), "yyyy-mm-dd'T'HH:MM:ss"),
-            jarak: jarak,
-            photos: photos.map((p) => ({
-                name: p.name,
-                type: p.type,
-                size: p.size,
-            })),
-        });
-
         // Gunakan axios untuk mengirim request
         axios
             .post(route("trips.close", selectedTrip.id), formData, {
@@ -558,7 +535,6 @@ export default function Trip({
                 },
             })
             .then((response) => {
-                console.log("Server response:", response.data);
                 toast.success(
                     `Trip ${selectedTrip.code_trip} berhasil ditutup`,
                     toastConfig
@@ -681,16 +657,6 @@ export default function Trip({
                     // Kompresi dan konversi gambar
                     const processedFile = await compressAndConvertImage(file);
                     processedFiles.push(processedFile);
-
-                    // Log untuk debugging
-                    console.log("File berhasil diproses:", {
-                        originalName: file.name,
-                        originalSize: file.size,
-                        originalType: file.type,
-                        newName: processedFile.name,
-                        newSize: processedFile.size,
-                        newType: processedFile.type,
-                    });
                 } catch (error) {
                     console.error("Error processing file:", error);
                     toast.error(
@@ -844,23 +810,9 @@ export default function Trip({
 
             for (const file of files) {
                 try {
-                    // Log informasi file untuk debugging
-                    console.log("File original:", {
-                        name: file.name,
-                        type: file.type,
-                        size: file.size,
-                    });
-
                     // Kompresi dan konversi gambar
                     const processedFile = await compressAndConvertImage(file);
                     processedFiles.push(processedFile);
-
-                    // Log file yang sudah diproses
-                    console.log("File processed:", {
-                        name: processedFile.name,
-                        type: processedFile.type,
-                        size: processedFile.size,
-                    });
                 } catch (error) {
                     console.error("Error processing file:", error);
                     toast.error(
@@ -1364,7 +1316,7 @@ export default function Trip({
                                 </div>
 
                                 {/* Items per page selector - Centered on desktop */}
-                                <div className="flex items-center sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:border-gray-700 px-3 py-2">
+                                <div className="flex items-center sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg dark:border-gray-700 px-3 py-2">
                                     <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                                         Tampilkan
                                     </span>
@@ -1612,12 +1564,26 @@ export default function Trip({
                                                     type="text"
                                                     inputMode="numeric"
                                                     value={data.km}
-                                                    onChange={(e) =>
+                                                    onChange={(e) => {
+                                                        const rawValue =
+                                                            e.target.value;
+                                                        // Hanya ambil angka
+                                                        const numericValue =
+                                                            rawValue.replace(
+                                                                /\D/g,
+                                                                ""
+                                                            );
+                                                        // Format ke ribuan dengan titik
+                                                        const formattedValue =
+                                                            numericValue.replace(
+                                                                /\B(?=(\d{3})+(?!\d))/g,
+                                                                "."
+                                                            );
                                                         setData(
                                                             "km",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                            formattedValue
+                                                        );
+                                                    }}
                                                     className="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors text-sm"
                                                     required
                                                 />

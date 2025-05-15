@@ -34,11 +34,14 @@ class TamuController extends Controller
      */
     public function store(Request $request)
     {
+
+
         $request->validate([
             'plat_kendaraan' => 'required|string|max:20',
             'waktu_kedatangan' => 'required|date',
             'foto_kendaraan' => 'required|array',
             'foto_kendaraan.*' => 'required|image|max:5120',
+            'lokasi' => 'required|string',
         ]);
 
         try {
@@ -49,6 +52,7 @@ class TamuController extends Controller
             $tamu->plat_kendaraan = strtoupper($request->plat_kendaraan);
             $tamu->waktu_kedatangan = $request->waktu_kedatangan;
             $tamu->status = 'New';
+            $tamu->lokasi = $request->lokasi;
             $tamu->foto_kedatangan = '[]';
             $tamu->created_by = Auth::id();
             $tamu->save();

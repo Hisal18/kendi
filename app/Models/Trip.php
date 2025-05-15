@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Trip extends Model
 {
-    
+
 
     /** @use HasFactory<\Database\Factories\TripFactory> */
     use HasFactory;
@@ -34,6 +34,7 @@ class Trip extends Model
         'jumlah_liter',
         'harga_per_liter',
         'total_harga_bbm',
+        'lokasi'
     ];
 
     protected $casts = [

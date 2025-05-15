@@ -19,6 +19,7 @@ class Tamu extends Model
         'foto_kepergian',
         'status',
         'created_by',
+        'lokasi'
     ];
 
     protected $casts = [
