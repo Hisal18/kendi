@@ -29,6 +29,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/trips/{code_trip}/bbm', [TripController::class, 'updateBbm'])->name('trips.update.bbm');
     // Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan.index');
     // ... route admin lainnya
+    Route::put('/admin/trip-edit-requests/{editRequest}/approve', [TripController::class, 'approveEdit'])->name('admin.requests.approve');
+    // --- Route Persetujuan Edit Trip (BARU) ---
+    Route::get('/admin/trip-edit-requests', [TripController::class, 'showEditRequests'])->name('admin.requests.index');
+    Route::put('/admin/trip-edit-requests/{editRequest}/approve', [TripController::class, 'approveEdit'])->name('admin.requests.approve');
+    Route::put('/admin/trip-edit-requests/{editRequest}/reject', [TripController::class, 'rejectEdit'])->name('admin.requests.reject');
+    
 });
 
 // Route untuk user saja
@@ -62,6 +68,8 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
     Route::post('/tamu/{tamu}/close', [TamuController::class, 'close'])->name('tamu.close');
     
     // ... route umum lainnya
+    Route::post('/trips/{code_trip}/request-edit', [TripController::class, 'requestEdit'])->name('trips.request.edit');
+
 });
 
 Route::middleware(['auth'])->group(function () {
