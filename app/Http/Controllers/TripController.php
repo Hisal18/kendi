@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kendaraan;
 use App\Models\Trip;
+use App\Models\TripEditRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,6 +13,7 @@ use App\Models\Driver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+
 
 class TripController extends Controller
 {
@@ -38,7 +40,7 @@ class TripController extends Controller
             'code_trip' => 'required|unique:trips,code_trip',
             'kendaraan_id' => 'required|exists:kendaraans,id',
             'driver_id' => 'required|exists:drivers,id',
-            'waktu_keberangkatan' => 'required|date',
+            'waktu_keberangkatan' => 'required|date_format:Y-m-d\TH:i', // Format dari input datetime-local
             'tujuan' => 'required|string',
             'catatan' => 'nullable|string',
             'km' => 'required|numeric',
@@ -71,8 +73,7 @@ class TripController extends Controller
             ], 422);
         }
 
-        $kendaraan = Kendaraan::find($request->kendaraan_id);
-        $driver = Driver::find($request->driver_id);
+        
 
         try {
             $trip = Trip::create([
@@ -135,11 +136,159 @@ class TripController extends Controller
                 : $trip->foto_kembali;
 
             return Inertia::render('Kendaraan/DetailTrip', [
-                'trip' => $trip
+                'trip' => $trip,
+                'allVehicles' => Kendaraan::select('id', 'plat_kendaraan', 'merek')->where('status', 'Tersedia')->get(),
+                'allDrivers' => Driver::select('id', 'name', 'phone_number')->where('status', 'Tersedia')->get(),
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menampilkan detail trip');
         }
+    }
+
+    public function requestEdit(Request $request, $codeTrip)
+{
+    // 1. Validasi Data
+    $validated = $request->validate([
+        'penumpang' => 'nullable|string|max:255',
+        'tujuan' => 'required|string|max:255',
+        'waktu_keberangkatan' => 'required|date',
+        // Catatan: Pastikan waktu kembali bisa null jika trip belum selesai
+        'waktu_kembali' => 'nullable|date|after_or_equal:waktu_keberangkatan',
+        'catatan' => 'nullable|string',
+        'km_awal' => 'required|numeric|min:0',
+        // KM akhir harus lebih besar dari KM awal
+        'km_akhir' => 'required|numeric|min:' . $request->km_awal, 
+        'kendaraan_id' => 'required|exists:kendaraans,id',
+        'driver_id' => 'required|exists:drivers,id',
+    ]);
+
+    $trip = Trip::where('code_trip', $codeTrip)->firstOrFail();
+
+    // 2. Siapkan Data Lama (Old Data) dari Trip Saat Ini
+    $oldData = [
+        'penumpang' => $trip->penumpang,
+        'tujuan' => $trip->tujuan,
+        'waktu_keberangkatan' => $trip->waktu_keberangkatan,
+        'waktu_kembali' => $trip->waktu_kembali,
+        'catatan' => $trip->catatan,
+        'km_awal' => $trip->km_awal,
+        'km_akhir' => $trip->km_akhir,
+        'kendaraan_id' => $trip->kendaraan_id,
+        'driver_id' => $trip->driver_id,
+        'kendaraan_plat' => $trip->kendaraan->plat_kendaraan,
+        'driver_name' => $trip->driver->name,
+    ];
+
+    // 3. Simpan sebagai Permintaan Edit
+    TripEditRequest::create([
+        'trip_id' => $trip->id,
+        'requested_by_user_id' => auth()->id(),
+        'old_data' => json_encode($oldData),
+        'new_data' => json_encode($validated), // Hanya simpan data yang sudah divalidasi
+        'status' => 'pending',
+    ]);
+
+    // 4. Redirect dengan pesan sukses
+    return redirect()->back()->with('success', 'Permintaan perubahan trip berhasil diajukan dan menunggu persetujuan Admin.');
+}
+
+    // Gunakan Route Model Binding untuk mendapatkan instance TripEditRequest
+    public function approveEdit(TripEditRequest $editRequest)
+    {
+        // 1. Cek Status dan Hak Akses (Opsi: tambahkan middleware admin)
+        if ($editRequest->status !== 'pending') {
+            return redirect()->back()->with('error', 'Permintaan ini sudah diproses.');
+        }
+        
+        // Pastikan user yang login adalah Admin (Anda mungkin punya middleware admin)
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // 2. Ambil dan Decode Data Baru
+        $trip = $editRequest->trip;
+        $newData = json_decode($editRequest->new_data, true);
+
+        // 3. Hitung Ulang Jarak Tempuh
+        $kmAwal = (float) $newData['km_awal'];
+        $kmAkhir = (float) $newData['km_akhir'];
+        $jarakTempuh = max(0, $kmAkhir - $kmAwal); // Pastikan tidak negatif
+
+        // 4. Update Data Trip Utama
+        $trip->update([
+            'penumpang' => $newData['penumpang'],
+            'tujuan' => $newData['tujuan'],
+            'waktu_keberangkatan' => $newData['waktu_keberangkatan'],
+            'waktu_kembali' => $newData['waktu_kembali'],
+            'catatan' => $newData['catatan'],
+            'km_awal' => $kmAwal,
+            'km_akhir' => $kmAkhir,
+            'jarak' => $jarakTempuh, // Data jarak tempuh yang baru dan benar
+            'kendaraan_id' => $newData['kendaraan_id'],
+            'driver_id' => $newData['driver_id'],
+        ]);
+
+        // 5. Update Status Permintaan
+        $editRequest->update([
+            'status' => 'approved',
+            'approved_by_admin_id' => auth()->id(),
+        ]);
+
+        return redirect()->back()->with('success', 'Perubahan Trip (termasuk Kilometer) berhasil disetujui!');
+    }
+    public function showEditRequests()
+    {
+        // Ambil semua permintaan yang statusnya 'pending', urutkan dari yang terbaru
+        $requests = TripEditRequest::with('trip.kendaraan', 'requestedBy')
+                                    ->where('status', 'pending')
+                                    ->latest()
+                                    ->get()
+                                    ->map(function ($request) {
+                                        // 1. Definisikan variabel lokal (dengan decoding)
+                                        $oldData = json_decode($request->old_data, true);
+                                        $newData = json_decode($request->new_data, true);
+
+                                        // 2. LOGIC PENAMBAHAN NAMA KENDARAAN/DRIVER BARU
+
+                                        // Memuat Kendaraan dan Driver yang baru/lama berdasarkan ID yang tersimpan
+                                        // Kita perlu nama Kendaraan/Driver yang BARU (jika ID-nya berubah)
+                                        if (isset($newData['kendaraan_id'])) {
+                                            $newVehicle = Kendaraan::find($newData['kendaraan_id']);
+                                            // Pastikan kita bisa membaca plat kendaraan
+                                            $newData['kendaraan_plat'] = $newVehicle ? $newVehicle->plat_kendaraan : 'Kendaraan Dihapus';
+                                        }
+                                        if (isset($newData['driver_id'])) {
+                                            $newDriver = Driver::find($newData['driver_id']);
+                                            // Pastikan kita bisa membaca nama driver
+                                            $newData['driver_name'] = $newDriver ? $newDriver->name : 'Driver Dihapus';
+                                        }
+                                        
+                                        // 3. Set ulang data yang sudah di-decode dan ditambahkan
+                                        // BARIS INI AKAN MEMPERBAIKI ERROR 'Undefined variable $oldData'
+                                        $request->old_data = $oldData;
+                                        $request->new_data = $newData;
+                                        return $request;
+                                    });
+
+        // Kirim data ke komponen React/Inertia baru
+        return Inertia::render('Admin/TripEditRequests', [
+            'pendingRequests' => $requests,
+        ]);
+    }
+    public function rejectEdit(TripEditRequest $editRequest)
+    {
+        // Cek hak akses dan status seperti pada approveEdit
+        if ($editRequest->status !== 'pending' || auth()->user()->role !== 'admin') {
+            return redirect()->back()->with('error', 'Akses ditolak atau permintaan sudah diproses.');
+        }
+
+        // Hanya update status menjadi 'rejected'
+        $editRequest->update([
+            'status' => 'rejected',
+            'approved_by_admin_id' => auth()->id(), // Mencatat admin yang menolak
+        ]);
+
+        return redirect()->back()->with('success', 'Permintaan perubahan berhasil ditolak.');
     }
 
     /**

@@ -10,6 +10,7 @@ import {
     FaCircle,
     FaBars,
     FaTimes,
+    FaClipboardCheck, // << TAMBAHKAN INI
 } from "react-icons/fa";
 
 import ApplicationLogo from "./ApplicationLogo";
@@ -173,7 +174,7 @@ export default function Sidebar() {
                                     onClick={() => setIsSidebarOpen(false)}
                                 >
                                     <FaCircle className="h-2 w-2 mr-2" />
-                                    Dinas
+                                    Dinas 
                                 </Link>
                                 <Link
                                     href={route("tamu.index")}
@@ -246,6 +247,31 @@ export default function Sidebar() {
                                 Users
                             </Link>
                         )}
+                        
+                        {/* >> MULAI: Tambahkan Link Persetujuan Edit Trip (Hanya Admin) */}
+                        {auth.user.role === "admin" && (
+                            <Link
+                                href={route("admin.requests.index")} // Route Admin untuk Persetujuan
+                                className={`flex items-center py-3 px-4 rounded-xl transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
+                                    ${
+                                        isActive("/admin/trip-edit-requests") // Cek path URL admin.requests.index
+                                            ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm"
+                                            : "text-gray-600 dark:text-gray-300"
+                                    }`}
+                                onClick={() => setIsSidebarOpen(false)}
+                            >
+                                <FaClipboardCheck // Ganti dengan ikon yang sesuai
+                                    className={`w-5 h-5 mr-3 transition-colors ${
+                                        isActive("/admin/trip-edit-requests")
+                                            ? "text-indigo-600 dark:text-indigo-400"
+                                            : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                                    }`}
+                                />
+                                Persetujuan Trip
+                            </Link>
+                        )}
+                        {/* << SELESAI: Tambahkan Link Persetujuan Edit Trip */}
+
                         <Link
                             href={route("profile.edit")}
                             className={`flex items-center py-3 px-4 rounded-xl transition duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 group
