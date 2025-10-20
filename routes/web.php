@@ -50,10 +50,11 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
     Route::get('/trip', [TripController::class, 'index'])->name('trips.index');
-    Route::post('/trips', [TripController::class, 'create'])->name('trips.create');
+    Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create.form');
     Route::post('/trips/store', [TripController::class, 'store'])->name('trips.store');
     Route::get('/trips/{code_trip}', [TripController::class, 'show'])->name('trips.show');
     Route::get('/trips/{code_trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
+    Route::get('/trips/{code_trip}/close', [TripController::class, 'showCloseForm'])->name('trips.close.form');
 
     Route::get('/tamu', [TamuController::class, 'index'])->name('tamu.index');
     Route::post('/tamu', [TamuController::class, 'store'])->name('tamu.store');
@@ -63,7 +64,7 @@ Route::middleware(['auth', 'role:admin,user'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::post('/trips/{trip}/close', [TripController::class, 'close'])->name('trips.close');
+    Route::post('/trips/{code_trip}/close-submit', [TripController::class, 'close'])->name('trips.close.submit');
     
     Route::post('/tamu/{tamu}/close', [TamuController::class, 'close'])->name('tamu.close');
     

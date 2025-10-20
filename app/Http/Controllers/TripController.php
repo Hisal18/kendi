@@ -29,10 +29,22 @@ class TripController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        // Ambil data yang dibutuhkan oleh form
+        $kendaraanTersedia = Kendaraan::where('status', 'Tersedia')->get();
+        $driversTersedia = Driver::where('status', 'Tersedia')->get();
+
+        return Inertia::render('Kendaraan/CreateTripPage', [ // PERLU BUAT KOMPONEN BARU
+            'kendaraans' => $kendaraanTersedia,
+            'drivers' => $driversTersedia
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function store(Request $request)
     {
         $kendaraan = Kendaraan::find($request->kendaraan_id);
         // Validate the request
@@ -43,7 +55,7 @@ class TripController extends Controller
             'waktu_keberangkatan' => 'required|date_format:Y-m-d\TH:i', // Format dari input datetime-local
             'tujuan' => 'required|string',
             'catatan' => 'nullable|string',
-            'km' => 'required|numeric',
+            'km' => 'required|string',
             'penumpang' => 'nullable|string',
             'foto_berangkat' => 'required|array',
             'foto_berangkat.*' => 'required|image|max:5120', // 5MB max per image
@@ -51,31 +63,25 @@ class TripController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'type' => 'error',
-                'message' => 'Gagal menambahkan trip: ' . $validator->errors()->first()
-            ], 422);
+            // Karena ini adalah request Inertia/POST ke halaman terpisah, kita akan menggunakan withErrors dan redirect back
+            return redirect()->back()->withErrors($validator)->withInput(); 
         }
 
-        // Process photo uploads
-        $photos = [];
-        if ($request->hasFile('foto_berangkat')) {
-            foreach ($request->file('foto_berangkat') as $photo) {
-                $path = $photo->store('trip_photos', 'public');
-                $photos[] = $path;
-            }
-        }
-
-        if (empty($photos)) {
-            return response()->json([
-                'type' => 'error',
-                'message' => 'Tidak ada foto yang valid untuk diunggah'
-            ], 422);
-        }
-
-        
-
+        // Jika Anda sebelumnya mengembalikan JSON, Anda harus mengubahnya menjadi redirect:
+        DB::beginTransaction();
         try {
+            // Proses upload foto
+            $photos = [];
+            if ($request->hasFile('foto_berangkat')) {
+                foreach ($request->file('foto_berangkat') as $photo) {
+                    $path = $photo->store('trip_photos', 'public');
+                    $photos[] = $path;
+                }
+            }
+            
+            // Cari driver
+            $driver = Driver::find($request->driver_id);
+
             $trip = Trip::create([
                 'code_trip' => $request->code_trip,
                 'kendaraan_id' => $request->kendaraan_id,
@@ -83,7 +89,7 @@ class TripController extends Controller
                 'waktu_keberangkatan' => $request->waktu_keberangkatan,
                 'tujuan' => $request->tujuan,
                 'catatan' => $request->catatan,
-                'km_awal' => $request->km,
+                'km_awal' => str_replace('.', '', $request->km), // Hapus pemisah ribuan
                 'penumpang' => $request->penumpang,
                 'status' => 'Sedang Berjalan',
                 'lokasi' => $request->lokasi,
@@ -93,27 +99,35 @@ class TripController extends Controller
 
             $kendaraan->update(['status' => 'Digunakan']);
             $driver->update(['status' => 'Sedang Bertugas']);
+            
+            DB::commit();
 
-            return response()->json([
-                'type' => 'success',
-                'message' => 'Trip berhasil ditambahkan',
-                'trip' => $trip
-            ], 200);
+            return redirect()->route('trips.index', $trip->code_trip)
+                ->with('type', 'success')
+                ->with('message', 'Trip berhasil ditambahkan');
         } catch (\Exception $e) {
-            return response()->json([
-                'type' => 'error',
-                'message' => 'Gagal menambahkan trip: ' . $e->getMessage()
-            ], 500);
+            DB::rollBack();
+            return redirect()->back()->with('type', 'error')->with('message', 'Gagal menambahkan trip: ' . $e->getMessage());
         }
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Show the form for closing a trip (Halaman Form Tutup Trip).
      */
-    public function store(Request $request)
+    public function showCloseForm($code_trip)
     {
-        // Redirect to create method for consistency
-        return $this->create($request);
+        $trip = Trip::where('code_trip', $code_trip)
+                    ->with('kendaraan', 'driver')
+                    ->firstOrFail();
+
+        // Pastikan trip belum selesai
+        if ($trip->status === 'Selesai') {
+            return redirect()->route('trips.index')->with('error', 'Trip sudah selesai.');
+        }
+
+        return Inertia::render('Kendaraan/CloseTripPage', [ // PERLU BUAT KOMPONEN BARU
+            'trip' => $trip
+        ]);
     }
 
     /**
@@ -321,9 +335,12 @@ class TripController extends Controller
         //
     }
 
-    public function close(Request $request, Trip $trip)
+    public function close(Request $request, $code_trip)
     {
         try {
+            // Ambil trip berdasarkan code_trip
+            $trip = Trip::where('code_trip', $code_trip)->firstOrFail();
+
             // Validate the request data
             $validated = $request->validate([
                 'km_akhir' => 'required|numeric|min:' . $trip->km_awal,
